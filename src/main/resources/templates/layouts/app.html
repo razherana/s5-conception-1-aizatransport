@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+>
+  <head>
+    <title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE">
+      AizaTransport?
+    </title>
+    <!-- Common CSS links, e.g., Bootstrap CDN link -->
+    <link rel="stylesheet" href="/bs5.3/css/bootstrap.min.css" />
+
+    <!-- FA-Icons -->
+    <link rel="stylesheet" href="/fa/css/all.min.css" />
+
+    <script th:src="@{/bs5.3/js/bootstrap.bundle.min.js}" defer></script>
+    <script th:src="@{/fa/js/all.min.js}" defer></script>
+
+    <!-- Page-specific scripts can be included here -->
+    <th:block layout:fragment="script"></th:block>
+
+    <style>
+      * {
+        border-radius: 0 !important;
+      }
+
+      .navbar {
+        background-color: #000;
+        border-bottom: 2px solid #333;
+      }
+
+      .navbar-brand {
+        color: #fff !important;
+        font-weight: 600;
+        letter-spacing: 1px;
+      }
+
+      .nav-link {
+        color: #ccc !important;
+        transition: color 0.3s;
+        border-bottom: 2px solid transparent;
+      }
+
+      .nav-link:hover {
+        color: #fff !important;
+        border-bottom: 2px solid #fff;
+      }
+
+      .nav-link.active {
+        color: #fff !important;
+        border-bottom: 2px solid #fff;
+      }
+
+      main {
+        min-height: calc(100vh - 180px);
+        background-color: #f5f5f5;
+      }
+
+      footer {
+        background-color: #000;
+        color: #ccc;
+        border-top: 2px solid #333;
+        padding: 2rem 0;
+      }
+
+      footer a {
+        color: #999;
+        text-decoration: none;
+        transition: color 0.3s;
+      }
+
+      footer a:hover {
+        color: #fff;
+      }
+
+      .btn {
+        border-radius: 0;
+        transition: all 0.3s;
+      }
+
+      .btn-primary {
+        background-color: #000;
+        border: 1px solid #000;
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        background-color: #333;
+        border: 1px solid #333;
+      }
+
+      .btn-outline-light {
+        border: 1px solid #fff;
+        color: #fff;
+      }
+
+      .btn-outline-light:hover {
+        background-color: #fff;
+        color: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/">AIZA TRANSPORT</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/">Tableau de bord</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/vehicles">Véhicules</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/drivers">Chauffeurs</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/routes">Routes</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/trips">Voyages</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/reservations">Réservations</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/expenses">Dépenses</a>
+            </li>
+            <li class="nav-item ms-3">
+              <a class="nav-link" href="/logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+      <div layout:fragment="content"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4">
+            <h6 class="text-white mb-3">AIZA TRANSPORT</h6>
+            <p class="small">
+              Système professionnel de gestion de taxi-brousse pour des
+              services de transport efficaces.
+            </p>
+          </div>
+          <div class="col-md-4">
+            <h6 class="text-white mb-3">Liens rapides</h6>
+            <ul class="list-unstyled small">
+              <li class="mb-2"><a href="/">Tableau de bord</a></li>
+              <li class="mb-2"><a href="/vehicles">Véhicules</a></li>
+              <li class="mb-2"><a href="/drivers">Chauffeurs</a></li>
+              <li class="mb-2"><a href="/trips">Voyages</a></li>
+            </ul>
+          </div>
+          <div class="col-md-4">
+            <h6 class="text-white mb-3">Contact</h6>
+            <p class="small mb-2">
+              <i class="fa-solid fa-envelope me-2"></i>
+              contact@aizatransport.mg
+            </p>
+            <p class="small mb-2">
+              <i class="fa-solid fa-phone me-2"></i>
+              +261 XX XX XXX XX
+            </p>
+            <p class="small">
+              <i class="fa-solid fa-location-dot me-2"></i>
+              Madagascar
+            </p>
+          </div>
+        </div>
+        <hr class="my-4" style="border-color: #333" />
+        <div class="row">
+          <div class="col-12 text-center small">
+            <p class="mb-0">&copy; 2026 AIZA TRANSPORT. Tous droits réservés.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

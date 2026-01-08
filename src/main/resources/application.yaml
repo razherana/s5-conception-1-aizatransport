@@ -2,4 +2,38 @@ spring:
   application:
     name: aizatransport
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/s5_conception_1_aizatransport
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+      minimum-idle: 5
 
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        "[format_sql]": true
+        jdbc:
+          lob:
+            "[non_contextual_creation]": true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false # Set to true in production
+    check-template-location: true
+    enabled: true
+    # For development - auto reload templates
+    servlet:
+      content-type: text/html

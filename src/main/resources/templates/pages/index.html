@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Accueil</title>
+  </head>
+  <body>
+    <!-- Contenu pour le fragment "content" défini dans app.html -->
+    <section layout:fragment="content" class="container py-4">
+      <h1>Bienvenue sur la page d'accueil</h1>
+      <p>
+        Ceci est le contenu principal de la page d'accueil. Tout ce qui se trouve
+        en dehors de ce fragment est géré par la mise en page.
+      </p>
+    </section>
+  </body>
+</html>
