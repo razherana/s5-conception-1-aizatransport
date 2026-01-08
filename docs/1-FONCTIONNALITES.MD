@@ -43,7 +43,7 @@ Voici un **résumé des fonctionnalités uniquement**, regroupées par **catégo
 ## 5. Gestion des places
 
 - Numéroter les places par véhicule
-- Visualiser les places disponibles / réservées / occupées
+- Visualiser les places disponibles / réservées / Indisponiblees
 - Bloquer ou libérer automatiquement les places selon les actions
 
 ---

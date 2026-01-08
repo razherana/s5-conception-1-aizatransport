@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Sièges du véhicule</title>
+    <th:block layout:fragment="script">
+      <style>
+        .seat-grid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 15px;
+          max-width: 600px;
+          margin: 0 auto;
+        }
+        
+        .seat {
+          aspect-ratio: 1;
+          border: 2px solid #333;
+          background-color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          font-size: 1.1rem;
+          cursor: pointer;
+          transition: all 0.3s;
+          text-decoration: none;
+          color: #000;
+        }
+        
+        .seat:hover {
+          background-color: #f0f0f0;
+          border-color: #000;
+          transform: scale(1.05);
+        }
+        
+        .seat.available {
+          background-color: #fff;
+          border-color: #28a745;
+        }
+        
+        .seat.available:hover {
+          background-color: #d4edda;
+        }
+        
+        .seat.occupied {
+          background-color: #333;
+          color: #fff;
+          border-color: #000;
+        }
+        
+        .seat.occupied:hover {
+          background-color: #555;
+        }
+        
+        .legend {
+          display: flex;
+          gap: 30px;
+          justify-content: center;
+          margin-bottom: 30px;
+        }
+        
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        
+        .legend-box {
+          width: 30px;
+          height: 30px;
+          border: 2px solid #333;
+        }
+        
+        .legend-box.available {
+          background-color: #fff;
+          border-color: #28a745;
+        }
+        
+        .legend-box.occupied {
+          background-color: #333;
+        }
+      </style>
+    </th:block>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h3 mb-0">
+            <i class="fa-solid fa-couch me-2"></i>
+            Sièges du véhicule
+          </h1>
+          <p class="text-muted mb-0 mt-2">
+            <strong th:text="${vehicle.plateNumber}">ABC-1234</strong> - 
+            <span th:text="${vehicle.brand} + ' ' + ${vehicle.model}">Toyota Hiace</span>
+          </p>
+        </div>
+        <a th:href="@{/vehicles}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour à la liste
+        </a>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- Légende -->
+      <div class="card bg-white border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-box available"></div>
+              <span>Disponible</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-box occupied"></div>
+              <span>Indisponible</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grille de sièges -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="seat-grid">
+            <a
+              th:each="seat : ${seats}"
+              th:href="@{/vehicles/seats/{id}/update(id=${seat.id})}"
+              th:class="${seat.available} ? 'seat available' : 'seat occupied'"
+              th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${seat.available} ? 'Disponible' : 'Indisponible')"
+            >
+              <span th:text="${seat.seatNumber}">1</span>
+            </a>
+          </div>
+          
+          <div class="text-center mt-4">
+            <p class="text-muted mb-0">
+              <i class="fa-solid fa-info-circle me-1"></i>
+              Cliquez sur un siège pour le modifier
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistiques -->
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-body text-center">
+              <h3 class="mb-0" th:text="${#lists.size(seats)}">15</h3>
+              <p class="text-muted mb-0">Total de sièges</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-body text-center">
+              <h3 class="mb-0 text-success">
+                <span th:text="${availableSeatsCount}">12</span>
+              </h3>
+              <p class="text-muted mb-0">Sièges disponibles</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

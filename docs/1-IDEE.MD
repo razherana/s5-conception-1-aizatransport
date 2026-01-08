@@ -170,7 +170,7 @@ Ce document décrit les **fonctionnalités** et les **données à gérer** pour 
 - Identifiant de la place
 - Numéro de place
 - Véhicule associé
-- Statut (libre, réservé, occupé)
+- Statut (libre, réservé, Indisponible)
 
 #### Fonctionnalités
 
@@ -188,7 +188,7 @@ Ce document décrit les **fonctionnalités** et les **données à gérer** pour 
 - Nom et prénom
 - Contact (téléphone)
 - Voyage associé
-- Place occupée
+- Place Indisponiblee
 - Type de transaction (réservation ou achat direct)
 
 #### Fonctionnalités

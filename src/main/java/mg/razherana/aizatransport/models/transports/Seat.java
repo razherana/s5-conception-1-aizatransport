@@ -22,4 +22,7 @@ public class Seat extends BasicEntity {
 
   @Column(name = "seat_number", nullable = false, length = 3)
   private String seatNumber;
+
+  @Column(name = "available", nullable = false)
+  private boolean available;
 }

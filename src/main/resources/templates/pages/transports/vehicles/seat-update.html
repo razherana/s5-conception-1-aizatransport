@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Modifier siège</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-edit me-2"></i>
+          Modifier siège
+        </h1>
+        <a th:href="@{/vehicles/{id}/seats(id=${seat.vehicle.id})}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="row justify-content-center">
+        <div class="col-lg-6">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                Siège #<span th:text="${seat.seatNumber}">1</span>
+              </h5>
+              <p class="text-muted small mb-0 mt-1">
+                Véhicule: <strong th:text="${seat.vehicle.plateNumber}">ABC-1234</strong>
+              </p>
+            </div>
+            <div class="card-body p-4">
+              <form th:action="@{/vehicles/seats/{id}/update(id=${seat.id})}" th:object="${seat}" method="post">
+                <div class="mb-3">
+                  <label for="seatNumber" class="form-label">
+                    Numéro du siège <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="seatNumber"
+                    th:field="*{seatNumber}"
+                    required
+                    placeholder="Ex: 1"
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="available" class="form-label">État du siège</label>
+                  <div class="form-check form-switch">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="available"
+                      th:field="*{available}"
+                    />
+                    <label class="form-check-label" for="available">
+                      <span th:if="${seat.available}" class="text-success">
+                        <i class="fa-solid fa-check-circle me-1"></i>
+                        Disponible
+                      </span>
+                      <span th:unless="${seat.available}" class="text-danger">
+                        <i class="fa-solid fa-times-circle me-1"></i>
+                        Indisponible
+                      </span>
+                    </label>
+                  </div>
+                  <small class="form-text text-muted">
+                    Activez pour marquer le siège comme disponible
+                  </small>
+                </div>
+
+                <hr class="my-3" />
+                
+                <div class="d-flex justify-content-end gap-2">
+                  <a th:href="@{/vehicles/{id}/seats(id=${seat.vehicle.id})}" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-times me-1"></i>
+                    Annuler
+                  </a>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-save me-1"></i>
+                    Enregistrer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Informations supplémentaires -->
+          <div class="card bg-light border-0 mt-3">
+            <div class="card-body">
+              <h6 class="mb-2">
+                <i class="fa-solid fa-car me-1"></i>
+                Informations du véhicule
+              </h6>
+              <div class="small">
+                <p class="mb-1">
+                  <strong>Plaque:</strong> <span th:text="${seat.vehicle.plateNumber}">ABC-1234</span>
+                </p>
+                <p class="mb-1">
+                  <strong>Marque:</strong> <span th:text="${seat.vehicle.brand}">Toyota</span>
+                </p>
+                <p class="mb-1">
+                  <strong>Modèle:</strong> <span th:text="${seat.vehicle.model}">Hiace</span>
+                </p>
+                <p class="mb-0">
+                  <strong>Capacité:</strong> <span th:text="${seat.vehicle.capacity} + ' places'">15 places</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

@@ -158,6 +158,13 @@
                   <td class="text-end">
                     <div class="btn-group" role="group">
                       <a
+                        th:href="@{/vehicles/{id}/seats(id=${vehicle.id})}"
+                        class="btn btn-sm btn-outline-info"
+                        title="Gérer les sièges"
+                      >
+                        <i class="fa-solid fa-chair"></i>
+                      </a>
+                      <a
                         th:href="@{/vehicles/update/{id}(id=${vehicle.id})}"
                         class="btn btn-sm btn-outline-primary"
                         title="Modifier"
