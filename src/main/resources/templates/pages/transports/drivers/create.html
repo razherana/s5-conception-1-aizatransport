@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Nouveau chauffeur</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-plus-circle me-2"></i>
+          Nouveau chauffeur
+        </h1>
+        <a th:href="@{/drivers}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-body p-4">
+              <form
+                th:action="@{/drivers/create}"
+                th:object="${driver}"
+                method="post"
+              >
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="fullName" class="form-label">
+                      Nom complet
+                      <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="fullName"
+                      th:field="*{fullName}"
+                      required
+                      placeholder="Ex: Jean Dupont"
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="phone" class="form-label">
+                      Téléphone
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="phone"
+                      th:field="*{phone}"
+                      placeholder="Ex: +261 34 12 345 67"
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="licenseNumber" class="form-label">
+                      Numéro de permis <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="licenseNumber"
+                      th:field="*{licenseNumber}"
+                      required
+                      placeholder="Ex: ABC123456"
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="status" class="form-label">
+                      Statut <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select"
+                      id="status"
+                      th:field="*{status}"
+                      required
+                    >
+                      <option value="">Sélectionner un statut</option>
+                      <option
+                        th:each="status : ${statuses}"
+                        th:value="${status}"
+                        th:text="${status}"
+                      ></option>
+                    </select>
+                  </div>
+
+                  <div class="col-12">
+                    <hr class="my-3" />
+                    <div class="d-flex justify-content-end gap-2">
+                      <a
+                        th:href="@{/drivers}"
+                        class="btn btn-outline-secondary"
+                      >
+                        <i class="fa-solid fa-times me-1"></i>
+                        Annuler
+                      </a>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Enregistrer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

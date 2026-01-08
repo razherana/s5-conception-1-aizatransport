@@ -1,5 +1,7 @@
 package mg.razherana.aizatransport.models.transports;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -23,4 +25,17 @@ public class Driver extends BasicEntity {
   @Column(name = "status", nullable = false, length = 20)
   private String status;
 
+  @Column(name = "created_at", nullable = false)
+  private LocalDate createdAt;
+
+  public DriverStatus getStatusEnum() {
+    return DriverStatus.valueOf(this.status);
+  }
+
+  public enum DriverStatus {
+    DISPONIBLE,
+    EN_SERVICE,
+    EN_CONGE,
+    INDISPONIBLE;
+  }
 }
