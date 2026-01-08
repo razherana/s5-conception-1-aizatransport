@@ -15,6 +15,7 @@
 
     <script th:src="@{/bs5.3/js/bootstrap.bundle.min.js}" defer></script>
     <script th:src="@{/fa/js/all.min.js}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <!-- Page-specific scripts can be included here -->
     <th:block layout:fragment="script"></th:block>
@@ -318,5 +319,7 @@
         </div>
       </footer>
     </div>
+
+    <th:block layout:fragment="script-bottom"></th:block>
   </body>
 </html>

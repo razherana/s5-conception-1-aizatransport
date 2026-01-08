@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Historique des prix</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-chart-line me-2"></i>
+          Historique des prix
+        </h1>
+        <a th:href="@{/routes}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour aux routes
+        </a>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- Route Info -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h5 class="mb-2">
+                <i class="fa-solid fa-map-marker-alt text-success me-2"></i>
+                <span th:text="${route.departureDestination.name}">Antananarivo</span>
+                <i class="fa-solid fa-arrow-right mx-3"></i>
+                <i class="fa-solid fa-map-marker-alt text-danger me-2"></i>
+                <span th:text="${route.arrivalDestination.name}">Toamasina</span>
+              </h5>
+              <p class="mb-0 text-muted">
+                <span th:if="${route.distanceKm != null}">
+                  <i class="fa-solid fa-road me-1"></i>
+                  Distance: <strong th:text="${route.distanceKm} + ' km'">365 km</strong>
+                </span>
+              </p>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="h4 mb-0">
+                Prix actuel: 
+                <span class="badge bg-success fs-5" th:text="${#numbers.formatDecimal(currentPrice, 1, 'COMMA', 2, 'POINT')} + ' Ar'">
+                  50,000.00 Ar
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Chart -->
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm mb-4">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-chart-area me-2"></i>
+                Évolution des prix
+              </h5>
+            </div>
+            <div class="card-body">
+              <canvas id="priceChart" height="100"></canvas>
+            </div>
+          </div>
+
+          <!-- Price History Table -->
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-history me-2"></i>
+                Historique complet
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Date d'effet</th>
+                      <th>Prix (Ar)</th>
+                      <th>Variation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:if="${#lists.isEmpty(priceHistoryDTOs)}">
+                      <td colspan="3" class="text-center text-muted py-4">
+                        <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
+                        Aucun historique de prix
+                      </td>
+                    </tr>
+                    <tr th:each="priceDTO : ${priceHistoryDTOs}">
+                      <td>
+                        <i class="fa-solid fa-calendar me-2"></i>
+                        <span th:text="${#temporals.format(priceDTO.effectiveDate, 'dd/MM/yyyy')}">01/01/2026</span>
+                        <span th:if="${priceDTO.current}" class="badge bg-primary ms-2">Actuel</span>
+                      </td>
+                      <td>
+                        <strong th:text="${#numbers.formatDecimal(priceDTO.price, 1, 'COMMA', 2, 'POINT')} + ' Ar'">50,000.00 Ar</strong>
+                      </td>
+                      <td>
+                        <span th:if="${priceDTO.variationType == 'increase'}" class="text-success">
+                          <i class="fa-solid fa-arrow-up me-1"></i>
+                          +<span th:text="${#numbers.formatDecimal(priceDTO.variation, 1, 'COMMA', 2, 'POINT')}">5,000.00</span> Ar
+                        </span>
+                        <span th:if="${priceDTO.variationType == 'decrease'}" class="text-danger">
+                          <i class="fa-solid fa-arrow-down me-1"></i>
+                          <span th:text="${#numbers.formatDecimal(priceDTO.variation, 1, 'COMMA', 2, 'POINT')}">-5,000.00</span> Ar
+                        </span>
+                        <span th:if="${priceDTO.variationType == 'none'}" class="text-muted">
+                          <i class="fa-solid fa-minus me-1"></i>
+                          Aucun changement
+                        </span>
+                        <span th:if="${priceDTO.variationType == 'initial'}" class="text-muted">
+                          Prix initial
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Price Form -->
+        <div class="col-lg-4">
+          <div class="card bg-white border-0 shadow-sm sticky-top" style="top: 4em; z-index: 10;">
+            <div class="card-header bg-primary text-white border-0">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-plus-circle me-2"></i>
+                Ajouter un nouveau prix
+              </h5>
+            </div>
+            <div class="card-body p-4">
+              <form th:action="@{/routes/{id}/add-price(id=${route.id})}" method="post">
+                <div class="mb-3">
+                  <label for="price" class="form-label">
+                    Prix (Ar) <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    class="form-control"
+                    id="price"
+                    name="price"
+                    required
+                    placeholder="Ex: 55000.00"
+                    th:value="${currentPrice}"
+                  />
+                  <div class="form-text">
+                    Prix actuel: <strong th:text="${#numbers.formatDecimal(currentPrice, 1, 'COMMA', 2, 'POINT')} + ' Ar'">50,000.00 Ar</strong>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="effectiveDate" class="form-label">
+                    Date d'effet <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="effectiveDate"
+                    name="effectiveDate"
+                    required
+                    th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                  />
+                  <div class="form-text">
+                    La date à partir de laquelle ce prix sera effectif
+                  </div>
+                </div>
+
+                <div class="alert alert-warning small">
+                  <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                  Ce nouveau prix sera ajouté à l'historique. Les anciens prix seront conservés.
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="fa-solid fa-save me-1"></i>
+                  Enregistrer le prix
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chart.js Script -->
+    <th:block layout:fragment="script-bottom">
+      <script th:inline="javascript">
+        /*<![CDATA[*/
+        const chartLabels = /*[[${chartData.labels}]]*/ [];
+        const chartPrices = /*[[${chartData.prices}]]*/ [];
+
+        // Create the chart
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const priceChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: chartLabels,
+            datasets: [{
+              label: 'Prix (Ar)',
+              data: chartPrices,
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192, 0.1)',
+              tension: 0.3,
+              fill: true,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: 'rgb(75, 192, 192)',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return 'Prix: ' + context.parsed.y.toLocaleString('fr-FR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    }) + ' Ar';
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                ticks: {
+                  callback: function(value) {
+                    return value.toLocaleString('fr-FR') + ' Ar';
+                  }
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+        /*]]>*/
+      </script>
+    </th:block>
+  </body>
+</html>

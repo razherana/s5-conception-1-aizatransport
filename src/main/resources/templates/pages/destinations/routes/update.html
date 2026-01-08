@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Modifier route</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-edit me-2"></i>
+          Modifier route
+        </h1>
+        <a th:href="@{/routes}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                Route #<span th:text="${route.id}">1</span>
+              </h5>
+            </div>
+            <div class="card-body p-4">
+              <form th:action="@{/routes/update/{id}(id=${route.id})}" th:object="${route}" method="post">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="departureDestination" class="form-label">
+                      Destination de départ <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select"
+                      id="departureDestination"
+                      th:field="*{departureDestination.id}"
+                      required
+                    >
+                      <option value="">Sélectionner une destination</option>
+                      <option
+                        th:each="destination : ${destinations}"
+                        th:value="${destination.id}"
+                        th:text="${destination.name}"
+                      ></option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="arrivalDestination" class="form-label">
+                      Destination d'arrivée <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select"
+                      id="arrivalDestination"
+                      th:field="*{arrivalDestination.id}"
+                      required
+                    >
+                      <option value="">Sélectionner une destination</option>
+                      <option
+                        th:each="destination : ${destinations}"
+                        th:value="${destination.id}"
+                        th:text="${destination.name}"
+                      ></option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="distanceKm" class="form-label">
+                      Distance (km)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      class="form-control"
+                      id="distanceKm"
+                      th:field="*{distanceKm}"
+                      placeholder="Ex: 365.50"
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="active" class="form-label">État</label>
+                    <div class="form-check form-switch mt-2">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="active"
+                        th:field="*{active}"
+                      />
+                      <label class="form-check-label" for="active">
+                        Route active
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <div class="alert alert-info">
+                      <i class="fa-solid fa-info-circle me-2"></i>
+                      Pour modifier le prix, utilisez la page d'historique des prix.
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <hr class="my-3" />
+                    <div class="d-flex justify-content-end gap-2">
+                      <a th:href="@{/routes}" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-times me-1"></i>
+                        Annuler
+                      </a>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Enregistrer les modifications
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
