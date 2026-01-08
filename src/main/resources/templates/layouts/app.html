@@ -8,10 +8,10 @@
       AizaTransport?
     </title>
     <!-- Common CSS links, e.g., Bootstrap CDN link -->
-    <link rel="stylesheet" href="/bs5.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" th:href="@{/bs5.3/css/bootstrap.min.css}" />
 
     <!-- FA-Icons -->
-    <link rel="stylesheet" href="/fa/css/all.min.css" />
+    <link rel="stylesheet" th:href="@{/fa/css/all.min.css}" />
 
     <script th:src="@{/bs5.3/js/bootstrap.bundle.min.js}" defer></script>
     <script th:src="@{/fa/js/all.min.js}" defer></script>
@@ -104,7 +104,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container-fluid px-4">
-        <a class="navbar-brand" href="/">AIZA TRANSPORT</a>
+        <a class="navbar-brand" th:href="@{/}">AIZA TRANSPORT</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -119,28 +119,28 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link" href="/">Tableau de bord</a>
+              <a class="nav-link" th:href="@{/}">Tableau de bord</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/vehicles">Véhicules</a>
+              <a class="nav-link" th:href="@{/vehicles}">Véhicules</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/drivers">Chauffeurs</a>
+              <a class="nav-link" th:href="@{/drivers}">Chauffeurs</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/routes">Routes</a>
+              <a class="nav-link" th:href="@{/routes}">Routes</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/trips">Voyages</a>
+              <a class="nav-link" th:href="@{/trips}">Voyages</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/reservations">Réservations</a>
+              <a class="nav-link" th:href="@{/reservations}">Réservations</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/expenses">Dépenses</a>
+              <a class="nav-link" th:href="@{/expenses}">Dépenses</a>
             </li>
             <li class="nav-item ms-3">
-              <a class="nav-link" href="/logout">
+              <a class="nav-link" th:href="@{/logout}">
                 <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
               </a>
             </li>
@@ -168,10 +168,10 @@
           <div class="col-md-4">
             <h6 class="text-white mb-3">Liens rapides</h6>
             <ul class="list-unstyled small">
-              <li class="mb-2"><a href="/">Tableau de bord</a></li>
-              <li class="mb-2"><a href="/vehicles">Véhicules</a></li>
-              <li class="mb-2"><a href="/drivers">Chauffeurs</a></li>
-              <li class="mb-2"><a href="/trips">Voyages</a></li>
+              <li class="mb-2"><a th:href="@{/}">Tableau de bord</a></li>
+              <li class="mb-2"><a th:href="@{/vehicles}">Véhicules</a></li>
+              <li class="mb-2"><a th:href="@{/drivers}">Chauffeurs</a></li>
+              <li class="mb-2"><a th:href="@{/trips}">Voyages</a></li>
             </ul>
           </div>
           <div class="col-md-4">
