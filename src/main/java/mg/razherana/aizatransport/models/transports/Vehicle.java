@@ -32,4 +32,15 @@ public class Vehicle extends BasicEntity {
 
   @Column(nullable = false)
   private LocalDate createdAt;
+
+  public VehicleStatus getStatusEnum() {
+    return VehicleStatus.valueOf(this.status);
+  }
+
+  public enum VehicleStatus {
+    DISPONIBLE,
+    EN_SERVICE,
+    EN_MAINTENANCE,
+    HORS_SERVICE;
+  }
 }

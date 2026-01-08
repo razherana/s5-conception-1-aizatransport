@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Modifier véhicule</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-edit me-2"></i>
+          Modifier véhicule
+        </h1>
+        <a th:href="@{/vehicles}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                Véhicule #<span th:text="${vehicle.id}">1</span>
+              </h5>
+            </div>
+            <div class="card-body p-4">
+              <form th:action="@{/vehicles/update/{id}(id=${vehicle.id})}" th:object="${vehicle}" method="post">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="plateNumber" class="form-label">
+                      Plaque d'immatriculation <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="plateNumber"
+                      th:field="*{plateNumber}"
+                      required
+                      placeholder="Ex: 1234 TAD"
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="brand" class="form-label">
+                      Marque <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="brand"
+                      th:field="*{brand}"
+                      required
+                      placeholder="Ex: Toyota"
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="model" class="form-label">
+                      Modèle <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="model"
+                      th:field="*{model}"
+                      required
+                      placeholder="Ex: Hiace"
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="capacity" class="form-label">
+                      Capacité (places) <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="capacity"
+                      th:field="*{capacity}"
+                      required
+                      min="1"
+                      placeholder="Ex: 15"
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="status" class="form-label">
+                      Statut <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="status" th:field="*{status}" required>
+                      <option value="">Sélectionner un statut</option>
+                      <option
+                        th:each="status : ${statuses}"
+                        th:value="${status}"
+                        th:text="${status}"
+                      ></option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="active" class="form-label">État</label>
+                    <div class="form-check form-switch mt-2">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="active"
+                        th:field="*{active}"
+                      />
+                      <label class="form-check-label" for="active">
+                        Véhicule actif
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="createdAt" class="form-label">
+                      Date de création <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="createdAt"
+                      th:field="*{createdAt}"
+                      required
+                    />
+                  </div>
+
+                  <div class="col-12">
+                    <hr class="my-3" />
+                    <div class="d-flex justify-content-end gap-2">
+                      <a th:href="@{/vehicles}" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-times me-1"></i>
+                        Annuler
+                      </a>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Enregistrer les modifications
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Informations supplémentaires -->
+          <div class="card bg-light border-0 mt-3">
+            <div class="card-body">
+              <small class="text-muted">
+                <i class="fa-solid fa-info-circle me-1"></i>
+                Créé le: <strong th:text="${#temporals.format(vehicle.createdAt, 'dd/MM/yyyy')}">01/01/2026</strong>
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
