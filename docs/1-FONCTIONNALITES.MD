@@ -7,17 +7,12 @@ Voici un **résumé des fonctionnalités uniquement**, regroupées par **catégo
 - Ajouter, modifier, désactiver un véhicule
 - Suivre l’état (actif, panne, maintenance)
 - Gérer la capacité et les places numérotées
-- Consulter l’historique (voyages, pannes, réparations)
-- Recevoir des alertes (assurance, visite technique)
 
 ---
 
 ## 2. Gestion du personnel
 
 - Gérer les chauffeurs
-- Gérer les aides / receveurs
-- Affecter le personnel aux voyages
-- Consulter l’historique d’activité par personnel
 
 ---
 
