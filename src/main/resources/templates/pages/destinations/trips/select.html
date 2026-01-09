@@ -109,7 +109,7 @@
                 <tr th:each="trip : ${trips}">
                   <td th:text="${trip.id}">1</td>
                   <td>
-                    <strong th:text="${tripDisplayMap.get(trip.id)}"
+                    <strong th:text="${trip.route.departureDestination.name} + ' → ' + ${trip.route.arrivalDestination.name}"
                       >Tana → Antsirabe</strong
                     >
                   </td>
