@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Liste des trajets</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-route me-2"></i>
+          Liste des trajets
+        </h1>
+        <a th:href="@{/trips/create}" class="btn btn-primary">
+          <i class="fa-solid fa-plus me-1"></i>
+          Nouveau trajet
+        </a>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- Filtres et tri -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <form method="get" th:action="@{/trips}">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Route
+                </label>
+                <select name="routeId" class="form-select">
+                  <option value="">Toutes les routes</option>
+                  <option
+                    th:each="route : ${routes}"
+                    th:value="${route.id}"
+                    th:text="${route.departureDestination.name} + ' → ' + ${route.arrivalDestination.name}"
+                    th:selected="${route.id == selectedRouteId}"
+                  ></option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Véhicule
+                </label>
+                <select name="vehicleId" class="form-select">
+                  <option value="">Tous les véhicules</option>
+                  <option
+                    th:each="vehicle : ${vehicles}"
+                    th:value="${vehicle.id}"
+                    th:text="${vehicle.plateNumber}"
+                    th:selected="${vehicle.id == selectedVehicleId}"
+                  ></option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Chauffeur
+                </label>
+                <select name="driverId" class="form-select">
+                  <option value="">Tous les chauffeurs</option>
+                  <option
+                    th:each="driver : ${drivers}"
+                    th:value="${driver.id}"
+                    th:text="${driver.fullName}"
+                    th:selected="${driver.id == selectedDriverId}"
+                  ></option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Statut
+                </label>
+                <select name="status" class="form-select">
+                  <option value="">Tous les statuts</option>
+                  <option
+                    th:each="status : ${statuses}"
+                    th:value="${status}"
+                    th:text="${status}"
+                    th:selected="${status == selectedStatus}"
+                  ></option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-sort me-1"></i>
+                  Trier par
+                </label>
+                <select name="sortBy" class="form-select">
+                  <option value="departureDatetime" th:selected="${sortBy == 'departureDatetime'}">Date départ</option>
+                  <option value="route" th:selected="${sortBy == 'route'}">Route</option>
+                  <option value="vehicle" th:selected="${sortBy == 'vehicle'}">Véhicule</option>
+                  <option value="driver" th:selected="${sortBy == 'driver'}">Chauffeur</option>
+                  <option value="status" th:selected="${sortBy == 'status'}">Statut</option>
+                </select>
+              </div>
+              <div class="col-md-1">
+                <label class="form-label">Ordre</label>
+                <select name="sortOrder" class="form-select">
+                  <option value="asc" th:selected="${sortOrder == 'asc'}">Croissant</option>
+                  <option value="desc" th:selected="${sortOrder == 'desc'}">Décroissant</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary me-2">
+                  <i class="fa-solid fa-search me-1"></i>
+                  Filtrer
+                </button>
+                <a th:href="@{/trips}" class="btn btn-outline-secondary">
+                  <i class="fa-solid fa-times me-1"></i>
+                  Réinitialiser
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Route</th>
+                  <th>Date départ</th>
+                  <th>Véhicule</th>
+                  <th>Chauffeur</th>
+                  <th>Statut</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(trips)}">
+                  <td colspan="7" class="text-center text-muted py-4">
+                    <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
+                    Aucun trajet trouvé
+                  </td>
+                </tr>
+                <tr th:each="trip : ${trips}">
+                  <td th:text="${trip.id}">1</td>
+                  <td>
+                    <strong th:if="${trip.route != null}" th:text="${trip.route.departureDestination.name} + ' → ' + ${trip.route.arrivalDestination.name}">Antananarivo → Toamasina</strong>
+                    <span th:unless="${trip.route != null}" class="text-muted">-</span>
+                  </td>
+                  <td th:text="${#temporals.format(trip.departureDatetime, 'dd/MM/yyyy HH:mm')}">01/01/2026 08:00</td>
+                  <td>
+                    <span th:if="${trip.vehicle != null}" class="badge bg-secondary" th:text="${trip.vehicle.plateNumber}">ABC-1234</span>
+                    <span th:unless="${trip.vehicle != null}" class="text-muted">-</span>
+                  </td>
+                  <td>
+                    <span th:if="${trip.driver != null}" th:text="${trip.driver.fullName}">Jean Dupont</span>
+                    <span th:unless="${trip.driver != null}" class="text-muted">-</span>
+                  </td>
+                  <td>
+                    <span
+                      class="badge"
+                      th:classappend="${trip.status == 'BROUILLON'} ? 'bg-secondary' : (${trip.status == 'PLANIFIE'} ? 'bg-info' : (${trip.status == 'EN_COURS'} ? 'bg-primary' : (${trip.status == 'TERMINE'} ? 'bg-success' : 'bg-danger')))"
+                      th:text="${trip.status}"
+                    >PLANIFIE</span>
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group" role="group">
+                      <a
+                        th:href="@{/trips/update/{id}(id=${trip.id})}"
+                        class="btn btn-sm btn-outline-primary"
+                        title="Modifier"
+                      >
+                        <i class="fa-solid fa-edit"></i>
+                      </a>
+                      <form
+                        th:action="@{/trips/delete/{id}(id=${trip.id})}"
+                        method="post"
+                        class="d-inline"
+                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce trajet ?');"
+                      >
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-3 text-muted small">
+            <i class="fa-solid fa-info-circle me-1"></i>
+            Total: <strong th:text="${#lists.size(trips)}">0</strong> trajet(s)
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

@@ -22,11 +22,11 @@ public class Trip extends BasicEntity {
   private Route route;
 
   @ManyToOne
-  @JoinColumn(name = "vehicle_id", nullable = false)
+  @JoinColumn(name = "vehicle_id", nullable = true)
   private Vehicle vehicle;
 
   @ManyToOne
-  @JoinColumn(name = "driver_id", nullable = false)
+  @JoinColumn(name = "driver_id", nullable = true)
   private Driver driver;
 
   @Column(name = "departure_datetime", nullable = false)
@@ -34,5 +34,17 @@ public class Trip extends BasicEntity {
 
   @Column(name = "status", nullable = false, length = 20)
   private String status;
+
+  public TripStatus getStatusEnum() {
+    return TripStatus.valueOf(this.status);
+  }
+
+  public enum TripStatus {
+    BROUILLON,
+    PLANIFIE,
+    EN_COURS,
+    TERMINE,
+    ANNULE;
+  }
 
 }

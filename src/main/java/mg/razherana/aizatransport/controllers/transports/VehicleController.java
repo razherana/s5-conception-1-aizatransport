@@ -83,4 +83,25 @@ public class VehicleController {
     redirectAttributes.addFlashAttribute("success", "Véhicule supprimé avec succès!");
     return "redirect:/vehicles";
   }
+
+  @GetMapping("/select")
+  public String select(
+      @RequestParam(required = false) String brand,
+      @RequestParam(required = false) String status,
+      @RequestParam(defaultValue = "createdAt") String sortBy,
+      @RequestParam(defaultValue = "desc") String sortOrder,
+      @RequestParam(required = false) String target,
+      Model model) {
+
+    model.addAttribute("vehicles", vehicleService.findAllFiltered(brand, status, sortBy, sortOrder));
+    model.addAttribute("brands", vehicleService.getAllBrands());
+    model.addAttribute("statuses", vehicleService.getAllStatuses());
+    model.addAttribute("selectedBrand", brand);
+    model.addAttribute("selectedStatus", status);
+    model.addAttribute("sortBy", sortBy);
+    model.addAttribute("sortOrder", sortOrder);
+    model.addAttribute("target", target);
+
+    return "pages/transports/vehicles/select";
+  }
 }

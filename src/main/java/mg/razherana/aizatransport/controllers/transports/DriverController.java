@@ -82,4 +82,24 @@ public class DriverController {
     redirectAttributes.addFlashAttribute("success", "Chauffeur supprimé avec succès!");
     return "redirect:/drivers";
   }
+
+  @GetMapping("/select")
+  public String select(
+      @RequestParam(required = false) String fullName,
+      @RequestParam(required = false) String status,
+      @RequestParam(defaultValue = "createdAt") String sortBy,
+      @RequestParam(defaultValue = "desc") String sortOrder,
+      @RequestParam(required = false) String target,
+      Model model) {
+
+    model.addAttribute("drivers", driverService.findAllFiltered(fullName, status, sortBy, sortOrder));
+    model.addAttribute("statuses", driverService.getAllStatuses());
+    model.addAttribute("selectedFullName", fullName);
+    model.addAttribute("selectedStatus", status);
+    model.addAttribute("sortBy", sortBy);
+    model.addAttribute("sortOrder", sortOrder);
+    model.addAttribute("target", target);
+
+    return "pages/transports/drivers/select";
+  }
 }

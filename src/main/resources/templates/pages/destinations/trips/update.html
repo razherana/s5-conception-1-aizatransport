@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Modifier trajet</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-edit me-2"></i>
+          Modifier trajet
+        </h1>
+        <a th:href="@{/trips}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                Trajet #<span th:text="${trip.id}">1</span>
+              </h5>
+            </div>
+            <div class="card-body p-4">
+              <form
+                th:action="@{/trips/update/{id}(id=${trip.id})}"
+                th:object="${trip}"
+                method="post"
+              >
+                <div class="row g-3">
+                  <div class="col-md-12">
+                    <label for="route" class="form-label">
+                      Route <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select"
+                      id="route"
+                      th:field="*{route.id}"
+                      required
+                    >
+                      <option value="">Sélectionner une route</option>
+                      <option
+                        th:each="route : ${routes}"
+                        th:value="${route.id}"
+                        th:text="${route.departureDestination.name} + ' → ' + ${route.arrivalDestination.name} + ' (' + ${route.distanceKm} + ' km)'"
+                      ></option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="departureDatetime" class="form-label">
+                      Date et heure de départ <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      class="form-control"
+                      id="departureDatetime"
+                      th:field="*{departureDatetime}"
+                      required
+                    />
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="status" class="form-label">
+                      Statut <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select"
+                      id="status"
+                      th:field="*{status}"
+                      required
+                    >
+                      <option value="">Sélectionner un statut</option>
+                      <option
+                        th:each="status : ${statuses}"
+                        th:value="${status}"
+                        th:text="${status}"
+                      ></option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="vehicle" class="form-label">
+                      Véhicule
+                    </label>
+                    <div class="input-group">
+                      <select
+                        class="form-select"
+                        id="vehicle"
+                        th:field="*{vehicle.id}"
+                        name="vehicle.id"
+                      >
+                        <option value="">Aucun véhicule</option>
+                        <option
+                          th:each="vehicle : ${vehicles}"
+                          th:value="${vehicle.id}"
+                          th:text="${vehicle.plateNumber} + ' - ' + ${vehicle.brand} + ' ' + ${vehicle.model} + ' (' + ${vehicle.capacity} + ' places)'"
+                        ></option>
+                      </select>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        onclick="window.open('/vehicles/select?target=vehicle', 'SelectVehicle', 'width=1000,height=700')"
+                        title="Rechercher un véhicule"
+                      >
+                        <i class="fa-solid fa-search"></i>
+                      </button>
+                    </div>
+                    <small class="form-text text-muted">
+                      Utilisez le bouton de recherche pour filtrer et trier les véhicules
+                    </small>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="driver" class="form-label">
+                      Chauffeur
+                    </label>
+                    <div class="input-group">
+                      <select
+                        class="form-select"
+                        id="driver"
+                        th:field="*{driver.id}"
+                        name="driver.id"
+                      >
+                        <option value="">Aucun chauffeur</option>
+                        <option
+                          th:each="driver : ${drivers}"
+                          th:value="${driver.id}"
+                          th:text="${driver.fullName} + ' (' + ${driver.licenseNumber} + ')'"
+                        ></option>
+                      </select>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        onclick="window.open('/drivers/select?target=driver', 'SelectDriver', 'width=1000,height=700')"
+                        title="Rechercher un chauffeur"
+                      >
+                        <i class="fa-solid fa-search"></i>
+                      </button>
+                    </div>
+                    <small class="form-text text-muted">
+                      Utilisez le bouton de recherche pour filtrer et trier les chauffeurs
+                    </small>
+                  </div>
+
+                  <div class="col-12">
+                    <hr class="my-3" />
+                    <div class="d-flex justify-content-end gap-2">
+                      <a
+                        th:href="@{/trips}"
+                        class="btn btn-outline-secondary"
+                      >
+                        <i class="fa-solid fa-times me-1"></i>
+                        Annuler
+                      </a>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Enregistrer les modifications
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script layout:fragment="scripts">
+      // Listen for messages from selection popup windows
+      window.addEventListener('message', function(event) {
+        if (event.data.type === 'selectVehicle') {
+          document.getElementById('vehicle').value = event.data.id;
+        } else if (event.data.type === 'selectDriver') {
+          document.getElementById('driver').value = event.data.id;
+        }
+      });
+    </script>
+  </body>
+</html>
