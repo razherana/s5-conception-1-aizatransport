@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sélectionner un siège</title>
+    <link th:href="@{/bs5.3/css/bootstrap.min.css}" rel="stylesheet" />
+    <link th:href="@{/fa/css/all.min.css}" rel="stylesheet" />
+    <style>
+      .seat-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .seat {
+        aspect-ratio: 1;
+        border: 2px solid #333;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        padding: 5px;
+        text-align: center;
+      }
+
+      .seat:hover:not(.occupied) {
+        background-color: #d4edda;
+        border-color: #28a745;
+        transform: scale(1.05);
+      }
+
+      .seat.available {
+        background-color: #fff;
+        border-color: #28a745;
+      }
+
+      .seat.occupied {
+        background-color: #6c757d;
+        color: #fff;
+        border-color: #495057;
+        cursor: not-allowed;
+      }
+
+      .seat-number {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 3px;
+      }
+
+      .seat-passenger {
+        font-size: 0.7rem;
+        font-weight: normal;
+        line-height: 1.1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        line-clamp: 2;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+
+      .legend {
+        display: flex;
+        gap: 30px;
+        justify-content: center;
+        margin-bottom: 30px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .legend-box {
+        width: 30px;
+        height: 30px;
+        border: 2px solid #333;
+      }
+
+      .legend-box.available {
+        background-color: #fff;
+        border-color: #28a745;
+      }
+
+      .legend-box.occupied {
+        background-color: #6c757d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid py-4">
+      <div class="mb-4">
+        <h4 class="mb-0">
+          <i class="fa-solid fa-couch me-2"></i>
+          Sélectionner un siège
+        </h4>
+      </div>
+
+      <!-- Légende -->
+      <div class="card bg-white border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-box available"></div>
+              <span>Disponible</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-box occupied"></div>
+              <span>Occupé</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grille de sièges -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="seat-grid">
+            <div
+              th:each="seat : ${seats}"
+              th:class="${seatPassengerMap.containsKey(seat.id)} ? 'seat occupied' : 'seat available'"
+              th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${seatPassengerMap.containsKey(seat.id)} ? ${seatPassengerMap.get(seat.id)} : 'Disponible')"
+              th:data-seat-id="${seat.id}"
+              th:data-seat-number="${seat.seatNumber}"
+              th:data-occupied="${seatPassengerMap.containsKey(seat.id)}"
+              onclick="handleSeatClick(this)"
+            >
+              <div class="seat-number" th:text="${seat.seatNumber}">A1</div>
+              <div class="seat-passenger" th:if="${seatPassengerMap.containsKey(seat.id)}" th:text="${seatPassengerMap.get(seat.id)}">Passenger Name</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function handleSeatClick(element) {
+        const isOccupied = element.getAttribute("data-occupied") === "true";
+        if (!isOccupied) {
+          const id = element.getAttribute("data-seat-id");
+          const number = element.getAttribute("data-seat-number");
+          selectSeat(id, number);
+        }
+      }
+
+      function selectSeat(id, number) {
+        // Send message to opener window
+        if (window.opener) {
+          window.opener.postMessage(
+            {
+              type: "selectSeat",
+              id: id,
+              number: number,
+            },
+            "*"
+          );
+          window.close();
+        }
+      }
+    </script>
+
+    <script th:src="@{/bs5.3/js/bootstrap.bundle.min.js}"></script>
+  </body>
+</html>

@@ -272,6 +272,13 @@
                       </form>
 
                       <a
+                        th:href="@{/trips/{id}/seats(id=${trip.id})}"
+                        class="btn btn-sm btn-outline-info"
+                        title="Gérer les sièges"
+                      >
+                        <i class="fa-solid fa-couch"></i>
+                      </a>
+                      <a
                         th:href="@{/trips/update/{id}(id=${trip.id})}"
                         class="btn btn-sm btn-outline-primary"
                         title="Modifier"

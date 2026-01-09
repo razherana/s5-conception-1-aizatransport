@@ -1,18 +1,30 @@
 package mg.razherana.aizatransport.controllers.transports;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.transports.Seat;
+import mg.razherana.aizatransport.models.destinations.Reservation;
+import mg.razherana.aizatransport.models.destinations.Ticket;
+import mg.razherana.aizatransport.models.destinations.Trip;
 import mg.razherana.aizatransport.services.SeatService;
 import mg.razherana.aizatransport.services.VehicleService;
+import mg.razherana.aizatransport.services.TripService;
+import mg.razherana.aizatransport.services.ReservationService;
+import mg.razherana.aizatransport.services.TicketService;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/vehicles")
@@ -21,6 +33,9 @@ public class SeatController {
 
   private final SeatService seatService;
   private final VehicleService vehicleService;
+  private final TripService tripService;
+  private final ReservationService reservationService;
+  private final TicketService ticketService;
 
   @GetMapping("/{vehicleId}/seats")
   public String viewSeats(@PathVariable Integer vehicleId, Model model, RedirectAttributes redirectAttributes) {
@@ -28,10 +43,10 @@ public class SeatController {
         .map(vehicle -> {
           // Générer les sièges si pas encore créés
           seatService.generateSeatsForVehicle(vehicleId);
-          
+
           var seats = seatService.findByVehicleId(vehicleId);
           long availableSeatsCount = seats.stream().filter(Seat::isAvailable).count();
-          
+
           model.addAttribute("vehicle", vehicle);
           model.addAttribute("seats", seats);
           model.addAttribute("availableSeatsCount", availableSeatsCount);
@@ -70,5 +85,65 @@ public class SeatController {
           redirectAttributes.addFlashAttribute("error", "Siège non trouvé!");
           return "redirect:/vehicles";
         });
+  }
+
+  @GetMapping("/seats/select")
+  @Transactional(readOnly = true)
+  public String select(
+      @RequestParam Integer tripId,
+      @RequestParam(required = false) String target,
+      Model model) {
+
+    Trip trip = tripService.findById(tripId).orElseThrow(() -> {
+      return new IllegalArgumentException("Trajet non trouvé pour l'ID: " + tripId);
+    });
+
+    // Force initialization of vehicle and its seats
+    if (trip.getVehicle() != null) {
+      trip.getVehicle().getId(); // Touch the vehicle to ensure it's loaded
+    }
+
+    // Get all reservations and tickets for this trip
+    List<Reservation> reservations = reservationService.findAll().stream()
+        .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(tripId))
+        .toList();
+
+    List<Ticket> tickets = ticketService.findAll().stream()
+        .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(tripId))
+        .toList();
+
+    // Create a map of seat ID to passenger name
+    Map<Integer, String> seatPassengerMap = new HashMap<>();
+
+    for (Reservation reservation : reservations) {
+      if (reservation.getSeat() != null && reservation.getPassenger() != null) {
+        seatPassengerMap.put(
+            reservation.getSeat().getId(),
+            reservation.getPassenger().getFullName() + " (Rés.)");
+      }
+    }
+
+    for (Ticket ticket : tickets) {
+      if (ticket.getSeat() != null && ticket.getPassenger() != null) {
+        seatPassengerMap.put(
+            ticket.getSeat().getId(),
+            ticket.getPassenger().getFullName() + " (Tick.)");
+      }
+    }
+
+    // Get seats for the vehicle
+    List<Seat> seats;
+    if (trip.getVehicle() != null) {
+      seats = seatService.findByVehicleId(trip.getVehicle().getId());
+    } else {
+      seats = List.of();
+    }
+
+    model.addAttribute("seats", seats);
+    model.addAttribute("seatPassengerMap", seatPassengerMap);
+    model.addAttribute("tripId", tripId);
+    model.addAttribute("target", target);
+
+    return "pages/transports/seats/select";
   }
 }

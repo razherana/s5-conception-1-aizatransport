@@ -1,6 +1,7 @@
 package mg.razherana.aizatransport.controllers.destinations;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -12,10 +13,20 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Trip;
+import mg.razherana.aizatransport.models.destinations.Reservation;
+import mg.razherana.aizatransport.models.destinations.Ticket;
+import mg.razherana.aizatransport.models.transports.Seat;
 import mg.razherana.aizatransport.services.TripService;
 import mg.razherana.aizatransport.services.RouteService;
 import mg.razherana.aizatransport.services.VehicleService;
 import mg.razherana.aizatransport.services.DriverService;
+import mg.razherana.aizatransport.services.SeatService;
+import mg.razherana.aizatransport.services.ReservationService;
+import mg.razherana.aizatransport.services.TicketService;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/trips")
@@ -26,6 +37,9 @@ public class TripController {
   private final RouteService routeService;
   private final VehicleService vehicleService;
   private final DriverService driverService;
+  private final SeatService seatService;
+  private final ReservationService reservationService;
+  private final TicketService ticketService;
 
   @GetMapping
   public String list(
@@ -138,5 +152,177 @@ public class TripController {
           redirectAttributes.addFlashAttribute("error", "Trajet non trouvé!");
           return "redirect:/trips";
         });
+  }
+
+  @GetMapping("/select")
+  public String select(
+      @RequestParam(required = false) String status,
+      @RequestParam(defaultValue = "departureDatetime") String sortBy,
+      @RequestParam(defaultValue = "desc") String sortOrder,
+      @RequestParam(required = false) String target,
+      Model model) {
+
+    var trips = tripService.findAllFiltered(null, null, null, status, sortBy, sortOrder);
+
+    // Create a map of trip display information to avoid null issues in template
+    var tripDisplayMap = new java.util.HashMap<Integer, String>();
+    var tripPriceMap = new java.util.HashMap<Integer, Double>();
+    
+    for (var trip : trips) {
+      String display = "";
+      if (trip.getRoute() != null) {
+        display = trip.getRoute().getDepartureDestination() + " → " + trip.getRoute().getArrivalDestination();
+        
+        // Get current route price
+        var currentPrice = routeService.getCurrentPrice(trip.getRoute().getId());
+        if (currentPrice.isPresent()) {
+          tripPriceMap.put(trip.getId(), currentPrice.get().doubleValue());
+        } else {
+          tripPriceMap.put(trip.getId(), 0.0);
+        }
+      }
+      tripDisplayMap.put(trip.getId(), display);
+    }
+
+    model.addAttribute("trips", trips);
+    model.addAttribute("tripDisplayMap", tripDisplayMap);
+    model.addAttribute("tripPriceMap", tripPriceMap);
+    model.addAttribute("statuses", tripService.getAllStatuses());
+    model.addAttribute("selectedStatus", status);
+    model.addAttribute("sortBy", sortBy);
+    model.addAttribute("sortOrder", sortOrder);
+    model.addAttribute("target", target);
+
+    return "pages/destinations/trips/select";
+  }
+
+  @GetMapping("/{id}/seats")
+  @Transactional(readOnly = true)
+  public String manageSeats(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
+    return tripService.findById(id)
+        .map(trip -> {
+          // Get seats for the vehicle
+          List<Seat> seats;
+          if (trip.getVehicle() != null) {
+            seats = seatService.findByVehicleId(trip.getVehicle().getId());
+          } else {
+            seats = List.of();
+          }
+
+          // Get all reservations and tickets for this trip
+          List<Reservation> reservations = reservationService.findAll().stream()
+              .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(id))
+              .toList();
+
+          List<Ticket> tickets = ticketService.findAll().stream()
+              .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(id))
+              .toList();
+
+          // Create maps of seat ID to passenger name and passenger ID
+          Map<Integer, String> seatPassengerMap = new HashMap<>();
+          Map<Integer, Integer> seatPassengerIds = new HashMap<>();
+
+          for (Reservation reservation : reservations) {
+            if (reservation.getSeat() != null && reservation.getPassenger() != null) {
+              seatPassengerMap.put(
+                  reservation.getSeat().getId(),
+                  reservation.getPassenger().getFullName() + " (Rés.)");
+              seatPassengerIds.put(
+                  reservation.getSeat().getId(),
+                  reservation.getPassenger().getId());
+            }
+          }
+
+          for (Ticket ticket : tickets) {
+            if (ticket.getSeat() != null && ticket.getPassenger() != null) {
+              seatPassengerMap.put(
+                  ticket.getSeat().getId(),
+                  ticket.getPassenger().getFullName() + " (Tick.)");
+              seatPassengerIds.put(
+                  ticket.getSeat().getId(),
+                  ticket.getPassenger().getId());
+            }
+          }
+
+          model.addAttribute("trip", trip);
+          model.addAttribute("seats", seats);
+          model.addAttribute("seatPassengerMap", seatPassengerMap);
+          model.addAttribute("seatPassengerIds", seatPassengerIds);
+
+          return "pages/destinations/trips/seats";
+        })
+        .orElseGet(() -> {
+          redirectAttributes.addFlashAttribute("error", "Trajet non trouvé!");
+          return "redirect:/trips";
+        });
+  }
+
+  @PostMapping("/{id}/seats/swap")
+  @Transactional
+  public String swapSeats(
+      @PathVariable Integer id,
+      @RequestParam Integer seat1Id,
+      @RequestParam Integer seat2Id,
+      RedirectAttributes redirectAttributes) {
+
+    try {
+      // Find reservations for both seats
+      Reservation reservation1 = reservationService.findAll().stream()
+          .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(id) && 
+                       r.getSeat() != null && r.getSeat().getId().equals(seat1Id))
+          .findFirst()
+          .orElse(null);
+
+      Reservation reservation2 = reservationService.findAll().stream()
+          .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(id) && 
+                       r.getSeat() != null && r.getSeat().getId().equals(seat2Id))
+          .findFirst()
+          .orElse(null);
+
+      // Find tickets for both seats
+      Ticket ticket1 = ticketService.findAll().stream()
+          .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(id) && 
+                       t.getSeat() != null && t.getSeat().getId().equals(seat1Id))
+          .findFirst()
+          .orElse(null);
+
+      Ticket ticket2 = ticketService.findAll().stream()
+          .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(id) && 
+                       t.getSeat() != null && t.getSeat().getId().equals(seat2Id))
+          .findFirst()
+          .orElse(null);
+
+      // Get the seat objects
+      Seat seat1 = seatService.findById(seat1Id)
+          .orElseThrow(() -> new IllegalArgumentException("Siège 1 non trouvé"));
+      Seat seat2 = seatService.findById(seat2Id)
+          .orElseThrow(() -> new IllegalArgumentException("Siège 2 non trouvé"));
+
+      // Swap seats for reservations
+      if (reservation1 != null) {
+        reservation1.setSeat(seat2);
+        reservationService.save(reservation1);
+      }
+      if (reservation2 != null) {
+        reservation2.setSeat(seat1);
+        reservationService.save(reservation2);
+      }
+
+      // Swap seats for tickets
+      if (ticket1 != null) {
+        ticket1.setSeat(seat2);
+        ticketService.save(ticket1);
+      }
+      if (ticket2 != null) {
+        ticket2.setSeat(seat1);
+        ticketService.save(ticket2);
+      }
+
+      redirectAttributes.addFlashAttribute("success", "Les passagers ont été échangés avec succès!");
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("error", "Erreur lors de l'échange: " + e.getMessage());
+    }
+
+    return "redirect:/trips/" + id + "/seats";
   }
 }

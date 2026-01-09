@@ -34,4 +34,13 @@ public class Reservation extends BasicExpenseEntity {
   @Column(name = "status", nullable = false, length = 20)
   private String status;
 
+  public ReservationStatus getStatusEnum() {
+    return ReservationStatus.valueOf(this.status);
+  }
+
+  public enum ReservationStatus {
+    RESERVE,
+    ANNULE;
+  }
+
 }

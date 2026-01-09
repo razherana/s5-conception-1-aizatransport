@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Nouvelle réservation</title>
+    <th:block layout:fragment="script">
+      <script>
+        function openPassengerSelect() {
+          const width = 900;
+          const height = 600;
+          const left = (screen.width / 2) - (width / 2);
+          const top = (screen.height / 2) - (height / 2);
+          window.open('/passengers/select?target=passengerInput', 'selectPassenger', 
+            `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
+        }
+
+        function openTripSelect() {
+          const width = 900;
+          const height = 600;
+          const left = (screen.width / 2) - (width / 2);
+          const top = (screen.height / 2) - (height / 2);
+          window.open('/trips/select?target=tripInput', 'selectTrip', 
+            `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
+        }
+
+        function openSeatSelect() {
+          const tripId = document.getElementById('tripId').value;
+          if (!tripId) {
+            alert('Veuillez sélectionner un voyage d\'abord');
+            return;
+          }
+          const width = 900;
+          const height = 600;
+          const left = (screen.width / 2) - (width / 2);
+          const top = (screen.height / 2) - (height / 2);
+          window.open('/vehicles/seats/select?tripId=' + tripId + '&target=seatInput', 'selectSeat', 
+            `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
+        }
+
+        window.addEventListener('message', function(event) {
+          if (event.data.type === 'selectPassenger') {
+            document.getElementById('passengerId').value = event.data.id;
+            document.getElementById('passengerName').value = event.data.name;
+          } else if (event.data.type === 'selectTrip') {
+            document.getElementById('tripId').value = event.data.id;
+            document.getElementById('tripInfo').value = event.data.info;
+            // Auto-fill amount with route price if available
+            if (event.data.price) {
+              document.getElementById('amount').value = event.data.price;
+            }
+          } else if (event.data.type === 'selectSeat') {
+            document.getElementById('seatId').value = event.data.id;
+            document.getElementById('seatNumber').value = event.data.number;
+          }
+        });
+      </script>
+    </th:block>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-plus-circle me-2"></i>
+          Nouvelle réservation
+        </h1>
+        <a th:href="@{/reservations}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-body p-4">
+              <form th:action="@{/reservations/create}" th:object="${reservation}" method="post">
+                <div class="row g-3">
+                  <!-- Passager -->
+                  <div class="col-md-12">
+                    <label class="form-label">
+                      Passager <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <input type="hidden" id="passengerId" th:field="*{passenger.id}" required />
+                      <input type="text" id="passengerName" class="form-control" placeholder="Cliquez pour sélectionner" readonly required />
+                      <button type="button" class="btn btn-outline-primary" onclick="openPassengerSelect()">
+                        <i class="fa-solid fa-search"></i> Sélectionner
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Voyage -->
+                  <div class="col-md-12">
+                    <label class="form-label">
+                      Voyage <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <input type="hidden" id="tripId" th:field="*{trip.id}" required />
+                      <input type="text" id="tripInfo" class="form-control" placeholder="Cliquez pour sélectionner" readonly required />
+                      <button type="button" class="btn btn-outline-primary" onclick="openTripSelect()">
+                        <i class="fa-solid fa-search"></i> Sélectionner
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Siège -->
+                  <div class="col-md-12">
+                    <label class="form-label">
+                      Siège <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <input type="hidden" id="seatId" th:field="*{seat.id}" required />
+                      <input type="text" id="seatNumber" class="form-control" placeholder="Cliquez pour sélectionner" readonly required />
+                      <button type="button" class="btn btn-outline-primary" onclick="openSeatSelect()">
+                        <i class="fa-solid fa-couch"></i> Sélectionner
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Montant -->
+                  <div class="col-md-6">
+                    <label for="amount" class="form-label">
+                      Montant (Ar) <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" class="form-control" id="amount" th:field="*{amount}" required min="0" step="100" placeholder="Ex: 15000" />
+                  </div>
+
+                  <!-- Statut -->
+                  <div class="col-md-6">
+                    <label for="status" class="form-label">
+                      Statut <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="status" th:field="*{status}" required>
+                      <option value="">Sélectionner un statut</option>
+                      <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}"></option>
+                    </select>
+                  </div>
+
+                  <div class="col-12">
+                    <hr class="my-3" />
+                    <div class="d-flex justify-content-end gap-2">
+                      <a th:href="@{/reservations}" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-times me-1"></i>
+                        Annuler
+                      </a>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Enregistrer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

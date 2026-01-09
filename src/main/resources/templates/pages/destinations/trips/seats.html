@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Gérer les sièges</title>
+    <th:block layout:fragment="styles">
+      <style>
+        .seat-grid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 15px;
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .seat {
+          aspect-ratio: 1;
+          border: 2px solid #333;
+          background-color: #fff;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: all 0.3s;
+          padding: 5px;
+          text-align: center;
+        }
+
+        .seat:hover {
+          transform: scale(1.05);
+        }
+
+        .seat.available {
+          background-color: #fff;
+          border-color: #6c757d;
+        }
+
+        .seat.available:hover {
+          background-color: #f8f9fa;
+          border-color: #495057;
+        }
+
+        .seat.occupied {
+          background-color: #0d6efd;
+          color: #fff;
+          border-color: #0a58ca;
+        }
+
+        .seat.occupied:hover {
+          background-color: #0b5ed7;
+          border-color: #0a58ca;
+        }
+
+        .seat.selected {
+          background-color: #ffc107;
+          color: #000;
+          border-color: #ffca2c;
+          border-width: 3px;
+        }
+
+        .seat-number {
+          font-size: 1.1rem;
+          font-weight: bold;
+          margin-bottom: 3px;
+        }
+
+        .seat-passenger {
+          font-size: 0.7rem;
+          font-weight: normal;
+          line-height: 1.1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          line-clamp: 2;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+        }
+
+        .legend {
+          display: flex;
+          gap: 30px;
+          justify-content: center;
+          margin-bottom: 30px;
+        }
+
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .legend-box {
+          width: 30px;
+          height: 30px;
+          border: 2px solid #333;
+        }
+
+        .legend-box.available {
+          background-color: #fff;
+          border-color: #6c757d;
+        }
+
+        .legend-box.occupied {
+          background-color: #0d6efd;
+        }
+
+        .legend-box.selected {
+          background-color: #ffc107;
+          border-width: 3px;
+        }
+      </style>
+    </th:block>
+    <th:block layout:fragment="script">
+      <script>
+        let selectedSeats = [];
+
+        function handleSeatClickFromData(element) {
+          const seatId = parseInt(element.getAttribute("data-seat-id"));
+          const seatNumber = element.getAttribute("data-seat-number");
+          const passengerId = element.getAttribute("data-passenger-id");
+          const passengerName = element.getAttribute("data-passenger-name");
+          
+          handleSeatClick(seatId, seatNumber, passengerId ? parseInt(passengerId) : null, passengerName);
+        }
+
+        function handleSeatClick(
+          seatId,
+          seatNumber,
+          passengerId,
+          passengerName
+        ) {
+          const seatElement = document.querySelector(
+            `[data-seat-id="${seatId}"]`
+          );
+
+          // Check if already selected
+          if (selectedSeats.some((s) => s.id === seatId)) {
+            // Deselect
+            selectedSeats = selectedSeats.filter((s) => s.id !== seatId);
+            seatElement.classList.remove("selected");
+          } else {
+            // Select
+            if (selectedSeats.length >= 2) {
+              alert("Vous ne pouvez sélectionner que 2 sièges à la fois.");
+              return;
+            }
+            
+            // If this is the first seat, it must be occupied
+            if (selectedSeats.length === 0 && !passengerId) {
+              alert("Veuillez d'abord sélectionner un siège occupé.");
+              return;
+            }
+            
+            selectedSeats.push({
+              id: seatId,
+              number: seatNumber,
+              passengerId: passengerId,
+              passengerName: passengerName,
+            });
+            seatElement.classList.add("selected");
+          }
+
+          updateSwapButton();
+        }
+
+        function updateSwapButton() {
+          const swapBtn = document.getElementById("swapBtn");
+          const swapInfo = document.getElementById("swapInfo");
+
+          if (selectedSeats.length === 2) {
+            swapBtn.disabled = false;
+            
+            // Check if it's a swap (both occupied) or a move (one occupied, one empty)
+            const occupiedSeats = selectedSeats.filter(s => s.passengerId);
+            
+            if (occupiedSeats.length === 2) {
+              // Both seats are occupied - swap
+              swapInfo.innerHTML = `
+                <i class="fa-solid fa-exchange-alt me-2"></i>
+                Échanger : <strong>${selectedSeats[0].passengerName}</strong> (${selectedSeats[0].number}) 
+                ↔ <strong>${selectedSeats[1].passengerName}</strong> (${selectedSeats[1].number})
+              `;
+            } else {
+              // One occupied, one empty - move
+              const occupiedSeat = occupiedSeats[0];
+              const emptySeat = selectedSeats.find(s => !s.passengerId);
+              swapInfo.innerHTML = `
+                <i class="fa-solid fa-arrow-right me-2"></i>
+                Déplacer : <strong>${occupiedSeat.passengerName}</strong> 
+                du siège ${occupiedSeat.number} vers le siège ${emptySeat.number}
+              `;
+            }
+          } else if (selectedSeats.length === 1) {
+            swapBtn.disabled = true;
+            if (selectedSeats[0].passengerId) {
+              swapInfo.innerHTML = `
+                <i class="fa-solid fa-info-circle me-2"></i>
+                Sélectionnez un siège de destination (occupé pour échanger, vide pour déplacer)
+              `;
+            } else {
+              swapInfo.innerHTML = `
+                <i class="fa-solid fa-info-circle me-2"></i>
+                Veuillez d'abord sélectionner un siège occupé
+              `;
+            }
+          } else {
+            swapBtn.disabled = true;
+            swapInfo.innerHTML = `
+              <i class="fa-solid fa-info-circle me-2"></i>
+              Sélectionnez un siège occupé puis un siège de destination
+            `;
+          }
+        }
+
+        function swapSeats() {
+          if (selectedSeats.length !== 2) {
+            alert("Veuillez sélectionner exactement 2 sièges.");
+            return;
+          }
+
+          const occupiedSeats = selectedSeats.filter(s => s.passengerId);
+          let confirmMessage = "";
+          
+          if (occupiedSeats.length === 2) {
+            // Swap two passengers
+            confirmMessage = `Échanger ${selectedSeats[0].passengerName} avec ${selectedSeats[1].passengerName} ?`;
+          } else {
+            // Move passenger to empty seat
+            const occupiedSeat = occupiedSeats[0];
+            const emptySeat = selectedSeats.find(s => !s.passengerId);
+            confirmMessage = `Déplacer ${occupiedSeat.passengerName} du siège ${occupiedSeat.number} vers le siège ${emptySeat.number} ?`;
+          }
+
+          if (confirm(confirmMessage)) {
+            document.getElementById("seat1Id").value = selectedSeats[0].id;
+            document.getElementById("seat2Id").value = selectedSeats[1].id;
+            document.getElementById("swapForm").submit();
+          }
+        }
+
+        // Initialize on page load
+        document.addEventListener("DOMContentLoaded", function () {
+          updateSwapButton();
+        });
+      </script>
+    </th:block>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="h3 mb-1">
+            <i class="fa-solid fa-couch me-2"></i>
+            Gérer les sièges
+          </h1>
+          <p class="text-muted mb-0">
+            <strong
+              th:if="${trip.route != null}"
+              th:text="${trip.route.departureDestination.name} + ' → ' + ${trip.route.arrivalDestination.name}"
+              >Route</strong
+            >
+            -
+            <span
+              th:text="${#temporals.format(trip.departureDatetime, 'dd/MM/yyyy HH:mm')}"
+              >Date</span
+            >
+          </p>
+        </div>
+        <a th:href="@{/trips}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Messages flash -->
+      <div
+        th:if="${success}"
+        class="alert alert-success alert-dismissible fade show"
+        role="alert"
+      >
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+      <div
+        th:if="${error}"
+        class="alert alert-danger alert-dismissible fade show"
+        role="alert"
+      >
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+
+      <!-- Swap Controls -->
+      <div class="card bg-white border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div id="swapInfo" class="text-muted">
+              <i class="fa-solid fa-info-circle me-2"></i>
+              Sélectionnez un siège occupé puis un siège de destination
+            </div>
+            <button
+              id="swapBtn"
+              type="button"
+              class="btn btn-primary"
+              onclick="swapSeats()"
+              disabled
+            >
+              <i class="fa-solid fa-exchange-alt me-1"></i>
+              Échanger / Déplacer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Légende -->
+      <div class="card bg-white border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-box available"></div>
+              <span>Disponible</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-box occupied"></div>
+              <span>Occupé</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-box selected"></div>
+              <span>Sélectionné</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grille de sièges -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body p-4">
+          <div class="seat-grid">
+            <div
+              th:each="seat : ${seats}"
+              th:class="${seatPassengerMap.containsKey(seat.id)} ? 'seat occupied' : 'seat available'"
+              th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${seatPassengerMap.containsKey(seat.id)} ? ${seatPassengerMap.get(seat.id)} : 'Disponible')"
+              th:data-seat-id="${seat.id}"
+              th:data-seat-number="${seat.seatNumber}"
+              th:data-passenger-id="${seatPassengerMap.containsKey(seat.id)} ? ${seatPassengerIds.get(seat.id)} : null"
+              th:data-passenger-name="${seatPassengerMap.containsKey(seat.id)} ? ${seatPassengerMap.get(seat.id)} : ''"
+              onclick="handleSeatClickFromData(this)"
+            >
+              <div class="seat-number" th:text="${seat.seatNumber}">A1</div>
+              <div
+                class="seat-passenger"
+                th:if="${seatPassengerMap.containsKey(seat.id)}"
+                th:text="${seatPassengerMap.get(seat.id)}"
+              >
+                Passenger Name
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden form for swapping -->
+      <form
+        id="swapForm"
+        th:action="@{/trips/{id}/seats/swap(id=${trip.id})}"
+        method="post"
+        style="display: none"
+      >
+        <input type="hidden" id="seat1Id" name="seat1Id" />
+        <input type="hidden" id="seat2Id" name="seat2Id" />
+      </form>
+    </section>
+  </body>
+</html>

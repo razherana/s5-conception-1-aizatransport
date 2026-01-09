@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import mg.razherana.aizatransport.models.bases.BasicEntity;
@@ -11,6 +12,7 @@ import mg.razherana.aizatransport.models.transports.Driver;
 import mg.razherana.aizatransport.models.transports.Vehicle;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "trips", schema = "public")
@@ -34,6 +36,12 @@ public class Trip extends BasicEntity {
 
   @Column(name = "status", nullable = false, length = 20)
   private String status;
+
+  @OneToMany(mappedBy = "trip")
+  private List<Reservation> reservations;
+
+  @OneToMany(mappedBy = "trip")
+  private List<Ticket> tickets;
 
   public TripStatus getStatusEnum() {
     return TripStatus.valueOf(this.status);
