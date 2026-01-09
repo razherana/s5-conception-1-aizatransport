@@ -47,9 +47,36 @@ public class ReservationController {
   }
 
   @PostMapping("/create")
-  public String create(@ModelAttribute Reservation reservation, RedirectAttributes redirectAttributes) {
-    reservationService.save(reservation);
-    redirectAttributes.addFlashAttribute("success", "Réservation créée avec succès!");
+  public String create(
+      @ModelAttribute Reservation reservation,
+      @RequestParam(required = false) java.util.List<Integer> seatIds,
+      RedirectAttributes redirectAttributes) {
+    
+    if (seatIds != null && !seatIds.isEmpty()) {
+      // Create multiple reservations for multiple seats
+      int count = 0;
+      for (Integer seatId : seatIds) {
+        Reservation newReservation = new Reservation();
+        newReservation.setPassenger(reservation.getPassenger());
+        newReservation.setTrip(reservation.getTrip());
+        newReservation.setAmount(reservation.getAmount());
+        newReservation.setStatus(reservation.getStatus());
+        newReservation.setReservationDate(reservation.getReservationDate());
+        
+        // Set the seat
+        mg.razherana.aizatransport.models.transports.Seat seat = new mg.razherana.aizatransport.models.transports.Seat();
+        seat.setId(seatId);
+        newReservation.setSeat(seat);
+        
+        reservationService.save(newReservation);
+        count++;
+      }
+      redirectAttributes.addFlashAttribute("success", count + " réservation(s) créée(s) avec succès!");
+    } else {
+      // Single reservation (legacy support)
+      reservationService.save(reservation);
+      redirectAttributes.addFlashAttribute("success", "Réservation créée avec succès!");
+    }
     return "redirect:/reservations";
   }
 

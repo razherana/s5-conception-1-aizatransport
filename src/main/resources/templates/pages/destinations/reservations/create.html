@@ -8,6 +8,8 @@
     <title>Nouvelle réservation</title>
     <th:block layout:fragment="script">
       <script>
+        let selectedSeats = [];
+
         function openPassengerSelect() {
           const width = 900;
           const height = 600;
@@ -36,8 +38,43 @@
           const height = 600;
           const left = (screen.width / 2) - (width / 2);
           const top = (screen.height / 2) - (height / 2);
-          window.open('/vehicles/seats/select?tripId=' + tripId + '&target=seatInput', 'selectSeat', 
+          window.open('/vehicles/seats/select?tripId=' + tripId + '&target=seatInput&multiple=true', 'selectSeat', 
             `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
+        }
+
+        function removeSeat(seatId) {
+          selectedSeats = selectedSeats.filter(s => s.id !== seatId);
+          updateSeatsDisplay();
+        }
+
+        function updateSeatsDisplay() {
+          const container = document.getElementById('selectedSeatsContainer');
+          const hiddenContainer = document.getElementById('seatIdsContainer');
+          
+          if (selectedSeats.length === 0) {
+            container.innerHTML = '<p class="text-muted mb-0"><i class="fa-solid fa-info-circle me-1"></i>Aucun siège sélectionné</p>';
+            hiddenContainer.innerHTML = '';
+          } else {
+            let html = '<div class="d-flex flex-wrap gap-2">';
+            selectedSeats.forEach(seat => {
+              html += `
+                <div class="badge bg-primary d-flex align-items-center gap-2" style="font-size: 0.9rem; padding: 0.5rem;">
+                  <span><i class="fa-solid fa-couch me-1"></i>Siège ${seat.number}</span>
+                  <button type="button" class="btn-close btn-close-white" style="font-size: 0.7rem;" onclick="removeSeat(${seat.id})" title="Retirer"></button>
+                </div>
+              `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            
+            // Add hidden inputs for seat IDs
+            hiddenContainer.innerHTML = selectedSeats.map(seat => 
+              `<input type="hidden" name="seatIds" value="${seat.id}" />`
+            ).join('');
+          }
+          
+          // Update the count
+          document.getElementById('seatCount').textContent = selectedSeats.length;
         }
 
         window.addEventListener('message', function(event) {
@@ -52,9 +89,26 @@
               document.getElementById('amount').value = event.data.price;
             }
           } else if (event.data.type === 'selectSeat') {
-            document.getElementById('seatId').value = event.data.id;
-            document.getElementById('seatNumber').value = event.data.number;
+            // Single seat (legacy)
+            const seat = { id: event.data.id, number: event.data.number };
+            if (!selectedSeats.find(s => s.id === seat.id)) {
+              selectedSeats.push(seat);
+              updateSeatsDisplay();
+            }
+          } else if (event.data.type === 'selectSeats') {
+            // Multiple seats
+            event.data.seats.forEach(seat => {
+              if (!selectedSeats.find(s => s.id === seat.id)) {
+                selectedSeats.push(seat);
+              }
+            });
+            updateSeatsDisplay();
           }
+        });
+
+        // Initialize display on page load
+        document.addEventListener('DOMContentLoaded', function() {
+          updateSeatsDisplay();
         });
       </script>
     </th:block>
@@ -108,18 +162,26 @@
                     </div>
                   </div>
 
-                  <!-- Siège -->
+                  <!-- Sièges (Multiple) -->
                   <div class="col-md-12">
                     <label class="form-label">
-                      Siège <span class="text-danger">*</span>
+                      Sièges <span class="text-danger">*</span>
+                      <span class="badge bg-secondary ms-2" id="seatCount">0</span>
                     </label>
-                    <div class="input-group">
-                      <input type="hidden" id="seatId" th:field="*{seat.id}" required />
-                      <input type="text" id="seatNumber" class="form-control" placeholder="Cliquez pour sélectionner" readonly required />
-                      <button type="button" class="btn btn-outline-primary" onclick="openSeatSelect()">
-                        <i class="fa-solid fa-couch"></i> Sélectionner
-                      </button>
+                    <div class="border rounded p-3 mb-2" style="min-height: 80px; background-color: #f8f9fa;">
+                      <div id="selectedSeatsContainer">
+                        <p class="text-muted mb-0"><i class="fa-solid fa-info-circle me-1"></i>Aucun siège sélectionné</p>
+                      </div>
                     </div>
+                    <div id="seatIdsContainer">
+                      <!-- Hidden inputs for seat IDs will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-outline-primary w-100" onclick="openSeatSelect()">
+                      <i class="fa-solid fa-couch me-1"></i> Sélectionner des sièges
+                    </button>
+                    <small class="form-text text-muted">
+                      Vous pouvez sélectionner plusieurs sièges. Une réservation sera créée pour chaque siège.
+                    </small>
                   </div>
 
                   <!-- Montant -->
