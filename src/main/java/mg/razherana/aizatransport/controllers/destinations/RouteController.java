@@ -186,4 +186,22 @@ public class RouteController {
     redirectAttributes.addFlashAttribute("success", "Prix ajouté avec succès!");
     return "redirect:/routes/" + id + "/price-history";
   }
+
+  @GetMapping("/{id}/statistics")
+  public String statistics(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
+    return routeService.findById(id)
+        .map(route -> {
+          // Get statistics data
+          RouteStatisticsDTO stats = routeService.getRouteStatistics(id);
+
+          model.addAttribute("route", route);
+          model.addAttribute("statistics", stats);
+
+          return "pages/destinations/routes/statistics";
+        })
+        .orElseGet(() -> {
+          redirectAttributes.addFlashAttribute("error", "Route non trouvée!");
+          return "redirect:/routes";
+        });
+  }
 }

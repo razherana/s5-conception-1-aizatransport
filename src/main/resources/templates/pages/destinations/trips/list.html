@@ -22,15 +22,31 @@
       </div>
 
       <!-- Messages flash -->
-      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+      <div
+        th:if="${success}"
+        class="alert alert-success alert-dismissible fade show"
+        role="alert"
+      >
         <i class="fa-solid fa-check-circle me-2"></i>
         <span th:text="${success}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
       </div>
-      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <div
+        th:if="${error}"
+        class="alert alert-danger alert-dismissible fade show"
+        role="alert"
+      >
         <i class="fa-solid fa-exclamation-circle me-2"></i>
         <span th:text="${error}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
       </div>
 
       <!-- Filtres et tri -->
@@ -104,18 +120,35 @@
                   Trier par
                 </label>
                 <select name="sortBy" class="form-select">
-                  <option value="departureDatetime" th:selected="${sortBy == 'departureDatetime'}">Date départ</option>
-                  <option value="route" th:selected="${sortBy == 'route'}">Route</option>
-                  <option value="vehicle" th:selected="${sortBy == 'vehicle'}">Véhicule</option>
-                  <option value="driver" th:selected="${sortBy == 'driver'}">Chauffeur</option>
-                  <option value="status" th:selected="${sortBy == 'status'}">Statut</option>
+                  <option
+                    value="departureDatetime"
+                    th:selected="${sortBy == 'departureDatetime'}"
+                  >
+                    Date départ
+                  </option>
+                  <option value="route" th:selected="${sortBy == 'route'}">
+                    Route
+                  </option>
+                  <option value="vehicle" th:selected="${sortBy == 'vehicle'}">
+                    Véhicule
+                  </option>
+                  <option value="driver" th:selected="${sortBy == 'driver'}">
+                    Chauffeur
+                  </option>
+                  <option value="status" th:selected="${sortBy == 'status'}">
+                    Statut
+                  </option>
                 </select>
               </div>
               <div class="col-md-1">
                 <label class="form-label">Ordre</label>
                 <select name="sortOrder" class="form-select">
-                  <option value="asc" th:selected="${sortOrder == 'asc'}">Croissant</option>
-                  <option value="desc" th:selected="${sortOrder == 'desc'}">Décroissant</option>
+                  <option value="asc" th:selected="${sortOrder == 'asc'}">
+                    Croissant
+                  </option>
+                  <option value="desc" th:selected="${sortOrder == 'desc'}">
+                    Décroissant
+                  </option>
                 </select>
               </div>
               <div class="col-12">
@@ -159,27 +192,85 @@
                 <tr th:each="trip : ${trips}">
                   <td th:text="${trip.id}">1</td>
                   <td>
-                    <strong th:if="${trip.route != null}" th:text="${trip.route.departureDestination.name} + ' → ' + ${trip.route.arrivalDestination.name}">Antananarivo → Toamasina</strong>
-                    <span th:unless="${trip.route != null}" class="text-muted">-</span>
+                    <strong
+                      th:if="${trip.route != null}"
+                      th:text="${trip.route.departureDestination.name} + ' → ' + ${trip.route.arrivalDestination.name}"
+                      >Antananarivo → Toamasina</strong
+                    >
+                    <span th:unless="${trip.route != null}" class="text-muted"
+                      >-</span
+                    >
                   </td>
-                  <td th:text="${#temporals.format(trip.departureDatetime, 'dd/MM/yyyy HH:mm')}">01/01/2026 08:00</td>
-                  <td>
-                    <span th:if="${trip.vehicle != null}" class="badge bg-secondary" th:text="${trip.vehicle.plateNumber}">ABC-1234</span>
-                    <span th:unless="${trip.vehicle != null}" class="text-muted">-</span>
+                  <td
+                    th:text="${#temporals.format(trip.departureDatetime, 'dd/MM/yyyy HH:mm')}"
+                  >
+                    01/01/2026 08:00
                   </td>
                   <td>
-                    <span th:if="${trip.driver != null}" th:text="${trip.driver.fullName}">Jean Dupont</span>
-                    <span th:unless="${trip.driver != null}" class="text-muted">-</span>
+                    <span
+                      th:if="${trip.vehicle != null}"
+                      class="badge bg-secondary"
+                      th:text="${trip.vehicle.plateNumber}"
+                      >ABC-1234</span
+                    >
+                    <span th:unless="${trip.vehicle != null}" class="text-muted"
+                      >-</span
+                    >
+                  </td>
+                  <td>
+                    <span
+                      th:if="${trip.driver != null}"
+                      th:text="${trip.driver.fullName}"
+                      >Jean Dupont</span
+                    >
+                    <span th:unless="${trip.driver != null}" class="text-muted"
+                      >-</span
+                    >
                   </td>
                   <td>
                     <span
                       class="badge"
                       th:classappend="${trip.status == 'BROUILLON'} ? 'bg-secondary' : (${trip.status == 'PLANIFIE'} ? 'bg-info' : (${trip.status == 'EN_COURS'} ? 'bg-primary' : (${trip.status == 'TERMINE'} ? 'bg-success' : 'bg-danger')))"
                       th:text="${trip.status}"
-                    >PLANIFIE</span>
+                      >PLANIFIE</span
+                    >
                   </td>
                   <td class="text-end">
                     <div class="btn-group" role="group">
+                      <!-- Départ button: for BROUILLON or PLANIFIE status -->
+                      <form
+                        th:if="${trip.status == 'BROUILLON' || trip.status == 'PLANIFIE'}"
+                        th:action="@{/trips/{id}/depart(id=${trip.id})}"
+                        method="post"
+                        class="d-inline"
+                        onsubmit="return confirm('Confirmer le départ de ce trajet ?');"
+                      >
+                        <button
+                          type="submit"
+                          class="btn btn-sm btn-success"
+                          title="Départ"
+                        >
+                          <i class="fa-solid fa-play"></i> Départ
+                        </button>
+                      </form>
+
+                      <!-- Arrivé button: for EN_COURS status -->
+                      <form
+                        th:if="${trip.status == 'EN_COURS'}"
+                        th:action="@{/trips/{id}/arrive(id=${trip.id})}"
+                        method="post"
+                        class="d-inline"
+                        onsubmit="return confirm('Confirmer l\'arrivée de ce trajet ?');"
+                      >
+                        <button
+                          type="submit"
+                          class="btn btn-sm btn-info"
+                          title="Arrivé"
+                        >
+                          <i class="fa-solid fa-flag-checkered"></i> Arrivé
+                        </button>
+                      </form>
+
                       <a
                         th:href="@{/trips/update/{id}(id=${trip.id})}"
                         class="btn btn-sm btn-outline-primary"
@@ -193,7 +284,11 @@
                         class="d-inline"
                         onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce trajet ?');"
                       >
-                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                        <button
+                          type="submit"
+                          class="btn btn-sm btn-outline-danger"
+                          title="Supprimer"
+                        >
                           <i class="fa-solid fa-trash"></i>
                         </button>
                       </form>

@@ -167,6 +167,13 @@
                   <td class="text-end">
                     <div class="btn-group" role="group">
                       <a
+                        th:href="@{/routes/{id}/statistics(id=${route.id})}"
+                        class="btn btn-sm btn-outline-info"
+                        title="Statistiques"
+                      >
+                        <i class="fa-solid fa-chart-bar"></i>
+                      </a>
+                      <a
                         th:href="@{/routes/update/{id}(id=${route.id})}"
                         class="btn btn-sm btn-outline-primary"
                         title="Modifier"

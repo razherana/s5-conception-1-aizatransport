@@ -101,4 +101,42 @@ public class TripController {
     redirectAttributes.addFlashAttribute("success", "Trajet supprimé avec succès!");
     return "redirect:/trips";
   }
+
+  @PostMapping("/{id}/depart")
+  public String depart(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    return tripService.findById(id)
+        .map(trip -> {
+          if ("BROUILLON".equals(trip.getStatus()) || "PLANIFIE".equals(trip.getStatus())) {
+            trip.setStatus("EN_COURS");
+            tripService.save(trip);
+            redirectAttributes.addFlashAttribute("success", "Trajet marqué comme en cours!");
+          } else {
+            redirectAttributes.addFlashAttribute("error", "Le trajet ne peut pas être démarré dans cet état!");
+          }
+          return "redirect:/trips";
+        })
+        .orElseGet(() -> {
+          redirectAttributes.addFlashAttribute("error", "Trajet non trouvé!");
+          return "redirect:/trips";
+        });
+  }
+
+  @PostMapping("/{id}/arrive")
+  public String arrive(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    return tripService.findById(id)
+        .map(trip -> {
+          if ("EN_COURS".equals(trip.getStatus())) {
+            trip.setStatus("TERMINE");
+            tripService.save(trip);
+            redirectAttributes.addFlashAttribute("success", "Trajet marqué comme terminé!");
+          } else {
+            redirectAttributes.addFlashAttribute("error", "Le trajet doit être en cours pour être terminé!");
+          }
+          return "redirect:/trips";
+        })
+        .orElseGet(() -> {
+          redirectAttributes.addFlashAttribute("error", "Trajet non trouvé!");
+          return "redirect:/trips";
+        });
+  }
 }

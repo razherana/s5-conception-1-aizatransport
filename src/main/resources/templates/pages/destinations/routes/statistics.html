@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Statistiques de la route</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-chart-bar me-2"></i>
+          Statistiques de la route
+        </h1>
+        <a th:href="@{/routes}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour aux routes
+        </a>
+      </div>
+
+      <!-- Route Info -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-12">
+              <h4 class="mb-2">
+                <i class="fa-solid fa-map-marker-alt text-success me-2"></i>
+                <span th:text="${route.departureDestination.name}"
+                  >Antananarivo</span
+                >
+                <i class="fa-solid fa-arrow-right mx-3"></i>
+                <i class="fa-solid fa-map-marker-alt text-danger me-2"></i>
+                <span th:text="${route.arrivalDestination.name}"
+                  >Toamasina</span
+                >
+              </h4>
+              <p class="mb-0 text-muted">
+                <span th:if="${route.distanceKm != null}">
+                  <i class="fa-solid fa-road me-1"></i>
+                  Distance:
+                  <strong th:text="${route.distanceKm} + ' km'">365 km</strong>
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card bg-primary text-white border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="text-white-50 mb-1">Total Trajets</h6>
+                  <h2 class="mb-0" th:text="${statistics.totalTrips}">45</h2>
+                </div>
+                <div class="fs-1 opacity-50">
+                  <i class="fa-solid fa-route"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card bg-success text-white border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="text-white-50 mb-1">Trajets Terminés</h6>
+                  <h2 class="mb-0" th:text="${statistics.completedTrips}">
+                    38
+                  </h2>
+                </div>
+                <div class="fs-1 opacity-50">
+                  <i class="fa-solid fa-check-circle"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card bg-info text-white border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="text-white-50 mb-1">Revenu Total</h6>
+                  <h2
+                    class="mb-0"
+                    th:text="${#numbers.formatDecimal(statistics.totalRevenue, 1, 'COMMA', 0, 'POINT')} + ' Ar'"
+                  >
+                    1,900,000 Ar
+                  </h2>
+                </div>
+                <div class="fs-1 opacity-50">
+                  <i class="fa-solid fa-money-bill-wave"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+          <div class="card bg-warning text-white border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="text-white-50 mb-1">Revenu Moyen/Trajet</h6>
+                  <h2
+                    class="mb-0"
+                    th:text="${#numbers.formatDecimal(statistics.averageRevenuePerTrip, 1, 'COMMA', 0, 'POINT')} + ' Ar'"
+                  >
+                    50,000 Ar
+                  </h2>
+                </div>
+                <div class="fs-1 opacity-50">
+                  <i class="fa-solid fa-chart-line"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <!-- Trips Over Time Chart -->
+        <div class="col-lg-8 mb-4">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-chart-line me-2"></i>
+                Évolution des trajets (6 derniers mois)
+              </h5>
+            </div>
+            <div class="card-body">
+              <canvas id="tripsChart" height="100"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Distribution -->
+        <div class="col-lg-4 mb-4">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-pie-chart me-2"></i>
+                Répartition par statut
+              </h5>
+            </div>
+            <div class="card-body">
+              <canvas id="statusChart" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Revenue Chart -->
+        <div class="col-lg-8 mb-4">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-chart-area me-2"></i>
+                Revenus mensuels (6 derniers mois)
+              </h5>
+            </div>
+            <div class="card-body">
+              <canvas id="revenueChart" height="100"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Drivers -->
+        <div class="col-lg-4 mb-4">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-trophy me-2"></i>
+                Top 5 Chauffeurs
+              </h5>
+            </div>
+            <div class="card-body">
+              <div
+                th:if="${#maps.isEmpty(statistics.topDrivers)}"
+                class="text-center text-muted py-3"
+              >
+                <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
+                Aucun chauffeur assigné
+              </div>
+              <div th:unless="${#maps.isEmpty(statistics.topDrivers)}">
+                <div
+                  th:each="entry, iterStat : ${statistics.topDrivers}"
+                  class="mb-3"
+                >
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-1"
+                  >
+                    <span>
+                      <span
+                        th:if="${iterStat.index == 0}"
+                        class="badge bg-warning text-dark me-2"
+                      >
+                        <i class="fa-solid fa-trophy"></i> 1
+                      </span>
+                      <span
+                        th:if="${iterStat.index == 1}"
+                        class="badge bg-secondary me-2"
+                      >
+                        <i class="fa-solid fa-medal"></i> 2
+                      </span>
+                      <span
+                        th:if="${iterStat.index == 2}"
+                        class="badge bg-secondary me-2"
+                      >
+                        <i class="fa-solid fa-medal"></i> 3
+                      </span>
+                      <span
+                        th:if="${iterStat.index > 2}"
+                        class="badge bg-light text-dark me-2"
+                        th:text="${iterStat.index + 1}"
+                        >4</span
+                      >
+                      <strong th:text="${entry.key}">Jean Dupont</strong>
+                    </span>
+                    <span
+                      class="badge bg-primary"
+                      th:text="${entry.value} + ' trajets'"
+                      >12 trajets</span
+                    >
+                  </div>
+                  <div class="progress" style="height: 8px">
+                    <div
+                      class="progress-bar"
+                      role="progressbar"
+                      th:style="'width: ' + (${entry.value} * 100.0 / ${statistics.maxDriverTrips}) + '%'"
+                      th:aria-valuenow="${entry.value}"
+                      aria-valuemin="0"
+                      th:aria-valuemax="${statistics.maxDriverTrips}"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Info -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-light border-0">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-info-circle me-2"></i>
+                Informations supplémentaires
+              </h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <small class="text-muted d-block">Trajets en cours</small>
+                    <h4
+                      class="mb-0 text-primary"
+                      th:text="${statistics.ongoingTrips}"
+                    >
+                      3
+                    </h4>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <small class="text-muted d-block">Trajets annulés</small>
+                    <h4
+                      class="mb-0 text-danger"
+                      th:text="${statistics.cancelledTrips}"
+                    >
+                      4
+                    </h4>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-3">
+                    <small class="text-muted d-block">Taux de réussite</small>
+                    <h4
+                      class="mb-0 text-success"
+                      th:text="${statistics.totalTrips > 0 ? #numbers.formatDecimal((statistics.completedTrips * 100.0 / statistics.totalTrips), 1, 2) + '%' : '0%'}"
+                    >
+                      84.44%
+                    </h4>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chart.js Scripts -->
+    <th:block layout:fragment="script-bottom">
+      <script th:src="@{/chartjs/chart.umd.min.js}"></script>
+      <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        // Trips over time chart
+        const tripLabels = /*[[${statistics.tripChartLabels}]]*/ [];
+        const tripData = /*[[${statistics.tripChartData}]]*/ [];
+
+        const tripsCtx = document.getElementById("tripsChart").getContext("2d");
+        new Chart(tripsCtx, {
+          type: "line",
+          data: {
+            labels: tripLabels,
+            datasets: [
+              {
+                label: "Nombre de trajets",
+                data: tripData,
+                borderColor: "rgb(54, 162, 235)",
+                backgroundColor: "rgba(54, 162, 235, 0.1)",
+                tension: 0.3,
+                fill: true,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1,
+                },
+              },
+            },
+          },
+        });
+
+        // Status distribution chart
+        const statusLabels = /*[[${statistics.statusLabels}]]*/ [];
+        const statusData = /*[[${statistics.statusCounts}]]*/ [];
+
+        const statusCtx = document
+          .getElementById("statusChart")
+          .getContext("2d");
+        new Chart(statusCtx, {
+          type: "doughnut",
+          data: {
+            labels: statusLabels,
+            datasets: [
+              {
+                data: statusData,
+                backgroundColor: [
+                  "rgba(108, 117, 125, 0.8)", // BROUILLON - gray
+                  "rgba(13, 202, 240, 0.8)", // PLANIFIE - cyan
+                  "rgba(13, 110, 253, 0.8)", // EN_COURS - blue
+                  "rgba(25, 135, 84, 0.8)", // TERMINE - green
+                  "rgba(220, 53, 69, 0.8)", // ANNULE - red
+                ],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+            },
+          },
+        });
+
+        // Monthly revenue chart
+        const revenueLabels = /*[[${statistics.revenueMonthLabels}]]*/ [];
+        const revenueDataRaw = /*[[${statistics.revenueMonthData}]]*/ [];
+        const revenueData = revenueDataRaw.map((v) => parseFloat(v));
+
+        const revenueCtx = document
+          .getElementById("revenueChart")
+          .getContext("2d");
+        new Chart(revenueCtx, {
+          type: "bar",
+          data: {
+            labels: revenueLabels,
+            datasets: [
+              {
+                label: "Revenus (Ar)",
+                data: revenueData,
+                backgroundColor: "rgba(75, 192, 192, 0.6)",
+                borderColor: "rgb(75, 192, 192)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return (
+                      "Revenus: " +
+                      context.parsed.y.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      }) +
+                      " Ar"
+                    );
+                  },
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: function (value) {
+                    return value.toLocaleString("fr-FR") + " Ar";
+                  },
+                },
+              },
+            },
+          },
+        });
+        /*]]>*/
+      </script>
+    </th:block>
+  </body>
+</html>
