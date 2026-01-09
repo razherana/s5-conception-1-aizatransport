@@ -17,11 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.controllers.destinations.RouteStatisticsDTO;
+import mg.razherana.aizatransport.models.destinations.Reservation;
 import mg.razherana.aizatransport.models.destinations.Route;
 import mg.razherana.aizatransport.models.destinations.RoutePrice;
+import mg.razherana.aizatransport.models.destinations.Ticket;
 import mg.razherana.aizatransport.models.destinations.Trip;
+import mg.razherana.aizatransport.repositories.ReservationRepository;
 import mg.razherana.aizatransport.repositories.RoutePriceRepository;
 import mg.razherana.aizatransport.repositories.RouteRepository;
+import mg.razherana.aizatransport.repositories.TicketRepository;
 import mg.razherana.aizatransport.repositories.TripRepository;
 
 @Service
@@ -31,6 +35,8 @@ public class RouteService {
   private final RouteRepository routeRepository;
   private final RoutePriceRepository routePriceRepository;
   private final TripRepository tripRepository;
+  private final ReservationRepository reservationRepository;
+  private final TicketRepository ticketRepository;
   // private final DestinationRepository destinationRepository;
 
   public List<Route> findAll() {
@@ -130,21 +136,31 @@ public class RouteService {
     int cancelledTrips = (int) trips.stream().filter(t -> "ANNULE".equals(t.getStatus())).count();
     int ongoingTrips = (int) trips.stream().filter(t -> "EN_COURS".equals(t.getStatus())).count();
 
-    // TODO: Revenue calculation use reservations and tickets
-    // Revenue calculation (completed trips only)
+    // Get all trip IDs for this route
+    List<Integer> tripIds = trips.stream().map(Trip::getId).collect(Collectors.toList());
+
+    // Revenue calculation using actual reservations and tickets
     BigDecimal totalRevenue = BigDecimal.ZERO;
-    for (Trip trip : trips) {
-      if ("TERMINE".equals(trip.getStatus())) {
-        // Get price at the time of the trip
-        Optional<BigDecimal> priceAtTime = routePriceRepository
-            .findCurrentPriceForRoute(routeId, trip.getDepartureDatetime().toLocalDate())
-            .map(RoutePrice::getPrice);
-        
-        if (priceAtTime.isPresent() && trip.getVehicle() != null) {
-          // Revenue = price * capacity (assuming full vehicle)
-          BigDecimal tripRevenue = priceAtTime.get().multiply(new BigDecimal(trip.getVehicle().getCapacity()));
-          totalRevenue = totalRevenue.add(tripRevenue);
-        }
+    
+    // Sum revenue from reservations
+    List<Reservation> reservations = reservationRepository.findAll().stream()
+        .filter(r -> r.getTrip() != null && tripIds.contains(r.getTrip().getId()))
+        .collect(Collectors.toList());
+    
+    for (Reservation reservation : reservations) {
+      if (reservation.getAmount() != null) {
+        totalRevenue = totalRevenue.add(new BigDecimal(reservation.getAmount()));
+      }
+    }
+    
+    // Sum revenue from tickets
+    List<Ticket> tickets = ticketRepository.findAll().stream()
+        .filter(t -> t.getTrip() != null && tripIds.contains(t.getTrip().getId()))
+        .collect(Collectors.toList());
+    
+    for (Ticket ticket : tickets) {
+      if (ticket.getAmount() != null) {
+        totalRevenue = totalRevenue.add(new BigDecimal(ticket.getAmount()));
       }
     }
 
@@ -206,18 +222,22 @@ public class RouteService {
       revenueByMonth.put(monthKey, BigDecimal.ZERO);
     }
 
-    for (Trip trip : trips) {
-      if ("TERMINE".equals(trip.getStatus())) {
-        String tripMonth = trip.getDepartureDatetime().format(monthFormatter);
-        if (revenueByMonth.containsKey(tripMonth)) {
-          Optional<BigDecimal> priceAtTime = routePriceRepository
-              .findCurrentPriceForRoute(routeId, trip.getDepartureDatetime().toLocalDate())
-              .map(RoutePrice::getPrice);
-          
-          if (priceAtTime.isPresent() && trip.getVehicle() != null) {
-            BigDecimal tripRevenue = priceAtTime.get().multiply(new BigDecimal(trip.getVehicle().getCapacity()));
-            revenueByMonth.put(tripMonth, revenueByMonth.get(tripMonth).add(tripRevenue));
-          }
+    // Calculate revenue by month from reservations
+    for (Reservation reservation : reservations) {
+      if (reservation.getReservationDate() != null && reservation.getAmount() != null) {
+        String reservationMonth = reservation.getReservationDate().format(monthFormatter);
+        if (revenueByMonth.containsKey(reservationMonth)) {
+          revenueByMonth.put(reservationMonth, revenueByMonth.get(reservationMonth).add(new BigDecimal(reservation.getAmount())));
+        }
+      }
+    }
+
+    // Calculate revenue by month from tickets
+    for (Ticket ticket : tickets) {
+      if (ticket.getPurchaseDate() != null && ticket.getAmount() != null) {
+        String ticketMonth = ticket.getPurchaseDate().format(monthFormatter);
+        if (revenueByMonth.containsKey(ticketMonth)) {
+          revenueByMonth.put(ticketMonth, revenueByMonth.get(ticketMonth).add(new BigDecimal(ticket.getAmount())));
         }
       }
     }
