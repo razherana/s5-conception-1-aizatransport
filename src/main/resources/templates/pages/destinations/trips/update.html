@@ -70,6 +70,18 @@
                   </div>
 
                   <div class="col-md-6">
+                    <label for="arrivalDatetime" class="form-label">
+                      Date et heure d'arrivée
+                    </label>
+                    <input
+                      type="datetime-local"
+                      class="form-control"
+                      id="arrivalDatetime"
+                      th:field="*{arrivalDatetime}"
+                    />
+                  </div>
+
+                  <div class="col-md-6">
                     <label for="status" class="form-label">
                       Statut <span class="text-danger">*</span>
                     </label>

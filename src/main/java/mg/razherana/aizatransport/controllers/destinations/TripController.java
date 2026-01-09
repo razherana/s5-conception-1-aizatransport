@@ -136,11 +136,19 @@ public class TripController {
   }
 
   @PostMapping("/{id}/arrive")
-  public String arrive(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+  public String arrive(
+      @PathVariable Integer id,
+      @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime arrivalDatetime,
+      RedirectAttributes redirectAttributes) {
     return tripService.findById(id)
         .map(trip -> {
           if ("EN_COURS".equals(trip.getStatus())) {
             trip.setStatus("TERMINE");
+            if (arrivalDatetime != null) {
+              trip.setArrivalDatetime(arrivalDatetime);
+            } else {
+              trip.setArrivalDatetime(java.time.LocalDateTime.now());
+            }
             tripService.save(trip);
             redirectAttributes.addFlashAttribute("success", "Trajet marqué comme terminé!");
           } else {

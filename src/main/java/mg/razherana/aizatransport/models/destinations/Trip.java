@@ -34,6 +34,9 @@ public class Trip extends BasicEntity {
   @Column(name = "departure_datetime", nullable = false)
   private LocalDateTime departureDatetime;
 
+  @Column(name = "arrival_datetime", nullable = true)
+  private LocalDateTime arrivalDatetime;
+
   @Column(name = "status", nullable = false, length = 20)
   private String status;
 

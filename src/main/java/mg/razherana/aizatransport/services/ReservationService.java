@@ -29,8 +29,8 @@ public class ReservationService {
     // Filtrage par nom de passager
     if (passengerName != null && !passengerName.isEmpty()) {
       reservations = reservations.stream()
-          .filter(r -> r.getPassenger() != null && 
-                       r.getPassenger().getFullName().toLowerCase().contains(passengerName.toLowerCase()))
+          .filter(r -> r.getPassenger() != null &&
+              r.getPassenger().getFullName().toLowerCase().contains(passengerName.toLowerCase()))
           .collect(Collectors.toList());
     }
 

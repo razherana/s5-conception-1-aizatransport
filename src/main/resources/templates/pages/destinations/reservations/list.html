@@ -113,6 +113,7 @@
                   <th>Siège</th>
                   <th>Montant</th>
                   <th>Date réservation</th>
+                  <th>Date de voyage</th>
                   <th>Statut</th>
                   <th class="text-end">Actions</th>
                 </tr>
@@ -142,6 +143,7 @@
                     <strong th:text="${#numbers.formatDecimal(reservation.amount, 0, 'COMMA', 0, 'POINT')} + ' Ar'">15,000 Ar</strong>
                   </td>
                   <td th:text="${#temporals.format(reservation.reservationDate, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</td>
+                  <td th:text="${#temporals.format(reservation.trip?.departureDatetime, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</td>
                   <td>
                     <span
                       class="badge"
