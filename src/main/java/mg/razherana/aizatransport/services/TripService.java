@@ -22,8 +22,16 @@ public class TripService {
     return tripRepository.findAll();
   }
 
-  public List<Trip> findAllFiltered(Integer routeId, Integer vehicleId, Integer driverId, String status, String sortBy, String sortOrder) {
-    List<Trip> trips = tripRepository.findAll();
+  public List<Trip> findAllFiltered(Integer routeId, Integer vehicleId, Integer driverId, String status, String sortBy,
+      String sortOrder) {
+    return findAllFiltered(routeId, vehicleId, driverId, status, sortBy, sortOrder, false);
+  }
+
+  public List<Trip> findAllFiltered(Integer routeId, Integer vehicleId, Integer driverId, String status, String sortBy,
+      String sortOrder, boolean joinReservationAndTickets) {
+
+    List<Trip> trips = joinReservationAndTickets ? tripRepository.findAllWithReservationsAndTickets()
+        : tripRepository.findAll();
 
     // Filtrage par route
     if (routeId != null) {

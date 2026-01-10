@@ -52,14 +52,23 @@ public class TripController {
       @RequestParam(defaultValue = "desc") String sortOrder,
       Model model) {
 
-    List<Trip> trips = tripService.findAllFiltered(routeId, vehicleId, driverId, status, sortBy, sortOrder);
+    List<Trip> trips = tripService.findAllFiltered(routeId, vehicleId, driverId, status, sortBy, sortOrder, true);
 
     HashMap<Integer, Double> tripCA = new HashMap<>();
+
     for (Trip trip : trips) {
-      Double ca = trip.getReservations().stream()
+      Double caReservations = trip.getReservations()
+          .stream()
           .filter((e) -> e.getStatus().equalsIgnoreCase("reserve"))
           .mapToDouble(Reservation::getAmount)
           .sum();
+
+      Double caTickets = trip.getTickets()
+          .stream()
+          .mapToDouble(Ticket::getAmount)
+          .sum();
+
+      Double ca = caReservations + caTickets;
       tripCA.put(trip.getId(), ca);
     }
 
