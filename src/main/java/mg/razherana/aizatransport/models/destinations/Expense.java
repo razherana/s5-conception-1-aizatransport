@@ -48,6 +48,11 @@ public class Expense extends BasicExpenseEntity {
     return ExpenseStatus.valueOf(this.status);
   }
 
+  public String getFormattedExpenseDate(){
+    if(this.expenseDate == null) return "";
+    return this.expenseDate.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+  }
+
   public enum ExpenseStatus {
     EN_ATTENTE,
     VALIDEE,

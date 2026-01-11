@@ -158,24 +158,24 @@
                   <td th:text="${expense.id}">1</td>
                   <td>
                     <span
-                      th:if="${expense.type}"
+                      th:if="${expense.type != null}"
                       class="badge bg-info"
                       th:text="${expense.type.typeName}"
                       >Carburant</span
                     >
-                    <span th:unless="${expense.type}" class="text-muted">-</span>
+                    <span th:unless="${expense.type != null}" class="text-muted">-</span>
                   </td>
                   <td>
                     <div>
-                      <span th:if="${expense.trip}">
+                      <span th:if="${expense.trip != null}">
                         <i class="fa-solid fa-route me-1"></i>
                         <span th:text="${expense.trip.route.departureDestination.name} + ' → ' + ${expense.trip.route.arrivalDestination.name}"></span>
                       </span>
-                      <span th:if="${expense.vehicle}" th:unless="${expense.trip}">
+                      <span th:if="${expense.vehicle != null}" th:unless="${expense.trip != null}">
                         <i class="fa-solid fa-car me-1"></i>
                         <span th:text="${expense.vehicle.plateNumber}"></span>
                       </span>
-                      <span th:unless="${expense.trip || expense.vehicle}" class="text-muted">-</span>
+                      <span th:unless="${expense.trip != null || expense.vehicle != null}" class="text-muted">-</span>
                     </div>
                   </td>
                   <td>

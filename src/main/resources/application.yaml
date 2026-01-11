@@ -1,4 +1,10 @@
 spring:
+  mvc:
+    format:
+      date-time: yyyy-MM-dd'T'HH:mm
+      date: yyyy-MM-dd
+      time: HH:mm
+
   application:
     name: aizatransport
 

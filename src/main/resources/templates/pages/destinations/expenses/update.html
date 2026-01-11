@@ -75,7 +75,7 @@
                         type="text"
                         class="form-control"
                         id="tripDisplay"
-                        th:value="${expense.trip ? (expense.trip.route.departureDestination.name + ' → ' + expense.trip.route.arrivalDestination.name) : ''}"
+                        th:value="${expense.trip != null ? (expense.trip.route.departureDestination.name + ' → ' + expense.trip.route.arrivalDestination.name) : ''}"
                         placeholder="Sélectionner un voyage..."
                         readonly
                       />
@@ -150,7 +150,7 @@
                       Date de dépense <span class="text-danger">*</span>
                     </label>
                     <input
-                      type="date"
+                      type="datetime-local"
                       class="form-control"
                       id="expenseDate"
                       th:field="*{expenseDate}"
