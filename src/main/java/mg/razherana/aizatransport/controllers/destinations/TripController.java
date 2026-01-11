@@ -203,7 +203,8 @@ public class TripController {
     for (var trip : trips) {
       String display = "";
       if (trip.getRoute() != null) {
-        display = trip.getRoute().getDepartureDestination() + " → " + trip.getRoute().getArrivalDestination();
+        display = trip.getRoute().getDepartureDestination().getName() + " → "
+            + trip.getRoute().getArrivalDestination().getName();
 
         // Get current route price
         var currentPrice = routeService.getCurrentPrice(trip.getRoute().getId());
