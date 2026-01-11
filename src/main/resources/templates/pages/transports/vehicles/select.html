@@ -132,7 +132,11 @@
                     <button
                       type="button"
                       class="btn btn-sm btn-success"
-                      th:onclick="'selectVehicle(' + ${vehicle.id} + ')'"
+                      th:data-vehicle-id="${vehicle.id}"
+                      th:data-vehicle-plate="${vehicle.plateNumber}"
+                      th:data-vehicle-brand="${vehicle.brand}"
+                      th:data-vehicle-model="${vehicle.model}"
+                      onclick="selectVehicleFromButton(this)"
                     >
                       <i class="fa-solid fa-check me-1"></i>
                       Sélectionner
@@ -151,12 +155,22 @@
     </div>
 
     <script>
-      function selectVehicle(id) {
+      function selectVehicleFromButton(button) {
+        const id = button.getAttribute('data-vehicle-id');
+        const plate = button.getAttribute('data-vehicle-plate');
+        const brand = button.getAttribute('data-vehicle-brand');
+        const model = button.getAttribute('data-vehicle-model');
+        const name = plate + ' - ' + brand + ' ' + model;
+        selectVehicle(id, name);
+      }
+
+      function selectVehicle(id, name) {
         // Send message to opener window
         if (window.opener) {
           window.opener.postMessage({
             type: 'selectVehicle',
-            id: id
+            id: id,
+            name: name
           }, '*');
           window.close();
         }

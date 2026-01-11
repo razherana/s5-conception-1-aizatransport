@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}">
+
+<head>
+  <title>Nouvelle dépense</title>
+</head>
+
+<body>
+  <section layout:fragment="content" class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h3 mb-0">
+        <i class="fa-solid fa-plus-circle me-2"></i>
+        Nouvelle dépense
+      </h1>
+      <a th:href="@{/expenses}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>
+        Retour
+      </a>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card bg-white border-0 shadow-sm">
+          <div class="card-body p-4">
+            <form th:action="@{/expenses/create}" th:object="${expense}" method="post" id="expenseForm">
+              <div class="row g-3">
+                <!-- Type de dépense -->
+                <div class="col-md-12">
+                  <label for="typeId" class="form-label">
+                    Type de dépense <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="typeDisplay" placeholder="Sélectionner un type..."
+                      readonly />
+                    <input type="hidden" id="typeId" name="type.id" required />
+                    <button type="button" class="btn btn-outline-primary" id="btnSelectExpenseType">
+                      <i class="fa-solid fa-search me-1"></i>
+                      Sélectionner
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Voyage (optionnel) -->
+                <div class="col-md-12">
+                  <label for="tripId" class="form-label">
+                    Voyage
+                    <span class="text-muted small">(optionnel - obligatoire si pas de véhicule)</span>
+                  </label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="tripDisplay" placeholder="Sélectionner un voyage..."
+                      readonly />
+                    <input type="hidden" id="tripId" name="trip.id" />
+                    <button type="button" class="btn btn-outline-primary" id="btnSelectTrip">
+                      <i class="fa-solid fa-search me-1"></i>
+                      Sélectionner
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" id="clearTripBtn"
+                      style="display: none;">
+                      <i class="fa-solid fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Véhicule (optionnel) -->
+                <div class="col-md-12">
+                  <label for="vehicle" class="form-label">
+                    Véhicule
+                    <span class="text-muted small">(optionnel - obligatoire si pas de voyage)</span>
+                  </label>
+                  <div class="input-group">
+                    <select class="form-select" id="vehicle" name="vehicle.id">
+                      <option value="">Aucun véhicule</option>
+                      <option th:each="vehicle : ${vehicles}" th:value="${vehicle.id}"
+                        th:text="${vehicle.plateNumber} + ' - ' + ${vehicle.brand} + ' ' + ${vehicle.model} + ' (' + ${vehicle.capacity} + ' places)'">
+                      </option>
+                    </select>
+                    <button type="button" class="btn btn-outline-secondary" id="btnSelectVehicle"
+                      title="Rechercher un véhicule">
+                      <i class="fa-solid fa-search"></i>
+                    </button>
+                  </div>
+                  <small class="form-text text-muted">
+                    Utilisez le bouton de recherche pour filtrer et trier les véhicules
+                  </small>
+                </div>
+
+                <!-- Montant -->
+                <div class="col-md-6">
+                  <label for="amount" class="form-label">
+                    Montant (Ar) <span class="text-danger">*</span>
+                  </label>
+                  <input type="number" step="0.01" class="form-control" id="amount" th:field="*{amount}" required
+                    placeholder="Ex: 50000.00" />
+                </div>
+
+                <!-- Date de dépense -->
+                <div class="col-md-6">
+                  <label for="expenseDate" class="form-label">
+                    Date et heure de dépense <span class="text-danger">*</span>
+                  </label>
+                  <input type="datetime-local" class="form-control" id="expenseDate" th:field="*{expenseDate}" required
+                    th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}" />
+                </div>
+
+                <!-- Description -->
+                <div class="col-12">
+                  <label for="description" class="form-label">
+                    Description
+                  </label>
+                  <textarea class="form-control" id="description" th:field="*{description}" rows="3"
+                    placeholder="Détails de la dépense..."></textarea>
+                </div>
+
+                <!-- Statut -->
+                <div class="col-md-6">
+                  <label for="status" class="form-label">
+                    Statut <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="status" th:field="*{status}" required>
+                    <option value="">Sélectionner un statut</option>
+                    <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
+                  </select>
+                </div>
+
+                <div class="col-12">
+                  <hr class="my-3" />
+                  <div class="d-flex justify-content-end gap-2">
+                    <a th:href="@{/expenses}" class="btn btn-outline-secondary">
+                      <i class="fa-solid fa-times me-1"></i>
+                      Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                      <i class="fa-solid fa-save me-1"></i>
+                      Enregistrer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script directly in content section -->
+    <script th:inline="javascript">
+      (function() {
+        console.log('Script loaded');
+        
+        // Update field states based on selections
+        function updateFieldStates() {
+          const tripId = document.getElementById('tripId').value;
+          const vehicleId = document.getElementById('vehicle').value;
+          const tripDisplay = document.getElementById('tripDisplay');
+          const tripButton = document.getElementById('btnSelectTrip');
+          const clearTripBtn = document.getElementById('clearTripBtn');
+          const vehicleSelect = document.getElementById('vehicle');
+          const vehicleButton = document.getElementById('btnSelectVehicle');
+
+          // Show/hide clear button for trip
+          if (tripId) {
+            clearTripBtn.style.display = 'block';
+          } else {
+            clearTripBtn.style.display = 'none';
+          }
+
+          if (tripId) {
+            // Trip is selected, disable vehicle
+            vehicleSelect.disabled = true;
+            if (vehicleButton) vehicleButton.disabled = true;
+          } else if (vehicleId) {
+            // Vehicle is selected, disable trip
+            tripDisplay.disabled = true;
+            if (tripButton) tripButton.disabled = true;
+          } else {
+            // Nothing selected, enable both
+            vehicleSelect.disabled = false;
+            if (vehicleButton) vehicleButton.disabled = false;
+            tripDisplay.disabled = false;
+            if (tripButton) tripButton.disabled = false;
+          }
+        }
+
+        // Écouter les sélections du popup
+        window.addEventListener('message', function (event) {
+          console.log('Message received:', event.data);
+          
+          if (event.data.type === 'selectExpenseType') {
+            document.getElementById('typeId').value = event.data.id;
+            document.getElementById('typeDisplay').value = event.data.name;
+          } else if (event.data.type === 'selectTrip') {
+            document.getElementById('tripId').value = event.data.id;
+            document.getElementById('tripDisplay').value = event.data.info;
+            // Clear vehicle if trip is selected
+            document.getElementById('vehicle').value = '';
+            updateFieldStates();
+          } else if (event.data.type === 'selectVehicle') {
+            document.getElementById('vehicle').value = event.data.id;
+            // Clear trip if vehicle is selected
+            document.getElementById('tripId').value = '';
+            document.getElementById('tripDisplay').value = '';
+            updateFieldStates();
+          }
+        });
+
+        // Button click handlers
+        document.getElementById('btnSelectExpenseType').addEventListener('click', function() {
+          console.log('Opening expense type select');
+          window.open('/expenses-types/select?target=expense', 'selectExpenseType', 'width=900,height=600,resizable=yes,scrollbars=yes');
+        });
+
+        document.getElementById('btnSelectTrip').addEventListener('click', function() {
+          console.log('Opening trip select');
+          window.open('/trips/select?target=expense', 'selectTrip', 'width=900,height=600,resizable=yes,scrollbars=yes');
+        });
+
+        document.getElementById('btnSelectVehicle').addEventListener('click', function() {
+          console.log('Opening vehicle select');
+          window.open('/vehicles/select?target=expense', 'SelectVehicle', 'width=1000,height=700');
+        });
+
+        document.getElementById('clearTripBtn').addEventListener('click', function() {
+          document.getElementById('tripId').value = '';
+          document.getElementById('tripDisplay').value = '';
+          updateFieldStates();
+        });
+
+        // Listen for changes on vehicle dropdown
+        document.getElementById('vehicle').addEventListener('change', function () {
+          if (this.value) {
+            // Clear trip if vehicle is selected
+            document.getElementById('tripId').value = '';
+            document.getElementById('tripDisplay').value = '';
+          }
+          updateFieldStates();
+        });
+
+        // Form validation before submit
+        document.getElementById('expenseForm').addEventListener('submit', function (e) {
+          const tripId = document.getElementById('tripId').value;
+          const vehicleId = document.getElementById('vehicle').value;
+
+          if (!tripId && !vehicleId) {
+            e.preventDefault();
+            alert('Veuillez sélectionner soit un voyage soit un véhicule.');
+            return false;
+          }
+
+          if (tripId && vehicleId) {
+            e.preventDefault();
+            alert('Vous ne pouvez pas sélectionner à la fois un voyage et un véhicule. Veuillez en choisir un seul.');
+            return false;
+          }
+        });
+
+        // Initialize states on page load
+        updateFieldStates();
+      })();
+    </script>
+  </section>
+
+  <!-- Empty scripts fragment in case layout expects it -->
+  <th:block layout:fragment="scripts">
+  </th:block>
+</body>
+
+</html>

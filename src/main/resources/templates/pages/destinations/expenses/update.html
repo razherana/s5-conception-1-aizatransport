@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Modifier la dépense</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-edit me-2"></i>
+          Modifier la dépense
+        </h1>
+        <a th:href="@{/expenses}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-body p-4">
+              <form
+                th:action="@{/expenses/update/{id}(id=${expense.id})}"
+                th:object="${expense}"
+                method="post"
+                id="expenseForm"
+              >
+                <div class="row g-3">
+                  <!-- Type de dépense -->
+                  <div class="col-md-12">
+                    <label for="typeId" class="form-label">
+                      Type de dépense <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="typeDisplay"
+                        th:value="${expense.type?.typeName}"
+                        placeholder="Sélectionner un type..."
+                        readonly
+                      />
+                      <input
+                        type="hidden"
+                        id="typeId"
+                        th:field="*{type.id}"
+                        required
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        onclick="openExpenseTypeSelect()"
+                      >
+                        <i class="fa-solid fa-search me-1"></i>
+                        Sélectionner
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Voyage (optionnel) -->
+                  <div class="col-md-12">
+                    <label for="tripId" class="form-label">
+                      Voyage
+                      <span class="text-muted small">(optionnel - obligatoire si pas de véhicule)</span>
+                    </label>
+                    <div class="input-group">
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="tripDisplay"
+                        th:value="${expense.trip ? (expense.trip.route.departureDestination.name + ' → ' + expense.trip.route.arrivalDestination.name) : ''}"
+                        placeholder="Sélectionner un voyage..."
+                        readonly
+                      />
+                      <input
+                        type="hidden"
+                        id="tripId"
+                        th:field="*{trip.id}"
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        onclick="openTripSelect()"
+                      >
+                        <i class="fa-solid fa-search me-1"></i>
+                        Sélectionner
+                      </button>
+                    </div>
+                    <small class="form-text text-muted" id="tripNote"></small>
+                  </div>
+
+                  <!-- Véhicule (optionnel) -->
+                  <div class="col-md-12">
+                    <label for="vehicleId" class="form-label">
+                      Véhicule
+                      <span class="text-muted small">(optionnel - obligatoire si pas de voyage)</span>
+                    </label>
+                    <div class="input-group">
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="vehicleDisplay"
+                        th:value="${expense.vehicle?.plateNumber}"
+                        placeholder="Sélectionner un véhicule..."
+                        readonly
+                      />
+                      <input
+                        type="hidden"
+                        id="vehicleId"
+                        th:field="*{vehicle.id}"
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        onclick="openVehicleSelect()"
+                      >
+                        <i class="fa-solid fa-search me-1"></i>
+                        Sélectionner
+                      </button>
+                    </div>
+                    <small class="form-text text-muted" id="vehicleNote"></small>
+                  </div>
+
+                  <!-- Montant -->
+                  <div class="col-md-6">
+                    <label for="amount" class="form-label">
+                      Montant (Ar) <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      class="form-control"
+                      id="amount"
+                      th:field="*{amount}"
+                      required
+                      placeholder="Ex: 50000.00"
+                    />
+                  </div>
+
+                  <!-- Date de dépense -->
+                  <div class="col-md-6">
+                    <label for="expenseDate" class="form-label">
+                      Date de dépense <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="expenseDate"
+                      th:field="*{expenseDate}"
+                      required
+                    />
+                  </div>
+
+                  <!-- Description -->
+                  <div class="col-12">
+                    <label for="description" class="form-label">
+                      Description
+                    </label>
+                    <textarea
+                      class="form-control"
+                      id="description"
+                      th:field="*{description}"
+                      rows="3"
+                      placeholder="Détails de la dépense..."
+                    ></textarea>
+                  </div>
+
+                  <!-- Statut -->
+                  <div class="col-md-6">
+                    <label for="status" class="form-label">
+                      Statut <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select"
+                      id="status"
+                      th:field="*{status}"
+                      required
+                    >
+                      <option value="">Sélectionner un statut</option>
+                      <option
+                        th:each="s : ${statuses}"
+                        th:value="${s}"
+                        th:text="${s}"
+                      ></option>
+                    </select>
+                  </div>
+
+                  <div class="col-12">
+                    <hr class="my-3" />
+                    <div class="d-flex justify-content-end gap-2">
+                      <a
+                        th:href="@{/expenses}"
+                        class="btn btn-outline-secondary"
+                      >
+                        <i class="fa-solid fa-times me-1"></i>
+                        Annuler
+                      </a>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Enregistrer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      // Écouter les sélections du popup
+      window.addEventListener('message', function(event) {
+        if (event.data.type === 'selectExpenseType') {
+          document.getElementById('typeId').value = event.data.id;
+          document.getElementById('typeDisplay').value = event.data.name;
+        } else if (event.data.type === 'selectTrip') {
+          document.getElementById('tripId').value = event.data.id;
+          document.getElementById('tripDisplay').value = event.data.info;
+          // Clear vehicle if trip is selected
+          document.getElementById('vehicleId').value = '';
+          document.getElementById('vehicleDisplay').value = '';
+        } else if (event.data.type === 'selectVehicle') {
+          document.getElementById('vehicleId').value = event.data.id;
+          document.getElementById('vehicleDisplay').value = event.data.name;
+          // Clear trip if vehicle is selected
+          document.getElementById('tripId').value = '';
+          document.getElementById('tripDisplay').value = '';
+        }
+      });
+
+      // Ouvrir les popups de sélection
+      function openExpenseTypeSelect() {
+        window.open('/expenses-types/select?target=expense', 'selectExpenseType', 'width=900,height=600,resizable=yes,scrollbars=yes');
+      }
+
+      function openTripSelect() {
+        window.open('/trips/select?target=expense', 'selectTrip', 'width=900,height=600,resizable=yes,scrollbars=yes');
+      }
+
+      function openVehicleSelect() {
+        window.open('/vehicles/select?target=expense', 'selectVehicle', 'width=900,height=600,resizable=yes,scrollbars=yes');
+      }
+    </script>
+  </body>
+</html>
