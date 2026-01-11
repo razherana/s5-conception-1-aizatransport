@@ -12,7 +12,7 @@ import mg.razherana.aizatransport.models.transports.Driver;
 import mg.razherana.aizatransport.models.transports.Vehicle;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "trips", schema = "public")
@@ -41,10 +41,10 @@ public class Trip extends BasicEntity {
   private String status;
 
   @OneToMany(mappedBy = "trip")
-  private List<Reservation> reservations;
+  private Set<Reservation> reservations;
 
   @OneToMany(mappedBy = "trip")
-  private List<Ticket> tickets;
+  private Set<Ticket> tickets;
 
   public TripStatus getStatusEnum() {
     return TripStatus.valueOf(this.status);

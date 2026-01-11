@@ -10,7 +10,7 @@ import lombok.Data;
 import mg.razherana.aizatransport.models.bases.BasicEntity;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "routes", schema = "public")
@@ -32,5 +32,5 @@ public class Route extends BasicEntity {
   private Boolean active = true;
 
   @OneToMany(mappedBy = "route")
-  private List<RoutePrice> prices;
+  private Set<RoutePrice> prices;
 }

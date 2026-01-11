@@ -1,7 +1,7 @@
 package mg.razherana.aizatransport.models.transports;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,7 +36,7 @@ public class Vehicle extends BasicEntity {
   private LocalDate createdAt;
 
   @OneToMany(mappedBy = "vehicle")
-  private List<Seat> seats;
+  private Set<Seat> seats;
 
   public VehicleStatus getStatusEnum() {
     return VehicleStatus.valueOf(this.status);
