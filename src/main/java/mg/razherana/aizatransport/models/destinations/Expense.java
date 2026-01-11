@@ -56,8 +56,7 @@ public class Expense extends BasicExpenseEntity {
   public enum ExpenseStatus {
     EN_ATTENTE,
     VALIDEE,
-    REJETEE,
-    REMBOURSEE;
+    REJETEE;
   }
 
 }

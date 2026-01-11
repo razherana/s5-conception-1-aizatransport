@@ -30,7 +30,9 @@ public class ExpenseTypeController {
             @RequestParam(defaultValue = "asc") String sortOrder,
             Model model) {
 
-        List<ExpenseType> expenseTypes = expenseTypeService.findAll();
+        List<ExpenseType> expenseTypes = expenseTypeService.findAllFiltered(
+                typeName, sortBy, sortOrder
+        );
 
         model.addAttribute("expenseTypes", expenseTypes);
         model.addAttribute("selectedTypeName", typeName);
