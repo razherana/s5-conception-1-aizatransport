@@ -6,15 +6,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import mg.razherana.aizatransport.models.bases.BasicEntity;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "routes", schema = "public")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class Route extends BasicEntity {
 
   @ManyToOne
@@ -32,5 +36,5 @@ public class Route extends BasicEntity {
   private Boolean active = true;
 
   @OneToMany(mappedBy = "route")
-  private List<RoutePrice> prices;
+  private Set<RoutePrice> prices;
 }

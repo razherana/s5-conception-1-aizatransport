@@ -25,6 +25,7 @@ import mg.razherana.aizatransport.services.ReservationService;
 import mg.razherana.aizatransport.services.TicketService;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -54,16 +55,17 @@ public class TripController {
 
     List<Trip> trips = tripService.findAllFiltered(routeId, vehicleId, driverId, status, sortBy, sortOrder, true);
 
-    HashMap<Integer, Double> tripCA = new HashMap<>();
+    Map<Integer, Double> tripCA = new HashMap<>();
 
     for (Trip trip : trips) {
-      Double caReservations = trip.getReservations()
+
+      Double caReservations = new HashSet<>(trip.getReservations())
           .stream()
-          .filter((e) -> e.getStatus().equalsIgnoreCase("reserve"))
+          .filter((e) -> e.getStatus().equalsIgnoreCase(Reservation.ReservationStatus.RESERVE.name()))
           .mapToDouble(Reservation::getAmount)
           .sum();
 
-      Double caTickets = trip.getTickets()
+      Double caTickets = new HashSet<>(trip.getTickets())
           .stream()
           .mapToDouble(Ticket::getAmount)
           .sum();

@@ -1,16 +1,20 @@
 package mg.razherana.aizatransport.models.transports;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import mg.razherana.aizatransport.models.bases.BasicEntity;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "vehicles", schema = "public")
 public class Vehicle extends BasicEntity {
@@ -36,7 +40,7 @@ public class Vehicle extends BasicEntity {
   private LocalDate createdAt;
 
   @OneToMany(mappedBy = "vehicle")
-  private List<Seat> seats;
+  private Set<Seat> seats;
 
   public VehicleStatus getStatusEnum() {
     return VehicleStatus.valueOf(this.status);

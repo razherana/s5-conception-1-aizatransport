@@ -5,7 +5,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import mg.razherana.aizatransport.models.bases.BasicEntity;
 
 import java.math.BigDecimal;
@@ -13,7 +15,9 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "route_prices", schema = "public")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class RoutePrice extends BasicEntity {
 
   @ManyToOne

@@ -11,9 +11,12 @@ import mg.razherana.aizatransport.models.transports.Seat;
 
 import java.time.LocalDateTime;
 
+import groovy.transform.EqualsAndHashCode;
+
 @Entity
 @Table(name = "reservations", schema = "public")
 @Data
+@EqualsAndHashCode(excludes = {"passenger", "trip", "seat"})
 public class Reservation extends BasicExpenseEntity {
 
   @ManyToOne
