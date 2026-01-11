@@ -1,5 +1,7 @@
 package mg.razherana.aizatransport.models.destinations;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -10,8 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import mg.razherana.aizatransport.models.bases.BasicExpenseEntity;
 import mg.razherana.aizatransport.models.transports.Vehicle;
-
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "expenses", schema = "public")
@@ -33,9 +33,26 @@ public class Expense extends BasicExpenseEntity {
   private ExpenseType type;
 
   @Column(name = "expense_date", nullable = false)
-  private LocalDate expenseDate;
+  private LocalDateTime expenseDate;
 
   @Column(name = "description", columnDefinition = "TEXT")
   private String description;
+
+  @Column(name = "status", nullable=false, length=20)
+  private String status;
+
+  @Column(name = "amount", nullable=false, precision=10, scale=2)
+  private Double amount;
+
+  public ExpenseStatus getStatusEnum(){
+    return ExpenseStatus.valueOf(this.status);
+  }
+
+  public enum ExpenseStatus {
+    EN_ATTENTE,
+    VALIDEE,
+    REJETEE,
+    REMBOURSEE;
+  }
 
 }

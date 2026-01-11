@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Liste des dépenses</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-receipt me-2"></i>
+          Liste des dépenses
+        </h1>
+        <a th:href="@{/expenses/create}" class="btn btn-primary">
+          <i class="fa-solid fa-plus me-1"></i>
+          Nouvelle dépense
+        </a>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- Filtres et tri -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <form method="get" th:action="@{/expenses}">
+            <div class="row g-3">
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Type
+                </label>
+                <select name="typeId" class="form-select">
+                  <option value="">Tous les types</option>
+                  <option
+                    th:each="type : ${types}"
+                    th:value="${type.id}"
+                    th:text="${type.typeName}"
+                    th:selected="${typeId == type.id}"
+                  ></option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Voyage
+                </label>
+                <select name="tripId" class="form-select">
+                  <option value="">Tous les voyages</option>
+                  <option
+                    th:each="trip : ${trips}"
+                    th:value="${trip.id}"
+                    th:text="${trip.route.departureDestination.name} + ' → ' + ${trip.route.arrivalDestination.name}"
+                    th:selected="${tripId == trip.id}"
+                  ></option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Véhicule
+                </label>
+                <select name="vehicleId" class="form-select">
+                  <option value="">Tous les véhicules</option>
+                  <option
+                    th:each="vehicle : ${vehicles}"
+                    th:value="${vehicle.id}"
+                    th:text="${vehicle.plateNumber}"
+                    th:selected="${vehicleId == vehicle.id}"
+                  ></option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Statut
+                </label>
+                <select name="status" class="form-select">
+                  <option value="">Tous les statuts</option>
+                  <option
+                    th:each="s : ${statuses}"
+                    th:value="${s}"
+                    th:text="${s}"
+                    th:selected="${status == s}"
+                  ></option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-sort me-1"></i>
+                  Trier par
+                </label>
+                <select name="sortBy" class="form-select">
+                  <option value="expenseDate" th:selected="${sortBy == 'expenseDate'}">Date</option>
+                  <option value="amount" th:selected="${sortBy == 'amount'}">Montant</option>
+                  <option value="status" th:selected="${sortBy == 'status'}">Statut</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Ordre</label>
+                <select name="sortOrder" class="form-select">
+                  <option value="asc" th:selected="${sortOrder == 'asc'}">Croissant</option>
+                  <option value="desc" th:selected="${sortOrder == 'desc'}">Décroissant</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary me-2">
+                  <i class="fa-solid fa-search me-1"></i>
+                  Filtrer
+                </button>
+                <a th:href="@{/expenses}" class="btn btn-outline-secondary">
+                  <i class="fa-solid fa-times me-1"></i>
+                  Réinitialiser
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Voyage/Véhicule</th>
+                  <th>Montant</th>
+                  <th>Date</th>
+                  <th>Statut</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(expenses)}">
+                  <td colspan="7" class="text-center text-muted py-4">
+                    <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
+                    Aucune dépense trouvée
+                  </td>
+                </tr>
+                <tr th:each="expense : ${expenses}">
+                  <td th:text="${expense.id}">1</td>
+                  <td>
+                    <span
+                      th:if="${expense.type}"
+                      class="badge bg-info"
+                      th:text="${expense.type.typeName}"
+                      >Carburant</span
+                    >
+                    <span th:unless="${expense.type}" class="text-muted">-</span>
+                  </td>
+                  <td>
+                    <div>
+                      <span th:if="${expense.trip}">
+                        <i class="fa-solid fa-route me-1"></i>
+                        <span th:text="${expense.trip.route.departureDestination.name} + ' → ' + ${expense.trip.route.arrivalDestination.name}"></span>
+                      </span>
+                      <span th:if="${expense.vehicle}" th:unless="${expense.trip}">
+                        <i class="fa-solid fa-car me-1"></i>
+                        <span th:text="${expense.vehicle.plateNumber}"></span>
+                      </span>
+                      <span th:unless="${expense.trip || expense.vehicle}" class="text-muted">-</span>
+                    </div>
+                  </td>
+                  <td>
+                    <strong th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 0, 'POINT')} + ' Ar'"></strong>
+                  </td>
+                  <td th:text="${#temporals.format(expense.expenseDate, 'dd/MM/yyyy')}">01/01/2024</td>
+                  <td>
+                    <span
+                      class="badge"
+                      th:classappend="${expense.status == 'VALIDEE'} ? 'bg-success' : (${expense.status == 'EN_ATTENTE'} ? 'bg-warning' : (${expense.status == 'REJETEE'} ? 'bg-danger' : 'bg-secondary'))"
+                      th:text="${expense.status}"
+                      >VALIDÉE</span
+                    >
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group" role="group">
+                      <a
+                        th:href="@{/expenses/update/{id}(id=${expense.id})}"
+                        class="btn btn-sm btn-outline-primary"
+                        title="Modifier"
+                      >
+                        <i class="fa-solid fa-edit"></i>
+                      </a>
+                      <form
+                        th:action="@{/expenses/delete/{id}(id=${expense.id})}"
+                        method="post"
+                        class="d-inline"
+                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?');"
+                      >
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-3 text-muted small">
+            <i class="fa-solid fa-info-circle me-1"></i>
+            Total: <strong th:text="${#lists.size(expenses)}">0</strong> dépense(s)
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
