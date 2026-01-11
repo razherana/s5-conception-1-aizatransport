@@ -42,6 +42,7 @@ public class TripController {
   private final TicketService ticketService;
 
   @GetMapping
+  @Transactional
   public String list(
       @RequestParam(required = false) Integer routeId,
       @RequestParam(required = false) Integer vehicleId,
@@ -51,7 +52,28 @@ public class TripController {
       @RequestParam(defaultValue = "desc") String sortOrder,
       Model model) {
 
-    model.addAttribute("trips", tripService.findAllFiltered(routeId, vehicleId, driverId, status, sortBy, sortOrder));
+    List<Trip> trips = tripService.findAllFiltered(routeId, vehicleId, driverId, status, sortBy, sortOrder, true);
+
+    HashMap<Integer, Double> tripCA = new HashMap<>();
+
+    for (Trip trip : trips) {
+      Double caReservations = trip.getReservations()
+          .stream()
+          .filter((e) -> e.getStatus().equalsIgnoreCase("reserve"))
+          .mapToDouble(Reservation::getAmount)
+          .sum();
+
+      Double caTickets = trip.getTickets()
+          .stream()
+          .mapToDouble(Ticket::getAmount)
+          .sum();
+
+      Double ca = caReservations + caTickets;
+      tripCA.put(trip.getId(), ca);
+    }
+
+    model.addAttribute("tripCA", tripCA);
+    model.addAttribute("trips", trips);
     model.addAttribute("routes", routeService.findAll());
     model.addAttribute("vehicles", vehicleService.findAll());
     model.addAttribute("drivers", driverService.findAll());
@@ -175,12 +197,12 @@ public class TripController {
     // Create a map of trip display information to avoid null issues in template
     var tripDisplayMap = new java.util.HashMap<Integer, String>();
     var tripPriceMap = new java.util.HashMap<Integer, Double>();
-    
+
     for (var trip : trips) {
       String display = "";
       if (trip.getRoute() != null) {
         display = trip.getRoute().getDepartureDestination() + " → " + trip.getRoute().getArrivalDestination();
-        
+
         // Get current route price
         var currentPrice = routeService.getCurrentPrice(trip.getRoute().getId());
         if (currentPrice.isPresent()) {
@@ -276,27 +298,27 @@ public class TripController {
     try {
       // Find reservations for both seats
       Reservation reservation1 = reservationService.findAll().stream()
-          .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(id) && 
-                       r.getSeat() != null && r.getSeat().getId().equals(seat1Id))
+          .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(id) &&
+              r.getSeat() != null && r.getSeat().getId().equals(seat1Id))
           .findFirst()
           .orElse(null);
 
       Reservation reservation2 = reservationService.findAll().stream()
-          .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(id) && 
-                       r.getSeat() != null && r.getSeat().getId().equals(seat2Id))
+          .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(id) &&
+              r.getSeat() != null && r.getSeat().getId().equals(seat2Id))
           .findFirst()
           .orElse(null);
 
       // Find tickets for both seats
       Ticket ticket1 = ticketService.findAll().stream()
-          .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(id) && 
-                       t.getSeat() != null && t.getSeat().getId().equals(seat1Id))
+          .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(id) &&
+              t.getSeat() != null && t.getSeat().getId().equals(seat1Id))
           .findFirst()
           .orElse(null);
 
       Ticket ticket2 = ticketService.findAll().stream()
-          .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(id) && 
-                       t.getSeat() != null && t.getSeat().getId().equals(seat2Id))
+          .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(id) &&
+              t.getSeat() != null && t.getSeat().getId().equals(seat2Id))
           .findFirst()
           .orElse(null);
 
