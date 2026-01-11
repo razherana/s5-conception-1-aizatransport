@@ -6,18 +6,35 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import mg.razherana.aizatransport.models.bases.BasicEntity;
 import mg.razherana.aizatransport.models.transports.Driver;
 import mg.razherana.aizatransport.models.transports.Vehicle;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 
 @Entity
 @Table(name = "trips", schema = "public")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class Trip extends BasicEntity {
+
+  public enum TripStatus {
+    BROUILLON,
+    PLANIFIE,
+    EN_COURS,
+    TERMINE,
+    ANNULE;
+  }
 
   @ManyToOne
   @JoinColumn(name = "route_id", nullable = false)
@@ -41,21 +58,14 @@ public class Trip extends BasicEntity {
   private String status;
 
   @OneToMany(mappedBy = "trip")
-  private Set<Reservation> reservations;
+  @Fetch(FetchMode.SUBSELECT)
+  private Set<Reservation> reservations = new HashSet<>();
 
   @OneToMany(mappedBy = "trip")
-  private Set<Ticket> tickets;
+  @Fetch(FetchMode.SUBSELECT)
+  private Set<Ticket> tickets = new HashSet<>();
 
   public TripStatus getStatusEnum() {
     return TripStatus.valueOf(this.status);
   }
-
-  public enum TripStatus {
-    BROUILLON,
-    PLANIFIE,
-    EN_COURS,
-    TERMINE,
-    ANNULE;
-  }
-
 }

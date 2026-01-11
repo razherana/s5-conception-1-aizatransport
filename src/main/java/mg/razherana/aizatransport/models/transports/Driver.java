@@ -5,12 +5,16 @@ import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import mg.razherana.aizatransport.models.bases.BasicEntity;
 
 @Entity
 @Table(name = "drivers", schema = "public")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class Driver extends BasicEntity {
 
   @Column(name = "full_name", nullable = false, length = 100)
