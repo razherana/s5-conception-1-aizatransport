@@ -51,7 +51,7 @@
         left: 0;
         bottom: 0;
         width: 250px;
-        height: 100%;
+        height: calc(100vh - 56px);
         background-color: #1a1a1a;
         border-right: 2px solid #333;
         overflow-y: auto;
@@ -71,6 +71,7 @@
       .sidebar-nav .nav-link {
         color: #ccc !important;
         padding: 1rem 1.5rem;
+        min-height: 54px;
         display: flex;
         align-items: center;
         gap: 0.75rem;
@@ -96,14 +97,178 @@
         text-align: center;
       }
 
-      .sidebar-section-title {
-        color: #888;
+      /* Accordion Styles */
+      .sidebar .accordion {
+        --bs-accordion-bg: transparent;
+        --bs-accordion-border-color: #333;
+        --bs-accordion-btn-bg: transparent;
+        --bs-accordion-btn-color: #888;
+        --bs-accordion-active-bg: transparent;
+        --bs-accordion-active-color: #fff;
+      }
+
+      .sidebar .accordion-button {
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 1px;
-        padding: 1rem 1.5rem 0.5rem 1.5rem;
-        margin-top: 0.5rem;
+        padding: 1rem 1.5rem;
+        min-height: 54px;
+        border: none;
+        box-shadow: none !important;
+      }
+
+      .sidebar .accordion-button:not(.collapsed) {
+        background-color: transparent;
+        color: #fff;
+      }
+
+      .sidebar .accordion-button::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23888'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        filter: brightness(0.8);
+      }
+
+      .sidebar .accordion-button:not(.collapsed)::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+      }
+
+      .sidebar .accordion-body {
+        padding: 0;
+      }
+
+      .sidebar .accordion-item {
+        background-color: transparent;
+        border: none;
+        border-bottom: 1px solid #333;
+      }
+
+      .sidebar .accordion-item:last-child {
+        border-bottom: 1px solid #333;
+      }
+
+      /* Split accordion header (link + toggle) */
+      .sidebar .accordion-header-split {
+        display: flex;
+        align-items: stretch;
+        border-bottom: 1px solid #333;
+        min-height: 54px;
+      }
+
+      .sidebar .accordion-link {
+        flex: 1;
+        color: #fff;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 1rem 0.5rem 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        transition: all 0.3s;
+        background-color: transparent;
+      }
+
+      .sidebar .accordion-link:hover {
+        color: #fff;
+        background-color: #2a2a2a;
+      }
+
+      .sidebar .accordion-toggle {
+        width: 40px;
+        min-height: 54px;
+        background-color: transparent;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s;
+        flex-shrink: 0;
+      }
+
+      .sidebar .accordion-toggle:hover {
+        background-color: #2a2a2a;
+        color: #fff;
+      }
+
+      .sidebar .accordion-toggle::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 16px;
+        height: 16px;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23888'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        background-size: contain;
+        background-repeat: no-repeat;
+        transition: transform 0.3s;
+      }
+
+      .sidebar .accordion-toggle:not(.collapsed)::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+        transform: translate(-50%, -50%) rotate(180deg);
+      }
+
+      .sidebar .accordion-toggle:hover::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+      }
+
+      /* Nested split headers indentation */
+      .sidebar .accordion-body .accordion-header-split > .accordion-link {
+        padding-left: 2.5rem;
+        font-size: 0.7rem;
+      }
+
+      .sidebar .accordion-body .accordion-body .accordion-header-split .accordion-link {
+        padding-left: 3.5rem;
+        font-size: 0.65rem;
+      }
+
+      .sidebar .accordion-body .accordion-body .accordion-body .accordion-header-split .accordion-link {
+        padding-left: 4.5rem;
+        font-size: 0.6rem;
+      }
+
+      /* Nested accordion indentation */
+      .sidebar .accordion-body .accordion {
+        margin-left: 0;
+      }
+
+      .sidebar .accordion-body .accordion-button {
+        padding-left: 2.5rem;
+        font-size: 0.7rem;
+      }
+
+      .sidebar .accordion-body .accordion-body .accordion-button {
+        padding-left: 3.5rem;
+        font-size: 0.65rem;
+      }
+
+      .sidebar
+        .accordion-body
+        .accordion-body
+        .accordion-body
+        .accordion-button {
+        padding-left: 4.5rem;
+        font-size: 0.6rem;
+      }
+
+      .sidebar .accordion-body .sidebar-nav .nav-link {
+        padding-left: 2.5rem;
+      }
+
+      .sidebar .accordion-body .accordion-body .sidebar-nav .nav-link {
+        padding-left: 3.5rem;
+      }
+
+      .sidebar
+        .accordion-body
+        .accordion-body
+        .accordion-body
+        .sidebar-nav
+        .nav-link {
+        padding-left: 4.5rem;
       }
 
       .main-wrapper {
@@ -194,82 +359,88 @@
 
     <!-- Sidebar -->
     <aside class="sidebar">
-      <ul class="sidebar-nav">
-        <!-- Dashboard -->
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/}">
-            <i class="fa-solid fa-gauge"></i>
-            <span>Tableau de bord</span>
-          </a>
-        </li>
-
-        <!-- Ressources Section -->
-        <li>
-          <div class="sidebar-section-title">Transports</div>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/vehicles}">
-            <i class="fa-solid fa-car"></i>
-            <span>Véhicules</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/drivers}">
-            <i class="fa-solid fa-user-tie"></i>
-            <span>Chauffeurs</span>
-          </a>
-        </li>
-
-        <!-- Trajets Section -->
-        <li>
-          <div class="sidebar-section-title">Destinations</div>
-        </li>
-        
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/routes}">
-            <i class="fa-solid fa-route"></i>
-            <span>Routes</span>
-          </a>
-        </li>
-        
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/destinations}">
-            <i class="fa-solid fa-map-marker-alt"></i>
-            <span>Destinations</span>
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/trips}">
-            <i class="fa-solid fa-road"></i>
-            <span>Voyages</span>
-          </a>
-        </li>
-
-        <!-- Gestion Section -->
-        <li>
-          <div class="sidebar-section-title">Gestion</div>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/reservations}">
-            <i class="fa-solid fa-ticket"></i>
-            <span>Réservations</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/tickets}">
-            <i class="fa-solid fa-ticket"></i>
-            <span>Tickets</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/expenses}">
-            <i class="fa-solid fa-money-bill-wave"></i>
-            <span>Dépenses</span>
-          </a>
-        </li>
-      </ul>
+      <!-- Dynamic Sidebar Items -->
+      <th:block th:each="item, iterStat : ${sidebarItems}">
+        <th:block
+          th:replace="~{::renderSidebarItem(${item}, ${iterStat.index}, '')}"
+        ></th:block>
+      </th:block>
     </aside>
+
+    <!-- Recursive Fragment for Sidebar Items -->
+    <th:block th:fragment="renderSidebarItem(item, index, parentId)">
+      <!-- Skip null items -->
+      <th:block th:if="${item != null}">
+        <!-- Determine if item has children -->
+        <th:block
+          th:with="hasChildren=${item.items != null and !item.items.isEmpty()}"
+        >
+          <!-- Single Menu Item (no children) -->
+          <ul th:if="${!hasChildren}" class="sidebar-nav">
+            <li class="nav-item">
+              <a class="nav-link" th:href="@{${item.link}}">
+                <i th:class="${item.icon}"></i>
+                <span th:text="${item.name}"></span>
+              </a>
+            </li>
+          </ul>
+
+          <!-- Accordion Section (has children) -->
+          <div
+            th:if="${hasChildren}"
+            class="accordion accordion-flush"
+            th:id="${parentId + 'accordion' + index}"
+          >
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <!-- Item with link and children: split button -->
+                <div th:if="${item.link != null and item.link != ''}" class="accordion-header-split">
+                  <a class="accordion-link" th:href="@{${item.link}}">
+                    <i th:if="${item.icon != null}" th:class="${item.icon}"></i>
+                    <span th:text="${item.name}"></span>
+                  </a>
+                  <button
+                    class="accordion-toggle"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    th:data-bs-target="'#' + ${parentId + 'collapse' + index}"
+                    aria-expanded="true"
+                    th:aria-controls="${parentId + 'collapse' + index}"
+                  >
+                  </button>
+                </div>
+                
+                <!-- Item without link: regular accordion button -->
+                <button
+                  th:if="${item.link == null or item.link == ''}"
+                  class="accordion-button"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  th:data-bs-target="'#' + ${parentId + 'collapse' + index}"
+                  aria-expanded="true"
+                  th:aria-controls="${parentId + 'collapse' + index}"
+                  th:text="${item.name}"
+                ></button>
+              </h2>
+              <div
+                th:id="${parentId + 'collapse' + index}"
+                class="accordion-collapse collapse show"
+                th:data-bs-parent="'#' + ${parentId + 'accordion' + index}"
+              >
+                <div class="accordion-body">
+                  <!-- Recursively render sub-items -->
+                  <th:block th:each="subItem, subIterStat : ${item.items}">
+                    <th:block
+                      th:replace="~{::renderSidebarItem(${subItem}, ${subIterStat.index}, ${parentId + 'sub' + index + '_'})}"
+                    ></th:block>
+                  </th:block>
+                </div>
+              </div>
+            </div>
+          </div>
+        </th:block>
+      </th:block>
+    </th:block>
 
     <!-- Main Content Wrapper -->
     <div class="main-wrapper">
