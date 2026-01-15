@@ -68,11 +68,17 @@
         <!-- Chart -->
         <div class="col-lg-8">
           <div class="card bg-white border-0 shadow-sm mb-4">
-            <div class="card-header bg-light border-0">
+            <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
               <h5 class="mb-0">
                 <i class="fa-solid fa-chart-area me-2"></i>
                 Évolution des prix
               </h5>
+              <div class="d-flex gap-2">
+                <select id="chartSeatTypeFilter" class="form-select" style="width: auto; max-width: 250px;">
+                  <option value="" disabled selected>Sélectionner un type de siège...</option>
+                  <option th:each="seatType : ${seatTypes}" th:value="${seatType.id}" th:text="${seatType.name}">Standard</option>
+                </select>
+              </div>
             </div>
             <div class="card-body">
               <canvas id="priceChart" height="100"></canvas>
@@ -86,10 +92,16 @@
                 <i class="fa-solid fa-history me-2"></i>
                 Historique complet
               </h5>
-              <select id="tripTypeFilter" class="form-select" style="width: auto; max-width: 250px;">
-                <option value="all">Tous Actuel</option>
-                <option th:each="tripType : ${tripTypes}" th:value="${tripType.id}" th:text="${tripType.name}">Express</option>
-              </select>
+              <div class="d-flex gap-2">
+                <select id="tripTypeFilter" class="form-select" style="width: auto; max-width: 200px;">
+                  <option value="all">Tous les trajets</option>
+                  <option th:each="tripType : ${tripTypes}" th:value="${tripType.id}" th:text="${tripType.name}">Express</option>
+                </select>
+                <select id="seatTypeFilter" class="form-select" style="width: auto; max-width: 200px;">
+                  <option value="all">Tous les sièges</option>
+                  <option th:each="seatType : ${seatTypes}" th:value="${seatType.id}" th:text="${seatType.name}">Standard</option>
+                </select>
+              </div>
             </div>
             <div class="card-body">
               <div class="table-responsive">
@@ -98,8 +110,8 @@
                     <tr>
                       <th>Date d'effet</th>
                       <th>Type de trajet</th>
+                      <th>Type de siège</th>
                       <th>Prix (Ar)</th>
-                      <th>Variation</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -109,7 +121,9 @@
                         Aucun historique de prix
                       </td>
                     </tr>
-                    <tr th:each="priceDTO : ${priceHistoryDTOs}" th:data-trip-type-id="${priceDTO.tripTypeId}">
+                    <tr th:each="priceDTO : ${priceHistoryDTOs}" 
+                        th:data-trip-type-id="${priceDTO.tripTypeId}"
+                        th:data-seat-type-id="${priceDTO.seatTypeId}">
                       <td>
                         <i class="fa-solid fa-calendar me-2"></i>
                         <span th:text="${#temporals.format(priceDTO.effectiveDate, 'dd/MM/yyyy')}">01/01/2026</span>
@@ -122,24 +136,12 @@
                         </span>
                       </td>
                       <td>
-                        <strong th:text="${#numbers.formatDecimal(priceDTO.price, 1, 'COMMA', 2, 'POINT')} + ' Ar'">50,000.00 Ar</strong>
+                        <span class="badge" 
+                              th:style="'background-color: ' + ${priceDTO.seatTypeColor} + '; color: white;'"
+                              th:text="${priceDTO.seatTypeName}">Standard</span>
                       </td>
                       <td>
-                        <span th:if="${priceDTO.variationType == 'increase'}" class="text-success">
-                          <i class="fa-solid fa-arrow-up me-1"></i>
-                          +<span th:text="${#numbers.formatDecimal(priceDTO.variation, 1, 'COMMA', 2, 'POINT')}">5,000.00</span> Ar
-                        </span>
-                        <span th:if="${priceDTO.variationType == 'decrease'}" class="text-danger">
-                          <i class="fa-solid fa-arrow-down me-1"></i>
-                          <span th:text="${#numbers.formatDecimal(priceDTO.variation, 1, 'COMMA', 2, 'POINT')}">-5,000.00</span> Ar
-                        </span>
-                        <span th:if="${priceDTO.variationType == 'none'}" class="text-muted">
-                          <i class="fa-solid fa-minus me-1"></i>
-                          Aucun changement
-                        </span>
-                        <span th:if="${priceDTO.variationType == 'initial'}" class="text-muted">
-                          Prix initial
-                        </span>
+                        <strong th:text="${#numbers.formatDecimal(priceDTO.price, 1, 'COMMA', 2, 'POINT')} + ' Ar'">50,000.00 Ar</strong>
                       </td>
                     </tr>
                   </tbody>
@@ -169,12 +171,37 @@
                     id="tripTypeId"
                     name="tripTypeId"
                     required
+                    th:attr="data-classique-id=${classiqueId}"
                   >
-                    <option value="" disabled selected>Sélectionner un type de trajet...</option>
-                    <option th:each="tripType : ${tripTypes}" th:value="${tripType.id}" th:text="${tripType.name}">Express</option>
+                    <option value="" disabled>Sélectionner un type de trajet...</option>
+                    <option th:each="tripType : ${tripTypes}" 
+                            th:value="${tripType.id}" 
+                            th:text="${tripType.name}"
+                            th:selected="${tripType.id == classiqueId}">Express</option>
                   </select>
                   <div class="form-text">
                     Sélectionnez le type de trajet auquel ce prix s'applique
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="seatTypeId" class="form-label">
+                    Type de siège <span class="text-danger">*</span>
+                  </label>
+                  <select
+                    class="form-select"
+                    id="seatTypeId"
+                    name="seatTypeId"
+                    required
+                  >
+                    <option value="" disabled selected>Sélectionner un type de siège...</option>
+                    <option th:each="seatType : ${seatTypes}" 
+                            th:value="${seatType.id}" 
+                            th:text="${seatType.name}"
+                            th:style="'background-color: ' + ${seatType.color} + '; color: white;'">Standard</option>
+                  </select>
+                  <div class="form-text">
+                    Sélectionnez le type de siège auquel ce prix s'applique
                   </div>
                 </div>
 
@@ -190,10 +217,9 @@
                     name="price"
                     required
                     placeholder="Ex: 55000.00"
-                    th:value="${currentPrice}"
                   />
                   <div class="form-text">
-                    Prix actuel: <strong th:text="${#numbers.formatDecimal(currentPrice, 1, 'COMMA', 2, 'POINT')} + ' Ar'">50,000.00 Ar</strong>
+                    Prix actuel: <strong id="currentPriceText">Sélectionnez un type de trajet et un type de siège</strong>
                   </div>
                 </div>
 
@@ -216,7 +242,7 @@
 
                 <div class="alert alert-warning small">
                   <i class="fa-solid fa-exclamation-triangle me-2"></i>
-                  Ce nouveau prix sera ajouté à l'historique. Les anciens prix seront conservés.
+                  Ce nouveau prix sera ajouté pour la combinaison type de trajet + type de siège sélectionnée. Les anciens prix seront conservés.
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">
@@ -236,79 +262,161 @@
         /*<![CDATA[*/
         const chartLabels = /*[[${chartData.labels}]]*/ [];
         const chartPrices = /*[[${chartData.prices}]]*/ [];
+        const chartTripTypeIds = /*[[${chartData.tripTypeIds}]]*/ [];
+        const chartSeatTypeIds = /*[[${chartData.seatTypeIds}]]*/ [];
+        const classiqueId = /*[[${classiqueId}]]*/ null;
+        const pricesByCombo = /*[[${pricesByCombo}]]*/ {};
 
-        // Create the chart
-        const ctx = document.getElementById('priceChart').getContext('2d');
-        const priceChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: chartLabels,
-            datasets: [{
-              label: 'Prix (Ar)',
-              data: chartPrices,
-              borderColor: 'rgb(75, 192, 192)',
-              backgroundColor: 'rgba(75, 192, 192, 0.1)',
-              tension: 0.3,
-              fill: true,
-              pointRadius: 5,
-              pointHoverRadius: 7,
-              pointBackgroundColor: 'rgb(75, 192, 192)',
-              pointBorderColor: '#fff',
-              pointBorderWidth: 2
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: {
-                display: true,
-                position: 'top'
-              },
-              tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    return 'Prix: ' + context.parsed.y.toLocaleString('fr-FR', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    }) + ' Ar';
-                  }
-                }
-              }
+        let priceChart = null;
+
+        function updateChart(seatTypeId) {
+          if (!seatTypeId) {
+            // Clear chart if no seat type selected
+            if (priceChart) {
+              priceChart.destroy();
+              priceChart = null;
+            }
+            return;
+          }
+
+          // Filter data for Classique trip type and selected seat type
+          const filteredData = chartLabels.reduce((acc, label, index) => {
+            if (chartTripTypeIds[index] === classiqueId && chartSeatTypeIds[index] == seatTypeId) {
+              acc.labels.push(label);
+              acc.prices.push(chartPrices[index]);
+            }
+            return acc;
+          }, { labels: [], prices: [] });
+
+          // Get seat type name for label
+          const seatTypeSelect = document.getElementById('chartSeatTypeFilter');
+          const seatTypeName = seatTypeSelect.options[seatTypeSelect.selectedIndex].text;
+
+          // Destroy existing chart
+          if (priceChart) {
+            priceChart.destroy();
+          }
+
+          // Create the chart with filtered data
+          const ctx = document.getElementById('priceChart').getContext('2d');
+          priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: filteredData.labels,
+              datasets: [{
+                label: 'Prix (Ar) - Classique - ' + seatTypeName,
+                data: filteredData.prices,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.3,
+                fill: true,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: 'rgb(75, 192, 192)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+              }]
             },
-            scales: {
-              y: {
-                beginAtZero: false,
-                ticks: {
-                  callback: function(value) {
-                    return value.toLocaleString('fr-FR') + ' Ar';
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'top'
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      return 'Prix: ' + context.parsed.y.toLocaleString('fr-FR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      }) + ' Ar';
+                    }
                   }
                 }
               },
-              x: {
-                grid: {
-                  display: false
+              scales: {
+                y: {
+                  beginAtZero: false,
+                  ticks: {
+                    callback: function(value) {
+                      return value.toLocaleString('fr-FR') + ' Ar';
+                    }
+                  }
+                },
+                x: {
+                  grid: {
+                    display: false
+                  }
                 }
               }
             }
-          }
-        });
+          });
+        }
 
-        // Filter price history by trip type
-        document.getElementById('tripTypeFilter').addEventListener('change', function() {
-          const selectedValue = this.value;
+        // Filter price history by trip type and seat type
+        function filterTable() {
+          const tripTypeValue = document.getElementById('tripTypeFilter').value;
+          const seatTypeValue = document.getElementById('seatTypeFilter').value;
           const tableRows = document.querySelectorAll('#priceHistoryTable tbody tr:not(:first-child)');
           
           tableRows.forEach(row => {
             const tripTypeId = row.getAttribute('data-trip-type-id');
+            const seatTypeId = row.getAttribute('data-seat-type-id');
             
-            if (selectedValue === 'all' || tripTypeId === selectedValue) {
+            const tripTypeMatch = tripTypeValue === 'all' || tripTypeId === tripTypeValue;
+            const seatTypeMatch = seatTypeValue === 'all' || seatTypeId === seatTypeValue;
+            
+            if (tripTypeMatch && seatTypeMatch) {
               row.style.display = '';
             } else {
               row.style.display = 'none';
             }
           });
+        }
+
+        // Update price input based on selected trip type and seat type
+        function updateCurrentPrice() {
+          const tripTypeId = document.getElementById('tripTypeId').value;
+          const seatTypeId = document.getElementById('seatTypeId').value;
+          
+          if (tripTypeId && seatTypeId) {
+            const key = tripTypeId + '_' + seatTypeId;
+            const currentPrice = pricesByCombo[key];
+            
+            const priceInput = document.getElementById('price');
+            const priceText = document.getElementById('currentPriceText');
+            
+            if (currentPrice) {
+              priceInput.value = currentPrice;
+              priceText.textContent = parseFloat(currentPrice).toLocaleString('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              }) + ' Ar';
+            } else {
+              priceInput.value = '';
+              priceText.textContent = 'Aucun prix configuré';
+            }
+          }
+        }
+
+        // Set Classique as default and apply initial filter
+        document.addEventListener('DOMContentLoaded', function() {
+          if (classiqueId) {
+            document.getElementById('tripTypeFilter').value = classiqueId;
+            document.getElementById('tripTypeId').value = classiqueId;
+            filterTable();
+          }
         });
+
+        document.getElementById('tripTypeFilter').addEventListener('change', filterTable);
+        document.getElementById('seatTypeFilter').addEventListener('change', filterTable);
+        document.getElementById('chartSeatTypeFilter').addEventListener('change', function() {
+          updateChart(this.value);
+        });
+        document.getElementById('tripTypeId').addEventListener('change', updateCurrentPrice);
+        document.getElementById('seatTypeId').addEventListener('change', updateCurrentPrice);
         /*]]>*/
       </script>
     </th:block>

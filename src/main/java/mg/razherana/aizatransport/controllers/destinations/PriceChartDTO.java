@@ -11,4 +11,6 @@ import lombok.Data;
 public class PriceChartDTO {
   private List<String> labels;
   private List<BigDecimal> prices;
+  private List<Integer> tripTypeIds;
+  private List<Integer> seatTypeIds;
 }

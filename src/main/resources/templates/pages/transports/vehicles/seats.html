@@ -39,6 +39,7 @@
           left: 0;
           right: 0;
           bottom: 0;
+          background-color: var(--seat-bg-color, #cccccc);
           opacity: 0.3;
           z-index: 0;
         }
@@ -181,8 +182,7 @@
             <i class="fa-solid fa-chair me-1"></i>
             Types de sièges
           </h6>
-          <div class="seat-type-legend">seatType != null ? seat.seatType.name : 'Non défini'}) + ' - ' + (${seat.available} ? 'Disponible' : 'Indisponible')"
-              th:attr="data-color=${seat.seatType != null ? seat.seatType.color : '#cccccc'}
+          <div class="seat-type-legend">
             <div class="seat-type-item" th:each="seatType : ${seatTypes}">
               <div class="seat-type-color" th:style="'background-color: ' + ${seatType.color}"></div>
               <span th:text="${seatType.name}">Standard</span>
@@ -199,7 +199,8 @@
               th:each="seat : ${seats}"
               th:href="@{/vehicles/seats/{id}/update(id=${seat.id})}"
               th:class="${seat.available} ? 'seat available' : 'seat occupied'"
-              th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${seat.available} ? 'Disponible' : 'Indisponible')"
+              th:style="'--seat-bg-color: ' + ${seat.seatType != null ? seat.seatType.color : '#cccccc'}"
+              th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${seat.seatType != null ? seat.seatType.name : 'Non défini'}) + ' - ' + (${seat.available} ? 'Disponible' : 'Indisponible')"
             >
               <span th:text="${seat.seatNumber}">1</span>
             </a>
@@ -235,29 +236,11 @@
           </div>
         </div>
       </div>
-
+/section>
+    
     <script layout:fragment="scripts">
-      // Apply seat type colors
-      document.addEventListener('DOMContentLoaded', function() {
-        const seats = document.querySelectorAll('.seat');
-        seats.forEach(seat => {
-          const color = seat.getAttribute('data-color');
-          if (color) {
-            seat.style.setProperty('--seat-color', color);
-            const beforeElement = window.getComputedStyle(seat, '::before');
-            seat.querySelector('::before') || (seat.style.setProperty('background-color', color));
-            // Apply color to the ::before pseudo-element
-            const style = document.createElement('style');
-            style.textContent = `
-              .seat[data-color="${color}"]::before {
-                background-color: ${color};
-              }
-            `;
-            document.head.appendChild(style);
-          }
-        });
-      });
-    </script>
+      // No additional JavaScript needed - colors are applied via CSS variables
+    </script
     </section>
   </body>
 </html>

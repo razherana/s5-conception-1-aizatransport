@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import mg.razherana.aizatransport.services.TripTypeService;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +22,8 @@ import mg.razherana.aizatransport.models.destinations.Route;
 import mg.razherana.aizatransport.models.destinations.RoutePrice;
 import mg.razherana.aizatransport.services.DestinationService;
 import mg.razherana.aizatransport.services.RouteService;
+import mg.razherana.aizatransport.services.SeatTypeService;
+import mg.razherana.aizatransport.services.TripTypeService;
 
 @Controller
 @RequestMapping("/routes")
@@ -29,6 +31,7 @@ import mg.razherana.aizatransport.services.RouteService;
 public class RouteController {
 
   private final TripTypeService tripTypeService;
+  private final SeatTypeService seatTypeService;
   private final RouteService routeService;
   private final DestinationService destinationService;
 
@@ -62,22 +65,40 @@ public class RouteController {
   public String createForm(Model model) {
     model.addAttribute("route", new Route());
     model.addAttribute("destinations", destinationService.findAll());
+    model.addAttribute("seatTypes", seatTypeService.findAll());
+    
+    // Find Classique trip type ID
+    tripTypeService.findAll().stream()
+        .filter(tt -> "Classique".equals(tt.getName()))
+        .findFirst()
+        .ifPresent(tt -> model.addAttribute("classiqueId", tt.getId()));
+    
     return "pages/destinations/routes/create";
   }
 
   @PostMapping("/create")
   public String create(
       @ModelAttribute Route route,
-      @RequestParam BigDecimal initialPrice,
+      @RequestParam Integer tripTypeId,
+      @RequestParam List<Integer> seatTypeIds,
+      @RequestParam List<BigDecimal> seatTypePrices,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate effectiveDate,
       RedirectAttributes redirectAttributes) {
 
+    // Validate that we have prices for each seat type
+    if (seatTypeIds.isEmpty() || seatTypeIds.size() != seatTypePrices.size()) {
+      redirectAttributes.addFlashAttribute("error", "Veuillez configurer au moins un prix pour un type de siège.");
+      return "redirect:/routes/create";
+    }
+
     Route savedRoute = routeService.save(route);
 
-    // Add initial price
-    routeService.addPrice(savedRoute.getId(), initialPrice, effectiveDate);
+    // Add prices for each seat type
+    for (int i = 0; i < seatTypeIds.size(); i++) {
+      routeService.addPrice(savedRoute.getId(), tripTypeId, seatTypeIds.get(i), seatTypePrices.get(i), effectiveDate);
+    }
 
-    redirectAttributes.addFlashAttribute("success", "Route créée avec succès!");
+    redirectAttributes.addFlashAttribute("success", "Route créée avec succès avec " + seatTypeIds.size() + " prix configuré(s)!");
     return "redirect:/routes";
   }
 
@@ -158,6 +179,9 @@ public class RouteController {
                   price.getTripType().getId(),
                   price.getTripType().getActive(),
                   price.getTripType().getName(),
+                  price.getSeatType().getId(),
+                  price.getSeatType().getName(),
+                  price.getSeatType().getColor(),
                   price.getEffectiveDate(),
                   price.getPrice(),
                   variation,
@@ -185,13 +209,61 @@ public class RouteController {
               .map(RoutePrice::getPrice)
               .collect(java.util.stream.Collectors.toList());
 
-          PriceChartDTO chartData = new PriceChartDTO(chartLabels, chartPrices);
+          List<Integer> chartTripTypeIds = chronologicalHistory.stream()
+              .map(p -> p.getTripType().getId())
+              .collect(java.util.stream.Collectors.toList());
+
+          List<Integer> chartSeatTypeIds = chronologicalHistory.stream()
+              .map(p -> p.getSeatType().getId())
+              .collect(java.util.stream.Collectors.toList());
+
+          PriceChartDTO chartData = new PriceChartDTO(chartLabels, chartPrices, chartTripTypeIds, chartSeatTypeIds);
+
+          // Create a map of current prices by trip type + seat type combination
+          Map<String, BigDecimal> pricesByCombo = new java.util.HashMap<>();
+          for (RoutePrice price : priceHistory) {
+            String key = price.getTripType().getId() + "_" + price.getSeatType().getId();
+            // Only keep the most recent price for each combination
+            if (!pricesByCombo.containsKey(key) || 
+                price.getEffectiveDate().isAfter(
+                  priceHistory.stream()
+                    .filter(p -> (p.getTripType().getId() + "_" + p.getSeatType().getId()).equals(key))
+                    .filter(p -> pricesByCombo.containsKey(key))
+                    .findFirst()
+                    .map(RoutePrice::getEffectiveDate)
+                    .orElse(price.getEffectiveDate())
+                )) {
+              pricesByCombo.put(key, price.getPrice());
+            }
+          }
+          
+          // Get most recent price for each combo (simplified approach)
+          pricesByCombo.clear();
+          Map<String, RoutePrice> latestPricesByCombo = new java.util.HashMap<>();
+          for (RoutePrice price : priceHistory) {
+            String key = price.getTripType().getId() + "_" + price.getSeatType().getId();
+            RoutePrice existing = latestPricesByCombo.get(key);
+            if (existing == null || price.getEffectiveDate().isAfter(existing.getEffectiveDate())) {
+              latestPricesByCombo.put(key, price);
+            }
+          }
+          for (Map.Entry<String, RoutePrice> entry : latestPricesByCombo.entrySet()) {
+            pricesByCombo.put(entry.getKey(), entry.getValue().getPrice());
+          }
 
           model.addAttribute("route", route);
           model.addAttribute("priceHistoryDTOs", priceHistoryDTOs);
           model.addAttribute("currentPrice", currentPrice);
           model.addAttribute("chartData", chartData);
+          model.addAttribute("pricesByCombo", pricesByCombo);
           model.addAttribute("tripTypes", tripTypeService.findAll());
+          model.addAttribute("seatTypes", seatTypeService.findAll());
+          
+          // Find Classique trip type ID for chart filtering
+          tripTypeService.findAll().stream()
+              .filter(tt -> "Classique".equals(tt.getName()))
+              .findFirst()
+              .ifPresent(tt -> model.addAttribute("classiqueId", tt.getId()));
 
           return "pages/destinations/routes/price-history";
         })
@@ -204,11 +276,13 @@ public class RouteController {
   @PostMapping("/{id}/add-price")
   public String addPrice(
       @PathVariable Integer id,
+      @RequestParam Integer tripTypeId,
+      @RequestParam Integer seatTypeId,
       @RequestParam BigDecimal price,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate effectiveDate,
       RedirectAttributes redirectAttributes) {
 
-    routeService.addPrice(id, price, effectiveDate);
+    routeService.addPrice(id, tripTypeId, seatTypeId, price, effectiveDate);
     redirectAttributes.addFlashAttribute("success", "Prix ajouté avec succès!");
     return "redirect:/routes/" + id + "/price-history";
   }

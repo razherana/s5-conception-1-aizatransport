@@ -12,6 +12,9 @@ public class PriceHistoryDTO {
   private Integer tripTypeId;
   private boolean tripTypeActive;
   private String tripTypeName;
+  private Integer seatTypeId;
+  private String seatTypeName;
+  private String seatTypeColor;
   private LocalDate effectiveDate;
   private BigDecimal price;
   private BigDecimal variation;

@@ -22,6 +22,8 @@ import mg.razherana.aizatransport.models.destinations.Route;
 import mg.razherana.aizatransport.models.destinations.RoutePrice;
 import mg.razherana.aizatransport.models.destinations.Ticket;
 import mg.razherana.aizatransport.models.destinations.Trip;
+import mg.razherana.aizatransport.models.destinations.TripType;
+import mg.razherana.aizatransport.models.transports.SeatType;
 import mg.razherana.aizatransport.repositories.ReservationRepository;
 import mg.razherana.aizatransport.repositories.RoutePriceRepository;
 import mg.razherana.aizatransport.repositories.RouteRepository;
@@ -37,6 +39,8 @@ public class RouteService {
   private final TripRepository tripRepository;
   private final ReservationRepository reservationRepository;
   private final TicketRepository ticketRepository;
+  private final TripTypeService tripTypeService;
+  private final SeatTypeService seatTypeService;
   // private final DestinationRepository destinationRepository;
 
   public List<Route> findAll() {
@@ -113,12 +117,20 @@ public class RouteService {
   }
 
   @Transactional
-  public RoutePrice addPrice(Integer routeId, BigDecimal price, LocalDate effectiveDate) {
+  public RoutePrice addPrice(Integer routeId, Integer tripTypeId, Integer seatTypeId, BigDecimal price, LocalDate effectiveDate) {
     Route route = routeRepository.findById(routeId)
-        .orElseThrow(() -> new RuntimeException("Route non trouvée"));
+        .orElseThrow(() -> new RuntimeException("Route non trouv\u00e9e"));
+    
+    TripType tripType = tripTypeService.findById(tripTypeId)
+        .orElseThrow(() -> new RuntimeException("Type de trajet non trouv\u00e9"));
+    
+    SeatType seatType = seatTypeService.findById(seatTypeId)
+        .orElseThrow(() -> new RuntimeException("Type de si\u00e8ge non trouv\u00e9"));
 
     RoutePrice routePrice = new RoutePrice();
     routePrice.setRoute(route);
+    routePrice.setTripType(tripType);
+    routePrice.setSeatType(seatType);
     routePrice.setPrice(price);
     routePrice.setEffectiveDate(effectiveDate);
 

@@ -29,43 +29,63 @@
         transition: all 0.3s;
         padding: 5px;
         text-align: center;
+        position: relative;
       }
 
-      .seat:hover:not(.occupied) {
-        background-color: #d4edda;
+      .seat::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--seat-bg-color, #cccccc);
+        opacity: 0.3;
+        z-index: 0;
+      }
+
+      .seat > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .seat:hover:not(.occupied):not(.inactive) {
         border-color: #28a745;
         transform: scale(1.05);
       }
 
+      .seat:hover:not(.occupied):not(.inactive)::before {
+        opacity: 0.5;
+      }
+
       .seat.available {
-        background-color: #fff;
         border-color: #28a745;
       }
 
       .seat.occupied {
-        background-color: #6c757d;
         color: #fff;
         border-color: #495057;
         cursor: not-allowed;
-        opacity: 0.7;
+      }
+
+      .seat.occupied::before {
+        background-color: #6c757d !important;
+        opacity: 0.9 !important;
       }
 
       .seat.occupied:hover {
         transform: none;
-        background-color: #6c757d;
       }
 
       .seat.inactive {
-        background-color: #ffc107;
         color: #000;
         border-color: #ff9800;
         cursor: not-allowed;
-        opacity: 0.6;
       }
 
-      .seat.inactive:hover {
-        transform: none;
-        background-color: #ffc107;
+      .seat.inactive::before {
+        background-color: #ffc107 !important;
+        opacity: 0.6 !important;
       }
 
       .seat-icon {
@@ -123,6 +143,27 @@
         background-color: #ffc107;
         border-color: #ff9800;
       }
+
+      .seat-type-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .seat-type-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .seat-type-color {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #333;
+        border-radius: 3px;
+      }
     </style>
   </head>
   <body>
@@ -137,6 +178,10 @@
       <!-- Légende -->
       <div class="card bg-white border-0 shadow-sm mb-4">
         <div class="card-body">
+          <h6 class="mb-3">
+            <i class="fa-solid fa-info-circle me-1"></i>
+            État des sièges
+          </h6>
           <div class="legend">
             <div class="legend-item">
               <div class="legend-box available"></div>
@@ -151,6 +196,19 @@
               <span>Inactif</span>
             </div>
           </div>
+
+          <hr class="my-3" />
+
+          <h6 class="mb-3">
+            <i class="fa-solid fa-chair me-1"></i>
+            Types de sièges
+          </h6>
+          <div class="seat-type-legend">
+            <div class="seat-type-item" th:each="seatType : ${seatTypes}">
+              <div class="seat-type-color" th:style="'background-color: ' + ${seatType.color}"></div>
+              <span th:text="${seatType.name}">Standard</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -161,7 +219,8 @@
             <div
               th:each="seat : ${seats}"
               th:class="${!seat.available} ? 'seat inactive' : (${seatPassengerMap.containsKey(seat.id)} ? 'seat occupied' : 'seat available')"
-              th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${!seat.available} ? 'Siège inactif' : (${seatPassengerMap.containsKey(seat.id)} ? ${seatPassengerMap.get(seat.id)} : 'Disponible'))"
+              th:style="'--seat-bg-color: ' + ${seat.seatType != null ? seat.seatType.color : '#cccccc'}"
+              th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${seat.seatType != null ? seat.seatType.name : 'Non défini'}) + ' - ' + (${!seat.available} ? 'Siège inactif' : (${seatPassengerMap.containsKey(seat.id)} ? ${seatPassengerMap.get(seat.id)} : 'Disponible'))"
               th:data-seat-id="${seat.id}"
               th:data-seat-number="${seat.seatNumber}"
               th:data-occupied="${seatPassengerMap.containsKey(seat.id)}"

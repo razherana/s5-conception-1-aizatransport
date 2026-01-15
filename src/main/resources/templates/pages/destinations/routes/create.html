@@ -6,6 +6,106 @@
 >
   <head>
     <title>Nouvelle route</title>
+    <th:block layout:fragment="script">
+      <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Available seat types from server
+        const availableSeatTypes = /*[[${seatTypes}]]*/ [];
+        let selectedSeatTypes = [];
+
+        function addSeatTypePrice() {
+          const select = document.getElementById('seatTypeSelect');
+          const seatTypeId = parseInt(select.value);
+          
+          if (!seatTypeId) {
+            alert('Veuillez sélectionner un type de siège');
+            return;
+          }
+
+          // Check if already added
+          if (selectedSeatTypes.find(st => st.id === seatTypeId)) {
+            alert('Ce type de siège a déjà été ajouté');
+            return;
+          }
+
+          // Find seat type details
+          const seatType = availableSeatTypes.find(st => st.id === seatTypeId);
+          if (!seatType) return;
+
+          // Get price
+          const priceInput = document.getElementById('seatTypePrice');
+          const price = parseFloat(priceInput.value);
+          
+          if (!price || price <= 0) {
+            alert('Veuillez entrer un prix valide');
+            return;
+          }
+
+          // Add to list
+          selectedSeatTypes.push({
+            id: seatTypeId,
+            name: seatType.name,
+            color: seatType.color,
+            price: price
+          });
+
+          // Update display
+          updateSeatTypesDisplay();
+          
+          // Reset form
+          select.value = '';
+          priceInput.value = '';
+        }
+
+        function removeSeatType(seatTypeId) {
+          selectedSeatTypes = selectedSeatTypes.filter(st => st.id !== seatTypeId);
+          updateSeatTypesDisplay();
+        }
+
+        function updateSeatTypesDisplay() {
+          const container = document.getElementById('selectedSeatTypesContainer');
+          const hiddenContainer = document.getElementById('seatTypePricesContainer');
+          
+          if (selectedSeatTypes.length === 0) {
+            container.innerHTML = '<p class="text-muted mb-0"><i class="fa-solid fa-info-circle me-1"></i>Aucun prix configuré. Ajoutez au moins un type de siège.</p>';
+            hiddenContainer.innerHTML = '';
+          } else {
+            let html = '<div class="list-group">';
+            selectedSeatTypes.forEach(st => {
+              html += `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="badge" style="background-color: ${st.color}; color: white; padding: 0.5rem 0.75rem; font-size: 0.9rem;">
+                      <i class="fa-solid fa-chair me-1"></i>${st.name}
+                    </span>
+                    <strong class="text-primary" style="font-size: 1.1rem;">
+                      ${st.price.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Ar
+                    </strong>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeSeatType(${st.id})">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            
+            // Add hidden inputs for form submission
+            hiddenContainer.innerHTML = selectedSeatTypes.map(st => `
+              <input type="hidden" name="seatTypeIds" value="${st.id}" />
+              <input type="hidden" name="seatTypePrices" value="${st.price}" />
+            `).join('');
+          }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+          updateSeatTypesDisplay();
+        });
+        /*]]>*/
+      </script>
+    </th:block>
   </head>
   <body>
     <section layout:fragment="content" class="container py-4">
@@ -104,37 +204,73 @@
                     <hr class="my-3" />
                     <h6 class="mb-3">
                       <i class="fa-solid fa-tag me-2"></i>
-                      Prix initial
+                      Prix initiaux par type de siège
                     </h6>
+                    <p class="text-muted small mb-3">
+                      <i class="fa-solid fa-info-circle me-1"></i>
+                      Type de trajet : <strong>Classique</strong> (par défaut)
+                    </p>
                   </div>
 
-                  <div class="col-md-6">
-                    <label for="initialPrice" class="form-label">
-                      Prix (Ar) <span class="text-danger">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      class="form-control"
-                      id="initialPrice"
-                      name="initialPrice"
-                      required
-                      placeholder="Ex: 50000.00"
-                    />
+                  <!-- Hidden field for trip type (Classique by default) -->
+                  <input type="hidden" name="tripTypeId" th:value="${classiqueId}" />
+                  
+                  <!-- Date d'effet -->
+                  <input type="hidden" name="effectiveDate" th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
+
+                  <!-- Add seat type price form -->
+                  <div class="col-12">
+                    <div class="card bg-light border-0 mb-3">
+                      <div class="card-body">
+                        <label class="form-label fw-bold">
+                          <i class="fa-solid fa-plus-circle me-1"></i>
+                          Ajouter un prix pour un type de siège
+                        </label>
+                        <div class="row g-2">
+                          <div class="col-md-5">
+                            <select class="form-select" id="seatTypeSelect">
+                              <option value="">Sélectionner un type de siège...</option>
+                              <option th:each="seatType : ${seatTypes}" 
+                                      th:value="${seatType.id}" 
+                                      th:text="${seatType.name}"
+                                      th:style="'background-color: ' + ${seatType.color} + '; color: white;'">Standard</option>
+                            </select>
+                          </div>
+                          <div class="col-md-5">
+                            <input type="number" 
+                                   step="0.01" 
+                                   class="form-control" 
+                                   id="seatTypePrice" 
+                                   placeholder="Prix en Ariary"
+                                   min="0" />
+                          </div>
+                          <div class="col-md-2">
+                            <button type="button" class="btn btn-primary w-100" onclick="addSeatTypePrice()">
+                              <i class="fa-solid fa-plus"></i> Ajouter
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div class="col-md-6">
-                    <label for="effectiveDate" class="form-label">
-                      Date d'effet <span class="text-danger">*</span>
+                  <!-- Selected seat types display -->
+                  <div class="col-12">
+                    <label class="form-label fw-bold">
+                      <i class="fa-solid fa-list me-1"></i>
+                      Prix configurés <span class="text-danger">*</span>
                     </label>
-                    <input
-                      type="date"
-                      class="form-control"
-                      id="effectiveDate"
-                      name="effectiveDate"
-                      required
-                      th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
-                    />
+                    <div class="border rounded p-3" style="min-height: 100px; background-color: #fff;">
+                      <div id="selectedSeatTypesContainer">
+                        <p class="text-muted mb-0"><i class="fa-solid fa-info-circle me-1"></i>Aucun prix configuré. Ajoutez au moins un type de siège.</p>
+                      </div>
+                    </div>
+                    <div id="seatTypePricesContainer">
+                      <!-- Hidden inputs for seat type IDs and prices will be added here by JavaScript -->
+                    </div>
+                    <small class="form-text text-muted">
+                      Vous devez configurer au moins un prix pour un type de siège.
+                    </small>
                   </div>
 
                   <div class="col-12">

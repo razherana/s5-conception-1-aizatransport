@@ -149,6 +149,7 @@ public class SeatController {
     model.addAttribute("seatPassengerMap", seatPassengerMap);
     model.addAttribute("tripId", tripId);
     model.addAttribute("target", target);
+    model.addAttribute("seatTypes", seatTypeService.findAll());
 
     return "pages/transports/seats/select";
   }
