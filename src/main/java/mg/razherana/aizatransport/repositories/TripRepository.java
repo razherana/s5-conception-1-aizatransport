@@ -12,6 +12,14 @@ import mg.razherana.aizatransport.models.destinations.Trip;
 @Repository
 public interface TripRepository extends JpaRepository<Trip, Integer> {
   @Query("SELECT t FROM Trip t")
-  @EntityGraph(attributePaths = {"reservations", "tickets"})
+  @EntityGraph(attributePaths = { "reservations", "tickets" })
   public List<Trip> findAllWithReservationsAndTickets();
+
+  @EntityGraph(attributePaths = {
+      "vehicle",
+      "vehicle.seats",
+      "vehicle.seats.seatType"
+  })
+  @Query("SELECT t FROM Trip t")
+  public List<Trip> findAllWithVehicleSeatsAndSeatType();
 }

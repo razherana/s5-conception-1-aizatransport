@@ -181,12 +181,13 @@
                   <th>Chauffeur</th>
                   <th>Statut</th>
                   <th>CA</th>
+                  <th>Max CA</th>
                   <th class="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr th:if="${#lists.isEmpty(trips)}">
-                  <td colspan="8" class="text-center text-muted py-4">
+                  <td colspan="9" class="text-center text-muted py-4">
                     <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
                     Aucun trajet trouvé
                   </td>
@@ -246,6 +247,12 @@
                     <span 
                       class="fw-bold text-success"
                       th:text="${#numbers.formatDecimal(tripCA.get(trip.id), 0, 'POINT', 2, 'COMMA')} + ' Ar'"
+                    >0,00 Ar</span>
+                  </td>
+                  <td class="text-end">
+                    <span 
+                      class="fw-bold text-primary"
+                      th:text="${#numbers.formatDecimal(tripMaxCA.get(trip.id), 0, 'POINT', 2, 'COMMA')} + ' Ar'"
                     >0,00 Ar</span>
                   </td>
                   <td class="text-end">

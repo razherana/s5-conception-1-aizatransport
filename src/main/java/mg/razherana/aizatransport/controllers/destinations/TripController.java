@@ -1,5 +1,6 @@
 package mg.razherana.aizatransport.controllers.destinations;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,7 +59,9 @@ public class TripController {
     List<Trip> trips = tripService.findAllFiltered(routeId, vehicleId, driverId, status, sortBy, sortOrder, true);
 
     Map<Integer, Double> tripCA = new HashMap<>();
+    Map<Integer, Double> tripMaxCA = new HashMap<>();
 
+    // Calculate actual CA
     for (Trip trip : trips) {
 
       Double caReservations = new HashSet<>(trip.getReservations())
@@ -76,7 +79,14 @@ public class TripController {
       tripCA.put(trip.getId(), ca);
     }
 
+    // Calculate maximum CA
+    var maxCAMap = tripService.getMaxCAForEveryTrips(null, LocalDate.now());
+    for (var entry : maxCAMap.entrySet()) {
+      tripMaxCA.put(entry.getKey(), entry.getValue().doubleValue());
+    }
+
     model.addAttribute("tripCA", tripCA);
+    model.addAttribute("tripMaxCA", tripMaxCA);
     model.addAttribute("trips", trips);
     model.addAttribute("routes", routeService.findAll());
     model.addAttribute("vehicles", vehicleService.findAll());

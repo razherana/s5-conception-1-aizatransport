@@ -1,14 +1,21 @@
 package mg.razherana.aizatransport.services;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import mg.razherana.aizatransport.models.destinations.RoutePrice;
 import mg.razherana.aizatransport.models.destinations.Trip;
 import mg.razherana.aizatransport.repositories.TripRepository;
 
@@ -17,6 +24,7 @@ import mg.razherana.aizatransport.repositories.TripRepository;
 public class TripService {
 
   private final TripRepository tripRepository;
+  private final RoutePriceService routePriceService;
 
   public List<Trip> findAll() {
     return tripRepository.findAll();
@@ -169,5 +177,52 @@ public class TripService {
         .collect(Collectors.toList()));
 
     return occupiedSeats.stream().distinct().collect(Collectors.toList());
+  }
+
+  public Map<Integer, BigDecimal> getMaxCAForEveryTrips(Function<Stream<Trip>, Stream<Trip>> preHandle,
+      LocalDate date) {
+    Map<Integer, BigDecimal> resultMap = new HashMap<>();
+
+    List<Trip> tripCalculMaxCA = tripRepository.findAllWithVehicleSeatsAndSeatType();
+
+    if (preHandle != null) {
+      tripCalculMaxCA = preHandle.apply(tripCalculMaxCA.stream()).toList();
+    }
+
+    List<RoutePrice> routePrices = routePriceService.findAll();
+
+    routePrices = routePrices.stream()
+        .filter(rp -> rp.getEffectiveDate().isBefore(date) || rp.getEffectiveDate().isEqual(date))
+        .toList();
+
+    // Create a map for efficient lookup: routeId_tripTypeId_seatTypeId -> price
+    Map<String, BigDecimal> priceMap = routePrices.stream()
+        .collect(Collectors.toMap(
+            rp -> rp.getRoute().getId() + "_" + rp.getTripType().getId() + "_" + rp.getSeatType().getId(),
+            RoutePrice::getPrice,
+            (existing, replacement) -> existing // In case of duplicate keys, keep the first one
+        ));
+
+    for (Trip trip : tripCalculMaxCA) {
+      BigDecimal maxCA = BigDecimal.ZERO;
+
+      // Sum up prices for all seats in the vehicle
+      if (trip.getVehicle() != null && trip.getVehicle().getSeats() != null) {
+        for (var seat : trip.getVehicle().getSeats()) {
+          if (seat.isAvailable() && seat.getSeatType() != null) {
+            String priceKey = trip.getRoute().getId() + "_" + trip.getTripType().getId() + "_"
+                + seat.getSeatType().getId();
+            BigDecimal seatPrice = priceMap.get(priceKey);
+            if (seatPrice != null) {
+              maxCA = maxCA.add(seatPrice);
+            }
+          }
+        }
+      }
+
+      resultMap.put(trip.getId(), maxCA);
+    }
+
+    return resultMap;
   }
 }
