@@ -7,8 +7,10 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.transports.Seat;
+import mg.razherana.aizatransport.models.transports.SeatType;
 import mg.razherana.aizatransport.models.transports.Vehicle;
 import mg.razherana.aizatransport.repositories.SeatRepository;
+
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +20,7 @@ public class SeatService {
 
   private final SeatRepository seatRepository;
   private final VehicleService vehicleService;
+  private final SeatTypeService seatTypeService;
 
   public List<Seat> findByVehicleId(Integer vehicleId) {
     return seatRepository.findByVehicleIdOrderBySeatNumberAsc(vehicleId);
@@ -42,12 +45,19 @@ public class SeatService {
       List<Seat> existingSeats = findByVehicleId(vehicleId);
 
       if (existingSeats.isEmpty() && vehicle.getCapacity() != null) {
-        for (int i = 1; i <= vehicle.getCapacity(); i++) {
-          Seat seat = new Seat();
-          seat.setVehicle(vehicle);
-          seat.setSeatNumber(generateSeatNumber(i));
-          seat.setAvailable(true);
-          seatRepository.save(seat);
+        Optional<SeatType> seatTypeOpt = seatTypeService.findById(1);
+        if (seatTypeOpt.isPresent()) {
+          SeatType seatType = seatTypeOpt.get(); 
+          for (int i = 1; i <= vehicle.getCapacity(); i++) {
+            Seat seat = new Seat();
+            seat.setVehicle(vehicle);
+            seat.setSeatNumber(generateSeatNumber(i));
+            seat.setSeatType(seatType);
+            seat.setAvailable(true);
+            seatRepository.save(seat);
+          }
+        } else {
+          throw new IllegalArgumentException("Type de siège par défaut");
         }
       }
     }

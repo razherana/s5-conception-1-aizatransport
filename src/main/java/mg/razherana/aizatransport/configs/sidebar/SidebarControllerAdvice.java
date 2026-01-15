@@ -33,6 +33,7 @@ public class SidebarControllerAdvice {
     SidebarDTO transports = SidebarDTO.createMenuStatic("Transports");
     transports.createItem("Véhicules", "/vehicles", "fa-solid fa-car");
     transports.createItem("Chauffeurs", "/drivers", "fa-solid fa-user-tie");
+    transports.createItem("Types de sièges", "/seat-types", "fa-solid fa-chair");
     sidebarItems.add(transports);
 
     // Destinations Section

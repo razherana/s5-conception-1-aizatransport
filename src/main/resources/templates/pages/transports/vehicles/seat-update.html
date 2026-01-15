@@ -50,6 +50,25 @@
                 </div>
 
                 <div class="mb-3">
+                  <label for="seatType" class="form-label">
+                    Type de siège <span class="text-danger">*</span>
+                  </label>
+                  <select class="form-select" id="seatType" th:field="*{seatType.id}" required>
+                    <option value="">Sélectionner un type de siège</option>
+                    <option 
+                      th:each="type : ${seatTypes}"
+                      th:value="${type.id}"
+                      th:text="${type.name}"
+                      th:selected="${seat.seatType != null && seat.seatType.id == type.id}"
+                    ></option>
+                  </select>
+                  <div class="mt-2" id="seatTypePreview" style="display: none;">
+                    <small class="text-muted">Aperçu:</small>
+                    <div class="d-inline-block ms-2 rounded" id="colorPreview" style="width: 30px; height: 30px; border: 1px solid #dee2e6; vertical-align: middle;"></div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
                   <label for="available" class="form-label">État du siège</label>
                   <div class="form-check form-switch">
                     <input
@@ -116,5 +135,33 @@
         </div>
       </div>
     </section>
+
+    <script layout:fragment="scripts">
+      // Seat type color preview
+      const seatTypes = {
+        <th:block th:each="type, iterStat : ${seatTypes}">
+          <span th:text="${type.id}"></span>: '<span th:text="${type.color}"></span>'<th:block th:unless="${iterStat.last}">,</th:block>
+        </th:block>
+      };
+
+      const seatTypeSelect = document.getElementById('seatType');
+      const seatTypePreview = document.getElementById('seatTypePreview');
+      const colorPreview = document.getElementById('colorPreview');
+
+      function updateColorPreview() {
+        const selectedTypeId = seatTypeSelect.value;
+        if (selectedTypeId && seatTypes[selectedTypeId]) {
+          seatTypePreview.style.display = 'block';
+          colorPreview.style.backgroundColor = seatTypes[selectedTypeId];
+        } else {
+          seatTypePreview.style.display = 'none';
+        }
+      }
+
+      seatTypeSelect.addEventListener('change', updateColorPreview);
+      
+      // Initial preview
+      updateColorPreview();
+    </script>
   </body>
 </html>

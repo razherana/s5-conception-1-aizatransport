@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Modifier un type de siège</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-edit me-2"></i>
+          Modifier un type de siège
+        </h1>
+        <a th:href="@{/seat-types}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-body p-4">
+              <form
+                th:action="@{/seat-types/update/{id}(id=${seatType.id})}"
+                th:object="${seatType}"
+                method="post"
+              >
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label text-muted small">
+                      <i class="fa-solid fa-hashtag me-1"></i>
+                      ID: <span th:text="${seatType.id}"></span>
+                    </label>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="name" class="form-label">
+                      Nom du type de siège
+                      <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="name"
+                      th:field="*{name}"
+                      required
+                      placeholder="Ex: VIP, Standard, Premium"
+                    />
+                    <div class="form-text">
+                      <i class="fa-solid fa-info-circle me-1"></i>
+                      Le nom doit être unique
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="color" class="form-label">
+                      Couleur d'affichage
+                      <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <input
+                        type="color"
+                        class="form-control form-control-color"
+                        id="color"
+                        th:field="*{color}"
+                        required
+                        title="Choisir une couleur"
+                      />
+                      <input
+                        type="text"
+                        class="form-control"
+                        th:field="*{color}"
+                        placeholder="#000000"
+                        pattern="^#[0-9A-Fa-f]{6}$"
+                      />
+                    </div>
+                    <div class="form-text">
+                      <i class="fa-solid fa-info-circle me-1"></i>
+                      La couleur permet de différencier visuellement les types de sièges. Format hexadécimal (ex: #FF5733)
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <div class="card bg-light">
+                      <div class="card-body">
+                        <h6 class="card-title">Aperçu</h6>
+                        <div
+                          id="colorPreview"
+                          class="rounded p-3 text-center"
+                          th:style="'background-color: ' + ${seatType.color} + '; color: white;'"
+                        >
+                          <i class="fa-solid fa-chair fa-2x"></i>
+                          <div class="mt-2" th:text="${seatType.name}">Type de siège</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+                  <a th:href="@{/seat-types}" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-times me-1"></i>
+                    Annuler
+                  </a>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-save me-1"></i>
+                    Enregistrer les modifications
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script layout:fragment="scripts">
+      // Preview color update
+      document.getElementById('color').addEventListener('input', function(e) {
+        const color = e.target.value;
+        const preview = document.getElementById('colorPreview');
+        preview.style.backgroundColor = color;
+        
+        // Adjust text color based on background brightness
+        const rgb = parseInt(color.slice(1), 16);
+        const r = (rgb >> 16) & 0xff;
+        const g = (rgb >>  8) & 0xff;
+        const b = (rgb >>  0) & 0xff;
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        
+        preview.style.color = brightness > 128 ? 'black' : 'white';
+      });
+    </script>
+  </body>
+</html>

@@ -26,7 +26,12 @@ public class Seat extends BasicEntity {
 
   @Column(name = "seat_number", nullable = false, length = 3)
   private String seatNumber;
+  
+  @ManyToOne
+  @JoinColumn(name = "seat_type_id", nullable = false)
+  private SeatType seatType;
 
   @Column(name = "available", nullable = false)
   private boolean available;
+
 }

@@ -29,31 +29,46 @@
           transition: all 0.3s;
           text-decoration: none;
           color: #000;
+          position: relative;
+        }
+        
+        .seat::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          opacity: 0.3;
+          z-index: 0;
+        }
+        
+        .seat span {
+          position: relative;
+          z-index: 1;
         }
         
         .seat:hover {
-          background-color: #f0f0f0;
           border-color: #000;
           transform: scale(1.05);
         }
         
+        .seat:hover::before {
+          opacity: 0.5;
+        }
+        
         .seat.available {
-          background-color: #fff;
           border-color: #28a745;
         }
         
-        .seat.available:hover {
-          background-color: #d4edda;
-        }
-        
         .seat.occupied {
-          background-color: #333;
           color: #fff;
           border-color: #000;
         }
         
-        .seat.occupied:hover {
-          background-color: #555;
+        .seat.occupied::before {
+          background-color: #333 !important;
+          opacity: 0.9 !important;
         }
         
         .legend {
@@ -82,6 +97,30 @@
         
         .legend-box.occupied {
           background-color: #333;
+        }
+
+        .seat-type-legend {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 15px;
+          justify-content: center;
+        }
+
+        .seat-type-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 5px 12px;
+          border: 1px solid #dee2e6;
+          border-radius: 3px;
+          background-color: #f8f9fa;
+        }
+
+        .seat-type-color {
+          width: 24px;
+          height: 24px;
+          border: 1px solid #dee2e6;
+          border-radius: 2px;
         }
       </style>
     </th:block>
@@ -121,6 +160,10 @@
       <!-- Légende -->
       <div class="card bg-white border-0 shadow-sm mb-4">
         <div class="card-body">
+          <h6 class="mb-3">
+            <i class="fa-solid fa-info-circle me-1"></i>
+            État des sièges
+          </h6>
           <div class="legend">
             <div class="legend-item">
               <div class="legend-box available"></div>
@@ -129,6 +172,20 @@
             <div class="legend-item">
               <div class="legend-box occupied"></div>
               <span>Indisponible</span>
+            </div>
+          </div>
+
+          <hr class="my-3" />
+
+          <h6 class="mb-3">
+            <i class="fa-solid fa-chair me-1"></i>
+            Types de sièges
+          </h6>
+          <div class="seat-type-legend">seatType != null ? seat.seatType.name : 'Non défini'}) + ' - ' + (${seat.available} ? 'Disponible' : 'Indisponible')"
+              th:attr="data-color=${seat.seatType != null ? seat.seatType.color : '#cccccc'}
+            <div class="seat-type-item" th:each="seatType : ${seatTypes}">
+              <div class="seat-type-color" th:style="'background-color: ' + ${seatType.color}"></div>
+              <span th:text="${seatType.name}">Standard</span>
             </div>
           </div>
         </div>
@@ -178,6 +235,29 @@
           </div>
         </div>
       </div>
+
+    <script layout:fragment="scripts">
+      // Apply seat type colors
+      document.addEventListener('DOMContentLoaded', function() {
+        const seats = document.querySelectorAll('.seat');
+        seats.forEach(seat => {
+          const color = seat.getAttribute('data-color');
+          if (color) {
+            seat.style.setProperty('--seat-color', color);
+            const beforeElement = window.getComputedStyle(seat, '::before');
+            seat.querySelector('::before') || (seat.style.setProperty('background-color', color));
+            // Apply color to the ::before pseudo-element
+            const style = document.createElement('style');
+            style.textContent = `
+              .seat[data-color="${color}"]::before {
+                background-color: ${color};
+              }
+            `;
+            document.head.appendChild(style);
+          }
+        });
+      });
+    </script>
     </section>
   </body>
 </html>

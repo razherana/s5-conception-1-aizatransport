@@ -1,5 +1,8 @@
 package mg.razherana.aizatransport.models.destinations;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -9,9 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import mg.razherana.aizatransport.models.bases.BasicEntity;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
+import mg.razherana.aizatransport.models.transports.SeatType;
 
 @Entity
 @Table(name = "route_prices", schema = "public")
@@ -28,10 +29,15 @@ public class RoutePrice extends BasicEntity {
   @JoinColumn(name = "trip_type_id", nullable = false)
   private TripType tripType;
 
+  @ManyToOne
+  @JoinColumn(name = "seat_type_id", nullable = false)
+  private SeatType seatType;
+
   @Column(name = "price", nullable = false, precision = 10, scale = 2)
   private BigDecimal price;
 
   @Column(name = "effective_date", nullable = false)
   private LocalDate effectiveDate;
 
+  
 }
