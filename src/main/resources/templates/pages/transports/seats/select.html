@@ -47,6 +47,30 @@
         color: #fff;
         border-color: #495057;
         cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      .seat.occupied:hover {
+        transform: none;
+        background-color: #6c757d;
+      }
+
+      .seat.inactive {
+        background-color: #ffc107;
+        color: #000;
+        border-color: #ff9800;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .seat.inactive:hover {
+        transform: none;
+        background-color: #ffc107;
+      }
+
+      .seat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 3px;
       }
 
       .seat-number {
@@ -94,6 +118,11 @@
       .legend-box.occupied {
         background-color: #6c757d;
       }
+
+      .legend-box.inactive {
+        background-color: #ffc107;
+        border-color: #ff9800;
+      }
     </style>
   </head>
   <body>
@@ -117,6 +146,10 @@
               <div class="legend-box occupied"></div>
               <span>Occupé</span>
             </div>
+            <div class="legend-item">
+              <div class="legend-box inactive"></div>
+              <span>Inactif</span>
+            </div>
           </div>
         </div>
       </div>
@@ -127,13 +160,20 @@
           <div class="seat-grid">
             <div
               th:each="seat : ${seats}"
-              th:class="${seatPassengerMap.containsKey(seat.id)} ? 'seat occupied' : 'seat available'"
-              th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${seatPassengerMap.containsKey(seat.id)} ? ${seatPassengerMap.get(seat.id)} : 'Disponible')"
+              th:class="${!seat.available} ? 'seat inactive' : (${seatPassengerMap.containsKey(seat.id)} ? 'seat occupied' : 'seat available')"
+              th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${!seat.available} ? 'Siège inactif' : (${seatPassengerMap.containsKey(seat.id)} ? ${seatPassengerMap.get(seat.id)} : 'Disponible'))"
               th:data-seat-id="${seat.id}"
               th:data-seat-number="${seat.seatNumber}"
               th:data-occupied="${seatPassengerMap.containsKey(seat.id)}"
+              th:data-active="${seat.available}"
               onclick="handleSeatClick(this)"
             >
+              <div class="seat-icon" th:if="${!seat.available}">
+                <i class="fa-solid fa-wrench"></i>
+              </div>
+              <div class="seat-icon" th:if="${seatPassengerMap.containsKey(seat.id)}">
+                <i class="fa-solid fa-ban"></i>
+              </div>
               <div class="seat-number" th:text="${seat.seatNumber}">A1</div>
               <div class="seat-passenger" th:if="${seatPassengerMap.containsKey(seat.id)}" th:text="${seatPassengerMap.get(seat.id)}">Passenger Name</div>
             </div>
@@ -145,7 +185,8 @@
     <script>
       function handleSeatClick(element) {
         const isOccupied = element.getAttribute("data-occupied") === "true";
-        if (!isOccupied) {
+        const isActive = element.getAttribute("data-active") === "true";
+        if (!isOccupied && isActive) {
           const id = element.getAttribute("data-seat-id");
           const number = element.getAttribute("data-seat-number");
           selectSeat(id, number);

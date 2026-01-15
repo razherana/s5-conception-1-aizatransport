@@ -27,6 +27,7 @@ import mg.razherana.aizatransport.services.RouteService;
 import mg.razherana.aizatransport.services.SeatService;
 import mg.razherana.aizatransport.services.TicketService;
 import mg.razherana.aizatransport.services.TripService;
+import mg.razherana.aizatransport.services.TripTypeService;
 import mg.razherana.aizatransport.services.VehicleService;
 
 @Controller
@@ -41,6 +42,7 @@ public class TripController {
   private final SeatService seatService;
   private final ReservationService reservationService;
   private final TicketService ticketService;
+  private final TripTypeService tripTypeService;
 
   @GetMapping
   @Transactional
@@ -97,6 +99,7 @@ public class TripController {
     model.addAttribute("vehicles", vehicleService.findAll());
     model.addAttribute("drivers", driverService.findAll());
     model.addAttribute("statuses", tripService.getAllStatuses());
+    model.addAttribute("tripTypes", tripTypeService.findAll());
     return "pages/destinations/trips/create";
   }
 
@@ -116,6 +119,8 @@ public class TripController {
           model.addAttribute("vehicles", vehicleService.findAll());
           model.addAttribute("drivers", driverService.findAll());
           model.addAttribute("statuses", tripService.getAllStatuses());
+          model.addAttribute("tripTypes", tripTypeService.findAll());
+          
           return "pages/destinations/trips/update";
         })
         .orElseGet(() -> {

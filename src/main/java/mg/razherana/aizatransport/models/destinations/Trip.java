@@ -41,6 +41,10 @@ public class Trip extends BasicEntity {
   private Route route;
 
   @ManyToOne
+  @JoinColumn(name = "trip_type_id", nullable = false)
+  private TripType tripType;
+
+  @ManyToOne
   @JoinColumn(name = "vehicle_id", nullable = true)
   private Vehicle vehicle;
 

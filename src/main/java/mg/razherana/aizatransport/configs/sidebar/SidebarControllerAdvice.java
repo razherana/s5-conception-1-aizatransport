@@ -22,7 +22,9 @@ public class SidebarControllerAdvice {
     model.addAttribute("sidebarItems", sidebarItems);
   }
 
-  private List<SidebarDTO> getSidebarItems() {
+  private void getSidebarItems() {
+    sidebarItems.clear();
+
     // Dashboard - single item
     SidebarDTO dashboard = new SidebarDTO(null, false, "Tableau de bord", "/", "fa-solid fa-gauge");
     sidebarItems.add(dashboard);
@@ -38,6 +40,7 @@ public class SidebarControllerAdvice {
     destinations.createItem("Routes", "/routes", "fa-solid fa-route");
     destinations.createItem("Destinations", "/destinations", "fa-solid fa-map-marker-alt");
     destinations.createItem("Voyages", "/trips", "fa-solid fa-road");
+    destinations.createItem("Types de voyage", "/trip-types", "fa-solid fa-star");
     sidebarItems.add(destinations);
 
     // Gestion Section
@@ -53,7 +56,5 @@ public class SidebarControllerAdvice {
             "fa-solid fa-list");
 
     sidebarItems.add(gestion);
-
-    return sidebarItems;
   }
 }

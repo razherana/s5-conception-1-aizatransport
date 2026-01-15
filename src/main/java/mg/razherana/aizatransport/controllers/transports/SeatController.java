@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.transports.Seat;
+import mg.razherana.aizatransport.models.transports.Vehicle;
 import mg.razherana.aizatransport.models.destinations.Reservation;
 import mg.razherana.aizatransport.models.destinations.Ticket;
 import mg.razherana.aizatransport.models.destinations.Trip;
@@ -145,5 +146,15 @@ public class SeatController {
     model.addAttribute("target", target);
 
     return "pages/transports/seats/select";
+  }
+
+  @GetMapping("/seats/initialize")
+  public String initializeSeats() {
+    List<Vehicle> vehicles = vehicleService.findAll();
+    for (Vehicle vehicle : vehicles) {
+      seatService.generateSeatsForVehicle(vehicle.getId());
+    }
+
+    return "redirect:/vehicles";
   }
 }

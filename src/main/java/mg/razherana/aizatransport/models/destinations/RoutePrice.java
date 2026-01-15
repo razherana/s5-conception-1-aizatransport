@@ -24,6 +24,10 @@ public class RoutePrice extends BasicEntity {
   @JoinColumn(name = "route_id", nullable = false)
   private Route route;
 
+  @ManyToOne
+  @JoinColumn(name = "trip_type_id", nullable = false)
+  private TripType tripType;
+
   @Column(name = "price", nullable = false, precision = 10, scale = 2)
   private BigDecimal price;
 
