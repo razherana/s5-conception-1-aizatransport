@@ -193,6 +193,7 @@ public class TripService {
 
     routePrices = routePrices.stream()
         .filter(rp -> rp.getEffectiveDate().isBefore(date) || rp.getEffectiveDate().isEqual(date))
+        .sorted((a, b) -> b.getEffectiveDate().compareTo(a.getEffectiveDate()))
         .toList();
 
     // Create a map for efficient lookup: routeId_tripTypeId_seatTypeId -> price

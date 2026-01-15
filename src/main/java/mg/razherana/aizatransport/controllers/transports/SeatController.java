@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -154,16 +153,29 @@ public class SeatController {
     // Get all route prices valid at the trip's departure date
     List<RoutePrice> routePrices = routePriceService.findAll();
     routePrices = routePrices.stream()
-        .filter(rp -> rp.getEffectiveDate().isBefore(trip.getDepartureDatetime().toLocalDate())
-            || rp.getEffectiveDate().isEqual(trip.getDepartureDatetime().toLocalDate()))
+        .filter(rp -> rp.getRoute() != null && trip.getRoute() != null
+            && rp.getRoute().getId().equals(trip.getRoute().getId()))
+        .filter(rp -> !rp.getEffectiveDate().isAfter(trip.getDepartureDatetime().toLocalDate()))
+        .sorted((a, b) -> b.getEffectiveDate().compareTo(a.getEffectiveDate())) // Sort descending (latest first)
         .toList();
 
     // Create a price map with composite key: routeId_tripTypeId_seatTypeId
-    Map<String, BigDecimal> priceMap = routePrices.stream()
-        .collect(Collectors.toMap(
-            rp -> rp.getRoute().getId() + "_" + rp.getTripType().getId() + "_" + rp.getSeatType().getId(),
-            RoutePrice::getPrice,
-            (existing, replacement) -> existing));
+    // Keep the first one encountered (which is the latest due to descending sort)
+
+    Map<String, BigDecimal> priceMap = new HashMap<>();
+
+    for (RoutePrice rp : routePrices) {
+      // System.out.println("RoutePrice: " + rp.getRoute().getId() + ", " + rp.getTripType().getId() + ", "
+      //     + rp.getSeatType().getId() + ", departure DT = " + trip.getDepartureDatetime().toLocalDate()
+      //     + ", effective date = "
+      //     + rp.getEffectiveDate() + ", condition "
+      //     + (rp.getEffectiveDate().isBefore(trip.getDepartureDatetime().toLocalDate())
+      //         ||
+      //         rp.getEffectiveDate().isEqual(trip.getDepartureDatetime().toLocalDate()))
+      //     + " => " + rp.getPrice());
+      priceMap.putIfAbsent(rp.getRoute().getId() + "_" + rp.getTripType().getId() + "_" + rp.getSeatType().getId(),
+          rp.getPrice());
+    }
 
     // Create a seat price map (seatId -> price)
     Map<Integer, BigDecimal> seatPriceMap = new HashMap<>();
