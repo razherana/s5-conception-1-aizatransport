@@ -18,7 +18,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Reservation;
-import mg.razherana.aizatransport.models.destinations.RoutePrice;
 import mg.razherana.aizatransport.models.destinations.Ticket;
 import mg.razherana.aizatransport.models.destinations.Trip;
 import mg.razherana.aizatransport.models.transports.Seat;
@@ -149,33 +148,8 @@ public class SeatController {
       seats = List.of();
     }
 
-    // Calculate seat prices
-    // Get all route prices valid at the trip's departure date
-    List<RoutePrice> routePrices = routePriceService.findAll();
-    routePrices = routePrices.stream()
-        .filter(rp -> rp.getRoute() != null && trip.getRoute() != null
-            && rp.getRoute().getId().equals(trip.getRoute().getId()))
-        .filter(rp -> !rp.getEffectiveDate().isAfter(trip.getDepartureDatetime().toLocalDate()))
-        .sorted((a, b) -> b.getEffectiveDate().compareTo(a.getEffectiveDate())) // Sort descending (latest first)
-        .toList();
-
-    // Create a price map with composite key: routeId_tripTypeId_seatTypeId
-    // Keep the first one encountered (which is the latest due to descending sort)
-
-    Map<String, BigDecimal> priceMap = new HashMap<>();
-
-    for (RoutePrice rp : routePrices) {
-      // System.out.println("RoutePrice: " + rp.getRoute().getId() + ", " + rp.getTripType().getId() + ", "
-      //     + rp.getSeatType().getId() + ", departure DT = " + trip.getDepartureDatetime().toLocalDate()
-      //     + ", effective date = "
-      //     + rp.getEffectiveDate() + ", condition "
-      //     + (rp.getEffectiveDate().isBefore(trip.getDepartureDatetime().toLocalDate())
-      //         ||
-      //         rp.getEffectiveDate().isEqual(trip.getDepartureDatetime().toLocalDate()))
-      //     + " => " + rp.getPrice());
-      priceMap.putIfAbsent(rp.getRoute().getId() + "_" + rp.getTripType().getId() + "_" + rp.getSeatType().getId(),
-          rp.getPrice());
-    }
+    // Calculate seat prices using the service
+    Map<String, BigDecimal> priceMap = routePriceService.calculatePriceMapForTrip(trip);
 
     // Create a seat price map (seatId -> price)
     Map<Integer, BigDecimal> seatPriceMap = new HashMap<>();

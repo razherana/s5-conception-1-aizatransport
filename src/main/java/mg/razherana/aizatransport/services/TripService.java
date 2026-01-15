@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import mg.razherana.aizatransport.models.destinations.RoutePrice;
 import mg.razherana.aizatransport.models.destinations.Trip;
 import mg.razherana.aizatransport.repositories.TripRepository;
 
@@ -189,20 +188,7 @@ public class TripService {
       tripCalculMaxCA = preHandle.apply(tripCalculMaxCA.stream()).toList();
     }
 
-    List<RoutePrice> routePrices = routePriceService.findAll();
-
-    routePrices = routePrices.stream()
-        .filter(rp -> rp.getEffectiveDate().isBefore(date) || rp.getEffectiveDate().isEqual(date))
-        .sorted((a, b) -> b.getEffectiveDate().compareTo(a.getEffectiveDate()))
-        .toList();
-
-    // Create a map for efficient lookup: routeId_tripTypeId_seatTypeId -> price
-    Map<String, BigDecimal> priceMap = routePrices.stream()
-        .collect(Collectors.toMap(
-            rp -> rp.getRoute().getId() + "_" + rp.getTripType().getId() + "_" + rp.getSeatType().getId(),
-            RoutePrice::getPrice,
-            (existing, replacement) -> existing // In case of duplicate keys, keep the first one
-        ));
+    Map<String, BigDecimal> priceMap = routePriceService.calculatePriceMap(date, null);
 
     for (Trip trip : tripCalculMaxCA) {
       BigDecimal maxCA = BigDecimal.ZERO;

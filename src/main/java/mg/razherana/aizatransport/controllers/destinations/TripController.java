@@ -130,7 +130,7 @@ public class TripController {
           model.addAttribute("drivers", driverService.findAll());
           model.addAttribute("statuses", tripService.getAllStatuses());
           model.addAttribute("tripTypes", tripTypeService.findAll());
-          
+
           return "pages/destinations/trips/update";
         })
         .orElseGet(() -> {

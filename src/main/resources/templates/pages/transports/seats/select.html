@@ -88,6 +88,16 @@
         opacity: 0.6 !important;
       }
 
+      .seat.selected {
+        border-color: #007bff !important;
+        border-width: 3px;
+      }
+
+      .seat.selected::before {
+        background-color: #007bff !important;
+        opacity: 0.7 !important;
+      }
+
       .seat-icon {
         font-size: 1.5rem;
         margin-bottom: 3px;
@@ -168,11 +178,17 @@
   </head>
   <body>
     <div class="container-fluid py-4">
-      <div class="mb-4">
+      <div class="mb-4 d-flex justify-content-between align-items-center">
         <h4 class="mb-0">
           <i class="fa-solid fa-couch me-2"></i>
-          Sélectionner un siège
+          Sélectionner <span id="modeText">un siège</span>
         </h4>
+        <div id="multipleControls" style="display: none;">
+          <button type="button" class="btn btn-primary" onclick="confirmSelection()">
+            <i class="fa-solid fa-check me-1"></i>
+            Confirmer (<span id="selectedCount">0</span>)
+          </button>
+        </div>
       </div>
 
       <!-- Légende -->
@@ -243,19 +259,75 @@
     </div>
 
     <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const multipleMode = urlParams.get('multiple') === 'true';
+      let selectedSeats = [];
+
+      // Initialize UI based on mode
+      document.addEventListener('DOMContentLoaded', function() {
+        if (multipleMode) {
+          document.getElementById('modeText').textContent = 'des sièges (plusieurs)';
+          document.getElementById('multipleControls').style.display = 'block';
+        }
+      });
+
       function handleSeatClick(element) {
         const isOccupied = element.getAttribute("data-occupied") === "true";
         const isActive = element.getAttribute("data-active") === "true";
+        
         if (!isOccupied && isActive) {
           const id = element.getAttribute("data-seat-id");
           const number = element.getAttribute("data-seat-number");
           const price = element.getAttribute("data-seat-price");
-          selectSeat(id, number, price);
+          
+          if (multipleMode) {
+            toggleSeatSelection(element, id, number, price);
+          } else {
+            selectSeat(id, number, price);
+          }
+        }
+      }
+
+      function toggleSeatSelection(element, id, number, price) {
+        const index = selectedSeats.findIndex(s => s.id === id);
+        
+        if (index > -1) {
+          // Deselect
+          selectedSeats.splice(index, 1);
+          element.classList.remove('selected');
+        } else {
+          // Select
+          selectedSeats.push({
+            id: id,
+            number: number,
+            price: parseFloat(price) || 0
+          });
+          element.classList.add('selected');
+        }
+        
+        document.getElementById('selectedCount').textContent = selectedSeats.length;
+      }
+
+      function confirmSelection() {
+        if (selectedSeats.length === 0) {
+          alert('Veuillez sélectionner au moins un siège');
+          return;
+        }
+        
+        if (window.opener) {
+          window.opener.postMessage(
+            {
+              type: "selectSeats",
+              seats: selectedSeats
+            },
+            "*"
+          );
+          window.close();
         }
       }
 
       function selectSeat(id, number, price) {
-        // Send message to opener window
+        // Send message to opener window (single mode)
         if (window.opener) {
           window.opener.postMessage(
             {

@@ -21,101 +21,100 @@ import mg.razherana.aizatransport.services.TripTypeService;
 @RequiredArgsConstructor
 public class TripTypeController {
 
-    private final TripTypeService tripTypeService;
+  private final TripTypeService tripTypeService;
 
-    @GetMapping
-    public String list(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) Boolean active,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortOrder,
-            Model model) {
+  @GetMapping
+  public String list(
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) Boolean active,
+      @RequestParam(defaultValue = "name") String sortBy,
+      @RequestParam(defaultValue = "asc") String sortOrder,
+      Model model) {
 
-        List<TripType> tripTypes = tripTypeService.findAllFiltered(
-                name, active, sortBy, sortOrder
-        );
+    List<TripType> tripTypes = tripTypeService.findAllFiltered(
+        name, active, sortBy, sortOrder);
 
-        model.addAttribute("tripTypes", tripTypes);
-        model.addAttribute("selectedName", name);
-        model.addAttribute("selectedActive", active);
-        model.addAttribute("sortBy", sortBy);
-        model.addAttribute("sortOrder", sortOrder);
+    model.addAttribute("tripTypes", tripTypes);
+    model.addAttribute("selectedName", name);
+    model.addAttribute("selectedActive", active);
+    model.addAttribute("sortBy", sortBy);
+    model.addAttribute("sortOrder", sortOrder);
 
-        return "pages/destinations/trip-types/list";
+    return "pages/destinations/trip-types/list";
+  }
+
+  @GetMapping("/create")
+  public String createForm(Model model) {
+    model.addAttribute("tripType", new TripType());
+    return "pages/destinations/trip-types/create";
+  }
+
+  @PostMapping("/create")
+  public String create(
+      @ModelAttribute TripType tripType,
+      @RequestParam(required = false) String target,
+      RedirectAttributes redirectAttributes) {
+
+    tripTypeService.save(tripType);
+    redirectAttributes.addFlashAttribute("success", "Type de voyage créé avec succès!");
+
+    if (target != null && !target.isBlank()) {
+      return "redirect:/trip-types/select?target=" + target;
     }
 
-    @GetMapping("/create")
-    public String createForm(Model model) {
-        model.addAttribute("tripType", new TripType());
-        return "pages/destinations/trip-types/create";
-    }
+    return "redirect:/trip-types";
+  }
 
-    @PostMapping("/create")
-    public String create(
-            @ModelAttribute TripType tripType,
-            @RequestParam(required = false) String target,
-            RedirectAttributes redirectAttributes) {
+  @GetMapping("/update/{id}")
+  public String updateForm(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
+    return tripTypeService.findById(id)
+        .map(tripType -> {
+          model.addAttribute("tripType", tripType);
+          return "pages/destinations/trip-types/update";
+        })
+        .orElseGet(() -> {
+          redirectAttributes.addFlashAttribute("error", "Type de voyage non trouvé!");
+          return "redirect:/trip-types";
+        });
+  }
 
-        tripTypeService.save(tripType);
-        redirectAttributes.addFlashAttribute("success", "Type de voyage créé avec succès!");
+  @PostMapping("/update/{id}")
+  public String update(
+      @PathVariable Integer id,
+      @ModelAttribute TripType tripType,
+      RedirectAttributes redirectAttributes) {
 
-        if (target != null && !target.isBlank()) {
-            return "redirect:/trip-types/select?target=" + target;
-        }
+    tripType.setId(id);
+    tripTypeService.save(tripType);
+    redirectAttributes.addFlashAttribute("success", "Type de voyage modifié avec succès!");
+    return "redirect:/trip-types";
+  }
 
-        return "redirect:/trip-types";
-    }
+  @PostMapping("/delete/{id}")
+  public String delete(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    tripTypeService.deleteById(id);
+    redirectAttributes.addFlashAttribute("success", "Type de voyage supprimé avec succès!");
+    return "redirect:/trip-types";
+  }
 
-    @GetMapping("/update/{id}")
-    public String updateForm(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
-        return tripTypeService.findById(id)
-                .map(tripType -> {
-                    model.addAttribute("tripType", tripType);
-                    return "pages/destinations/trip-types/update";
-                })
-                .orElseGet(() -> {
-                    redirectAttributes.addFlashAttribute("error", "Type de voyage non trouvé!");
-                    return "redirect:/trip-types";
-                });
-    }
+  @GetMapping("/select")
+  public String select(
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) Boolean active,
+      @RequestParam(defaultValue = "name") String sortBy,
+      @RequestParam(defaultValue = "asc") String sortOrder,
+      @RequestParam(required = false) String target,
+      Model model) {
 
-    @PostMapping("/update/{id}")
-    public String update(
-            @PathVariable Integer id,
-            @ModelAttribute TripType tripType,
-            RedirectAttributes redirectAttributes) {
+    List<TripType> tripTypes = tripTypeService.findAll();
 
-        tripType.setId(id);
-        tripTypeService.save(tripType);
-        redirectAttributes.addFlashAttribute("success", "Type de voyage modifié avec succès!");
-        return "redirect:/trip-types";
-    }
+    model.addAttribute("tripTypes", tripTypes);
+    model.addAttribute("selectedName", name);
+    model.addAttribute("selectedActive", active);
+    model.addAttribute("sortBy", sortBy);
+    model.addAttribute("sortOrder", sortOrder);
+    model.addAttribute("target", target);
 
-    @PostMapping("/delete/{id}")
-    public String delete(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        tripTypeService.deleteById(id);
-        redirectAttributes.addFlashAttribute("success", "Type de voyage supprimé avec succès!");
-        return "redirect:/trip-types";
-    }
-
-    @GetMapping("/select")
-    public String select(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) Boolean active,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortOrder,
-            @RequestParam(required = false) String target,
-            Model model) {
-
-        List<TripType> tripTypes = tripTypeService.findAll();
-
-        model.addAttribute("tripTypes", tripTypes);
-        model.addAttribute("selectedName", name);
-        model.addAttribute("selectedActive", active);
-        model.addAttribute("sortBy", sortBy);
-        model.addAttribute("sortOrder", sortOrder);
-        model.addAttribute("target", target);
-
-        return "pages/destinations/trip-types/select";
-    }
+    return "pages/destinations/trip-types/select";
+  }
 }
