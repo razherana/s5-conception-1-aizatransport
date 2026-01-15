@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import mg.razherana.aizatransport.services.TripTypeService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +28,7 @@ import mg.razherana.aizatransport.services.RouteService;
 @RequiredArgsConstructor
 public class RouteController {
 
+  private final TripTypeService tripTypeService;
   private final RouteService routeService;
   private final DestinationService destinationService;
 
@@ -116,39 +117,63 @@ public class RouteController {
           List<RoutePrice> priceHistory = routeService.getPriceHistory(id);
           BigDecimal currentPrice = routeService.getCurrentPrice(id).orElse(BigDecimal.ZERO);
 
-          // Calculate variations and prepare DTO
-          List<PriceHistoryDTO> priceHistoryDTOs = new java.util.ArrayList<>();
-          for (int i = 0; i < priceHistory.size(); i++) {
-            RoutePrice price = priceHistory.get(i);
-            BigDecimal variation = null;
-            String variationType = "initial";
+          // TODO: Refactor this logic into a service method
+          // TODO: Fix "Classique always there and always on top" issue 
 
-            if (i < priceHistory.size() - 1) {
-              BigDecimal previousPrice = priceHistory.get(i + 1).getPrice();
-              variation = price.getPrice().subtract(previousPrice);
-
-              if (variation.compareTo(BigDecimal.ZERO) > 0) {
-                variationType = "increase";
-              } else if (variation.compareTo(BigDecimal.ZERO) < 0) {
-                variationType = "decrease";
-              } else {
-                variationType = "none";
-              }
-            }
-
-            priceHistoryDTOs.add(new PriceHistoryDTO(
-                price.getEffectiveDate(),
-                price.getPrice(),
-                variation,
-                variationType,
-                i == 0));
+          // Group prices by trip type and sort each group by date
+          Map<Integer, List<RoutePrice>> pricesByTripType = new java.util.HashMap<>();
+          for (RoutePrice price : priceHistory) {
+            Integer tripTypeId = price.getTripType().getId();
+            pricesByTripType.computeIfAbsent(tripTypeId, k -> new java.util.ArrayList<>()).add(price);
           }
 
-          // Prepare chart data (reversed for chronological order)
-          List<RoutePrice> reversedHistory = new java.util.ArrayList<>(priceHistory);
-          java.util.Collections.reverse(reversedHistory);
+          // Sort each trip type group by effective date (descending for display)
+          pricesByTripType.values().forEach(prices -> 
+            prices.sort((p1, p2) -> p2.getEffectiveDate().compareTo(p1.getEffectiveDate()))
+          );
 
-          List<String> chartLabels = reversedHistory.stream()
+          // Flatten back to a single list and calculate variations within each trip type
+          List<PriceHistoryDTO> priceHistoryDTOs = new java.util.ArrayList<>();
+          for (List<RoutePrice> tripTypePrices : pricesByTripType.values()) {
+            for (int i = 0; i < tripTypePrices.size(); i++) {
+              RoutePrice price = tripTypePrices.get(i);
+              BigDecimal variation = null;
+              String variationType = "initial";
+
+              if (i > 0) {
+                // Compare with the previous price within the SAME trip type
+                BigDecimal previousPrice = tripTypePrices.get(i - 1).getPrice();
+                variation = price.getPrice().subtract(previousPrice);
+
+                if (variation.compareTo(BigDecimal.ZERO) > 0) {
+                  variationType = "increase";
+                } else if (variation.compareTo(BigDecimal.ZERO) < 0) {
+                  variationType = "decrease";
+                } else {
+                  variationType = "none";
+                }
+              }
+
+              priceHistoryDTOs.add(new PriceHistoryDTO(
+                  price.getTripType().getId(),
+                  price.getTripType().getActive(),
+                  price.getTripType().getName(),
+                  price.getEffectiveDate(),
+                  price.getPrice(),
+                  variation,
+                  variationType,
+                  i == 0 && priceHistory.size() > 0 && priceHistory.get(0).getId().equals(price.getId())));
+            }
+          }
+
+          // Sort the final list by date (descending) for display
+          priceHistoryDTOs.sort((p1, p2) -> p2.getEffectiveDate().compareTo(p1.getEffectiveDate()));
+
+          // Prepare chart data (sorted chronologically by date, grouped by trip type)
+          List<RoutePrice> chronologicalHistory = new java.util.ArrayList<>(priceHistory);
+          chronologicalHistory.sort((p1, p2) -> p1.getEffectiveDate().compareTo(p2.getEffectiveDate()));
+
+          List<String> chartLabels = chronologicalHistory.stream()
               .map(p -> {
                 java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                     .ofPattern("dd/MM/yyyy");
@@ -156,7 +181,7 @@ public class RouteController {
               })
               .collect(java.util.stream.Collectors.toList());
 
-          List<BigDecimal> chartPrices = reversedHistory.stream()
+          List<BigDecimal> chartPrices = chronologicalHistory.stream()
               .map(RoutePrice::getPrice)
               .collect(java.util.stream.Collectors.toList());
 
@@ -166,6 +191,7 @@ public class RouteController {
           model.addAttribute("priceHistoryDTOs", priceHistoryDTOs);
           model.addAttribute("currentPrice", currentPrice);
           model.addAttribute("chartData", chartData);
+          model.addAttribute("tripTypes", tripTypeService.findAll());
 
           return "pages/destinations/routes/price-history";
         })

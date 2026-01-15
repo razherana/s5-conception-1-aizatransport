@@ -109,6 +109,7 @@
                   <th>Départ</th>
                   <th>Arrivée</th>
                   <th>Distance (km)</th>
+                  <th>Types de trajet</th>
                   <th>Prix actuel</th>
                   <th>Actif</th>
                   <th class="text-end">Actions</th>
@@ -116,7 +117,7 @@
               </thead>
               <tbody>
                 <tr th:if="${#lists.isEmpty(routes)}">
-                  <td colspan="7" class="text-center text-muted py-4">
+                  <td colspan="8" class="text-center text-muted py-4">
                     <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
                     Aucune route trouvée
                   </td>
@@ -132,6 +133,12 @@
                   <td>
                     <span th:if="${route.distanceKm != null}" th:text="${route.distanceKm} + ' km'">365 km</span>
                     <span th:unless="${route.distanceKm != null}" class="text-muted">-</span>
+                  </td>
+                  <td>
+                    <div th:if="${routeTripTypes.containsKey(route.id)}" class="d-flex flex-wrap gap-1">
+                      <span th:each="tripType : ${routeTripTypes.get(route.id)}" class="badge bg-info" th:text="${tripType.name}">Express</span>
+                    </div>
+                    <span th:unless="${routeTripTypes.containsKey(route.id)}" class="text-muted">-</span>
                   </td>
                   <td>
                     <a 

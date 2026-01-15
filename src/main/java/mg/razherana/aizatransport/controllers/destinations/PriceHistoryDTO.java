@@ -9,6 +9,9 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class PriceHistoryDTO {
+  private Integer tripTypeId;
+  private boolean tripTypeActive;
+  private String tripTypeName;
   private LocalDate effectiveDate;
   private BigDecimal price;
   private BigDecimal variation;
