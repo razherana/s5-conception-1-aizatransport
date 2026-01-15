@@ -137,7 +137,7 @@
                     <small class="text-muted" th:text="${#temporals.format(reservation.trip?.departureDatetime, 'dd/MM/yyyy HH:mm')}">01/01/2024 08:00</small>
                   </td>
                   <td>
-                    <span class="badge bg-secondary" th:text="${reservation.seat?.seatNumber}">A1</span>
+                    <span class="badge bg-secondary" th:text="${reservation.seat?.seatNumber}">A1</span> - <span class="badge bg-secondary" th:text="${reservation.seat?.seatType.name}">Classique</span>
                   </td>
                   <td>
                     <strong th:text="${#numbers.formatDecimal(reservation.amount, 0, 'COMMA', 0, 'POINT')} + ' Ar'">15,000 Ar</strong>

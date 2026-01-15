@@ -1,8 +1,10 @@
 package mg.razherana.aizatransport.controllers.transports;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +19,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Reservation;
+import mg.razherana.aizatransport.models.destinations.RoutePrice;
 import mg.razherana.aizatransport.models.destinations.Ticket;
 import mg.razherana.aizatransport.models.destinations.Trip;
 import mg.razherana.aizatransport.models.transports.Seat;
 import mg.razherana.aizatransport.models.transports.Vehicle;
 import mg.razherana.aizatransport.services.ReservationService;
+import mg.razherana.aizatransport.services.RoutePriceService;
 import mg.razherana.aizatransport.services.SeatService;
 import mg.razherana.aizatransport.services.SeatTypeService;
 import mg.razherana.aizatransport.services.TicketService;
@@ -39,6 +43,7 @@ public class SeatController {
   private final ReservationService reservationService;
   private final TicketService ticketService;
   private final SeatTypeService seatTypeService;
+  private final RoutePriceService routePriceService;
 
   @GetMapping("/{vehicleId}/seats")
   public String viewSeats(@PathVariable Integer vehicleId, Model model, RedirectAttributes redirectAttributes) {
@@ -145,8 +150,35 @@ public class SeatController {
       seats = List.of();
     }
 
+    // Calculate seat prices
+    // Get all route prices valid at the trip's departure date
+    List<RoutePrice> routePrices = routePriceService.findAll();
+    routePrices = routePrices.stream()
+        .filter(rp -> rp.getEffectiveDate().isBefore(trip.getDepartureDatetime().toLocalDate())
+            || rp.getEffectiveDate().isEqual(trip.getDepartureDatetime().toLocalDate()))
+        .toList();
+
+    // Create a price map with composite key: routeId_tripTypeId_seatTypeId
+    Map<String, BigDecimal> priceMap = routePrices.stream()
+        .collect(Collectors.toMap(
+            rp -> rp.getRoute().getId() + "_" + rp.getTripType().getId() + "_" + rp.getSeatType().getId(),
+            RoutePrice::getPrice,
+            (existing, replacement) -> existing));
+
+    // Create a seat price map (seatId -> price)
+    Map<Integer, BigDecimal> seatPriceMap = new HashMap<>();
+    for (Seat seat : seats) {
+      if (seat.getSeatType() != null && trip.getRoute() != null && trip.getTripType() != null) {
+        String key = trip.getRoute().getId() + "_" + trip.getTripType().getId() + "_"
+            + seat.getSeatType().getId();
+        BigDecimal price = priceMap.getOrDefault(key, BigDecimal.ZERO);
+        seatPriceMap.put(seat.getId(), price);
+      }
+    }
+
     model.addAttribute("seats", seats);
     model.addAttribute("seatPassengerMap", seatPassengerMap);
+    model.addAttribute("seatPriceMap", seatPriceMap);
     model.addAttribute("tripId", tripId);
     model.addAttribute("target", target);
     model.addAttribute("seatTypes", seatTypeService.findAll());

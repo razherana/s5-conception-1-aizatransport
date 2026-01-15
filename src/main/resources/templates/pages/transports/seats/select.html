@@ -223,6 +223,7 @@
               th:title="'Siège ' + ${seat.seatNumber} + ' - ' + (${seat.seatType != null ? seat.seatType.name : 'Non défini'}) + ' - ' + (${!seat.available} ? 'Siège inactif' : (${seatPassengerMap.containsKey(seat.id)} ? ${seatPassengerMap.get(seat.id)} : 'Disponible'))"
               th:data-seat-id="${seat.id}"
               th:data-seat-number="${seat.seatNumber}"
+              th:data-seat-price="${seatPriceMap.get(seat.id)}"
               th:data-occupied="${seatPassengerMap.containsKey(seat.id)}"
               th:data-active="${seat.available}"
               onclick="handleSeatClick(this)"
@@ -248,11 +249,12 @@
         if (!isOccupied && isActive) {
           const id = element.getAttribute("data-seat-id");
           const number = element.getAttribute("data-seat-number");
-          selectSeat(id, number);
+          const price = element.getAttribute("data-seat-price");
+          selectSeat(id, number, price);
         }
       }
 
-      function selectSeat(id, number) {
+      function selectSeat(id, number, price) {
         // Send message to opener window
         if (window.opener) {
           window.opener.postMessage(
@@ -260,6 +262,7 @@
               type: "selectSeat",
               id: id,
               number: number,
+              price: parseFloat(price) || 0,
             },
             "*"
           );

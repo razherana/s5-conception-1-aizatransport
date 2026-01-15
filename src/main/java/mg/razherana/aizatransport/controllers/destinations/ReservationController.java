@@ -50,22 +50,30 @@ public class ReservationController {
   public String create(
       @ModelAttribute Reservation reservation,
       @RequestParam(required = false) java.util.List<Integer> seatIds,
+      @RequestParam(required = false) java.util.List<java.math.BigDecimal> seatPrices,
       RedirectAttributes redirectAttributes) {
     
     if (seatIds != null && !seatIds.isEmpty()) {
       // Create multiple reservations for multiple seats
       int count = 0;
-      for (Integer seatId : seatIds) {
+      for (int i = 0; i < seatIds.size(); i++) {
         Reservation newReservation = new Reservation();
         newReservation.setPassenger(reservation.getPassenger());
         newReservation.setTrip(reservation.getTrip());
-        newReservation.setAmount(reservation.getAmount());
+        
+        // Use individual seat price instead of total amount
+        if (seatPrices != null && i < seatPrices.size()) {
+          newReservation.setAmount(seatPrices.get(i).doubleValue());
+        } else {
+          newReservation.setAmount(0.0);
+        }
+        
         newReservation.setStatus(reservation.getStatus());
         newReservation.setReservationDate(reservation.getReservationDate());
         
         // Set the seat
         mg.razherana.aizatransport.models.transports.Seat seat = new mg.razherana.aizatransport.models.transports.Seat();
-        seat.setId(seatId);
+        seat.setId(seatIds.get(i));
         newReservation.setSeat(seat);
         
         reservationService.save(newReservation);

@@ -45,6 +45,16 @@
         function removeSeat(seatId) {
           selectedSeats = selectedSeats.filter(s => s.id !== seatId);
           updateSeatsDisplay();
+          updateTotalAmount();
+        }
+
+        function updateTotalAmount() {
+          const total = selectedSeats.reduce((sum, seat) => sum + (parseFloat(seat.price) || 0), 0);
+          document.getElementById('totalAmount').textContent = total.toLocaleString('fr-FR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }) + ' Ar';
+          document.getElementById('amountHidden').value = total;
         }
 
         function updateSeatsDisplay() {
@@ -57,19 +67,34 @@
           } else {
             let html = '<div class="d-flex flex-wrap gap-2">';
             selectedSeats.forEach(seat => {
+              const priceFormatted = parseFloat(seat.price || 0).toLocaleString('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              });
               html += `
-                <div class="badge bg-primary d-flex align-items-center gap-2" style="font-size: 0.9rem; padding: 0.5rem;">
-                  <span><i class="fa-solid fa-couch me-1"></i>Siège ${seat.number}</span>
-                  <button type="button" class="btn-close btn-close-white" style="font-size: 0.7rem;" onclick="removeSeat(${seat.id})" title="Retirer"></button>
+                <div class="card border-primary" style="min-width: 150px;">
+                  <div class="card-body p-2">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                      <span class="badge bg-primary">
+                        <i class="fa-solid fa-couch me-1"></i>Siège ${seat.number}
+                      </span>
+                      <button type="button" class="btn-close btn-sm" onclick="removeSeat(${seat.id})" title="Retirer" style="font-size: 0.7rem;"></button>
+                    </div>
+                    <div class="text-center">
+                      <small class="text-muted d-block">Prix:</small>
+                      <strong class="text-primary">${priceFormatted} Ar</strong>
+                    </div>
+                  </div>
                 </div>
               `;
             });
             html += '</div>';
             container.innerHTML = html;
             
-            // Add hidden inputs for seat IDs
+            // Add hidden inputs for seat IDs and prices
             hiddenContainer.innerHTML = selectedSeats.map(seat => 
-              `<input type="hidden" name="seatIds" value="${seat.id}" />`
+              `<input type="hidden" name="seatIds" value="${seat.id}" />
+               <input type="hidden" name="seatPrices" value="${seat.price}" />`
             ).join('');
           }
           
@@ -84,31 +109,42 @@
           } else if (event.data.type === 'selectTrip') {
             document.getElementById('tripId').value = event.data.id;
             document.getElementById('tripInfo').value = event.data.info;
-            // Auto-fill amount with route price if available
-            if (event.data.price) {
-              document.getElementById('amount').value = event.data.price;
-            }
+            // Clear seats when changing trip
+            selectedSeats = [];
+            updateSeatsDisplay();
+            updateTotalAmount();
           } else if (event.data.type === 'selectSeat') {
             // Single seat (legacy)
-            const seat = { id: event.data.id, number: event.data.number };
+            const seat = { 
+              id: event.data.id, 
+              number: event.data.number,
+              price: event.data.price || 0
+            };
             if (!selectedSeats.find(s => s.id === seat.id)) {
               selectedSeats.push(seat);
               updateSeatsDisplay();
+              updateTotalAmount();
             }
           } else if (event.data.type === 'selectSeats') {
             // Multiple seats
             event.data.seats.forEach(seat => {
               if (!selectedSeats.find(s => s.id === seat.id)) {
-                selectedSeats.push(seat);
+                selectedSeats.push({
+                  id: seat.id,
+                  number: seat.number,
+                  price: seat.price || 0
+                });
               }
             });
             updateSeatsDisplay();
+            updateTotalAmount();
           }
         });
 
         // Initialize display on page load
         document.addEventListener('DOMContentLoaded', function() {
           updateSeatsDisplay();
+          updateTotalAmount();
         });
       </script>
     </th:block>
@@ -184,16 +220,31 @@
                     </small>
                   </div>
 
-                  <!-- Montant -->
-                  <div class="col-md-6">
-                    <label for="amount" class="form-label">
-                      Montant (Ar) <span class="text-danger">*</span>
-                    </label>
-                    <input type="number" class="form-control" id="amount" th:field="*{amount}" required min="0" step="100" placeholder="Ex: 15000" />
+                  <!-- Montant Total (Display Only) -->
+                  <div class="col-12">
+                    <div class="card bg-light border-0">
+                      <div class="card-body">
+                        <div class="row align-items-center">
+                          <div class="col-6">
+                            <h6 class="mb-0">
+                              <i class="fa-solid fa-receipt me-2"></i>
+                              Montant Total
+                            </h6>
+                          </div>
+                          <div class="col-6 text-end">
+                            <h4 class="mb-0 text-primary" id="totalAmount">0,00 Ar</h4>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="amountHidden" th:field="*{amount}" />
+                    <small class="form-text text-muted">
+                      Le montant total est calculé automatiquement en fonction des sièges sélectionnés
+                    </small>
                   </div>
 
                   <!-- Statut -->
-                  <div class="col-md-6">
+                  <div class="col-md-12">
                     <label for="status" class="form-label">
                       Statut <span class="text-danger">*</span>
                     </label>
