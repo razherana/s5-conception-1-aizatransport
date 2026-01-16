@@ -64,7 +64,7 @@ public class RoutePriceService {
 
     for (RoutePrice rp : routePrices) {
       String key = rp.getRoute().getId() + "_" + rp.getTripType().getId() + "_" + rp.getSeatType().getId();
-      priceMap.put(key, rp.getPrice());
+      priceMap.putIfAbsent(key, rp.getPrice());
     }
 
     return priceMap;

@@ -43,7 +43,6 @@ public class RouteService {
   private final TicketRepository ticketRepository;
   private final TripTypeService tripTypeService;
   private final SeatTypeService seatTypeService;
-  private final RoutePriceService routePriceService;
   private final DiscountTypeService discountTypeService;
   private final DiscountService discountService;
   // private final DestinationRepository destinationRepository;
