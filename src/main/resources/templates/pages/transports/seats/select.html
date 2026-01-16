@@ -269,6 +269,28 @@
           document.getElementById('modeText').textContent = 'des sièges (plusieurs)';
           document.getElementById('multipleControls').style.display = 'block';
         }
+        
+        // Pre-select seats if selectedIds parameter is present
+        const selectedIds = urlParams.get('selectedIds');
+        if (selectedIds && multipleMode) {
+          const ids = selectedIds.split(',');
+          ids.forEach(id => {
+            const seatElement = document.querySelector(`[data-seat-id="${id}"]`);
+            if (seatElement && 
+                seatElement.getAttribute('data-occupied') !== 'true' && 
+                seatElement.getAttribute('data-active') === 'true') {
+              const number = seatElement.getAttribute('data-seat-number');
+              const price = seatElement.getAttribute('data-seat-price');
+              selectedSeats.push({
+                id: id,
+                number: number,
+                price: parseFloat(price) || 0
+              });
+              seatElement.classList.add('selected');
+            }
+          });
+          document.getElementById('selectedCount').textContent = selectedSeats.length;
+        }
       });
 
       function handleSeatClick(element) {

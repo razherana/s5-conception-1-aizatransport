@@ -12,7 +12,8 @@
 
         // Make removeSeat globally accessible
         window.removeSeat = function(seatId) {
-          selectedSeats = selectedSeats.filter(s => s.id !== seatId);
+          // Convert to string for comparison since IDs might be strings or numbers
+          selectedSeats = selectedSeats.filter(s => String(s.id) !== String(seatId));
           updateSeatsDisplay();
           updateTotalAmount();
         };
@@ -55,7 +56,11 @@
           const height = 600;
           const left = (screen.width / 2) - (width / 2);
           const top = (screen.height / 2) - (height / 2);
-          window.open('/vehicles/seats/select?tripId=' + tripId + '&target=seatInput&multiple=true', 'selectSeat', 
+          // Pass currently selected seat IDs
+          const selectedIds = selectedSeats.map(s => s.id).join(',');
+          const url = '/vehicles/seats/select?tripId=' + tripId + '&target=seatInput&multiple=true' + 
+                      (selectedIds ? '&selectedIds=' + selectedIds : '');
+          window.open(url, 'selectSeat', 
             `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
         }
 
@@ -93,7 +98,7 @@
                       <span class="badge bg-primary">
                         <i class="fa-solid fa-couch me-1"></i>Siège ${seat.number}
                       </span>
-                      <button type="button" class="btn-close btn-sm" onclick="removeSeat(${seat.id})" title="Retirer" style="font-size: 0.7rem;"></button>
+                      <button type="button" class="btn-close btn-sm" onclick="removeSeat('${seat.id}')" title="Retirer" style="font-size: 0.7rem;"></button>
                     </div>
                     <div>
                       <label class="form-label mb-1" style="font-size: 0.75rem;">Prix (Ar):</label>
