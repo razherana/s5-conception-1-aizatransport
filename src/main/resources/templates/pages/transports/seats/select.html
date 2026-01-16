@@ -240,6 +240,7 @@
               th:data-seat-id="${seat.id}"
               th:data-seat-number="${seat.seatNumber}"
               th:data-seat-price="${seatPriceMap.get(seat.id)}"
+              th:data-seat-type-id="${seat.seatType != null ? seat.seatType.id : ''}"
               th:data-occupied="${seatPassengerMap.containsKey(seat.id)}"
               th:data-active="${seat.available}"
               onclick="handleSeatClick(this)"
@@ -281,10 +282,12 @@
                 seatElement.getAttribute('data-active') === 'true') {
               const number = seatElement.getAttribute('data-seat-number');
               const price = seatElement.getAttribute('data-seat-price');
+              const seatTypeId = seatElement.getAttribute('data-seat-type-id');
               selectedSeats.push({
                 id: id,
                 number: number,
-                price: parseFloat(price) || 0
+                price: parseFloat(price) || 0,
+                seatTypeId: seatTypeId
               });
               seatElement.classList.add('selected');
             }
@@ -301,16 +304,17 @@
           const id = element.getAttribute("data-seat-id");
           const number = element.getAttribute("data-seat-number");
           const price = element.getAttribute("data-seat-price");
+          const seatTypeId = element.getAttribute("data-seat-type-id");
           
           if (multipleMode) {
-            toggleSeatSelection(element, id, number, price);
+            toggleSeatSelection(element, id, number, price, seatTypeId);
           } else {
-            selectSeat(id, number, price);
+            selectSeat(id, number, price, seatTypeId);
           }
         }
       }
 
-      function toggleSeatSelection(element, id, number, price) {
+      function toggleSeatSelection(element, id, number, price, seatTypeId) {
         const index = selectedSeats.findIndex(s => s.id === id);
         
         if (index > -1) {
@@ -322,7 +326,8 @@
           selectedSeats.push({
             id: id,
             number: number,
-            price: parseFloat(price) || 0
+            price: parseFloat(price) || 0,
+            seatTypeId: seatTypeId
           });
           element.classList.add('selected');
         }
@@ -348,7 +353,7 @@
         }
       }
 
-      function selectSeat(id, number, price) {
+      function selectSeat(id, number, price, seatTypeId) {
         // Send message to opener window (single mode)
         if (window.opener) {
           window.opener.postMessage(
@@ -357,6 +362,7 @@
               id: id,
               number: number,
               price: parseFloat(price) || 0,
+              seatTypeId: seatTypeId
             },
             "*"
           );

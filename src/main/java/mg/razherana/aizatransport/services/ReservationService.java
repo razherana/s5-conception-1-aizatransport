@@ -18,6 +18,7 @@ import mg.razherana.aizatransport.repositories.ReservationRepository;
 public class ReservationService {
 
   private final ReservationRepository reservationRepository;
+  private final DiscountService discountService;
 
   public List<Reservation> findAll() {
     return reservationRepository.findAll();
@@ -75,6 +76,23 @@ public class ReservationService {
     if (reservation.getReservationDate() == null) {
       reservation.setReservationDate(LocalDateTime.now());
     }
+    
+    // Calculate and apply discount if applicable
+    if (reservation.getPassenger() != null && reservation.getTrip() != null && reservation.getSeat() != null) {
+      mg.razherana.aizatransport.models.destinations.Discount discount = 
+        discountService.getDiscountfor(
+          reservation.getTrip(), 
+          reservation.getSeat().getSeatType(), 
+          reservation.getPassenger()
+        );
+      
+      if (discount != null) {
+        reservation.setDiscount(discount.getAmount());
+      } else {
+        reservation.setDiscount(null);
+      }
+    }
+    
     return reservationRepository.save(reservation);
   }
 

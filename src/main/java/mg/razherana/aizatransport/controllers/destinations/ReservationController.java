@@ -8,11 +8,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import lombok.RequiredArgsConstructor;
+import mg.razherana.aizatransport.models.destinations.Discount;
+import mg.razherana.aizatransport.models.destinations.Passenger;
 import mg.razherana.aizatransport.models.destinations.Reservation;
+import mg.razherana.aizatransport.models.destinations.Trip;
+import mg.razherana.aizatransport.models.transports.Seat;
+import mg.razherana.aizatransport.services.DiscountService;
+import mg.razherana.aizatransport.services.PassengerService;
 import mg.razherana.aizatransport.services.ReservationService;
+import mg.razherana.aizatransport.services.TripService;
 
 @Controller
 @RequestMapping("/reservations")
@@ -20,6 +28,9 @@ import mg.razherana.aizatransport.services.ReservationService;
 public class ReservationController {
 
   private final ReservationService reservationService;
+  private final DiscountService discountService;
+  private final PassengerService passengerService;
+  private final TripService tripService;
 
   @GetMapping
   public String list(
@@ -116,5 +127,54 @@ public class ReservationController {
     reservationService.deleteById(id);
     redirectAttributes.addFlashAttribute("success", "Réservation supprimée avec succès!");
     return "redirect:/reservations";
+  }
+  
+  /**
+   * REST endpoint to calculate discount for a passenger on a specific seat
+   * @param passengerId The ID of the passenger
+   * @param tripId The ID of the trip
+   * @param seatTypeId The ID of the seat type
+   * @return JSON with discount information
+   */
+  @GetMapping("/calculate-discount")
+  @ResponseBody
+  public java.util.Map<String, Object> calculateDiscount(
+      @RequestParam Integer passengerId,
+      @RequestParam Integer tripId,
+      @RequestParam Integer seatTypeId) {
+    
+    java.util.Map<String, Object> result = new java.util.HashMap<>();
+    
+    try {
+      Passenger passenger = passengerService.findById(passengerId).orElse(null);
+      Trip trip = tripService.findById(tripId).orElse(null);
+      
+      if (passenger == null || trip == null) {
+        result.put("hasDiscount", false);
+        return result;
+      }
+      
+      // Create a temporary seat with the seat type to check discount
+      Seat tempSeat = new Seat();
+      mg.razherana.aizatransport.models.transports.SeatType seatType = new mg.razherana.aizatransport.models.transports.SeatType();
+      seatType.setId(seatTypeId);
+      tempSeat.setSeatType(seatType);
+      
+      Discount discount = discountService.getDiscountfor(trip, seatType, passenger);
+      
+      if (discount != null) {
+        result.put("hasDiscount", true);
+        result.put("amount", discount.getAmount());
+        result.put("typeName", discount.getDiscountType().getName());
+        result.put("passengerAge", passenger.getAge(java.time.LocalDate.now()));
+      } else {
+        result.put("hasDiscount", false);
+      }
+    } catch (Exception e) {
+      result.put("hasDiscount", false);
+      result.put("error", e.getMessage());
+    }
+    
+    return result;
   }
 }

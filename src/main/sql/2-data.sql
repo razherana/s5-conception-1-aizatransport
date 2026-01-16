@@ -655,6 +655,44 @@ INSERT INTO public.route_prices (route_id, trip_type_id, seat_type_id, price, ef
 (18, 4, 4, 75000.00, '2024-01-01'),
 (18, 4, 5, 85000.00, '2024-01-01');
 
+-- ============================================
+-- DISCOUNT TYPES (Types de réductions)
+-- ============================================
+INSERT INTO public.discount_types (name, description) VALUES
+('Enfant', 'Réduction pour les enfants de moins de 10 ans'),
+('Étudiant', 'Réduction pour les étudiants avec carte valide'),
+('Sénior', 'Réduction pour les personnes âgées de plus de 60 ans'),
+('Famille', 'Réduction pour les familles de 4 personnes ou plus');
+
+-- ============================================
+-- DISCOUNTS (Réductions - Exemples pour enfants)
+-- ============================================
+-- Réductions de 30% pour enfants sur la route Antananarivo - Antsirabe
+INSERT INTO public.discounts (route_id, trip_type_id, seat_type_id, amount, effective_date, discount_type_id) VALUES
+-- Route 1: Antananarivo - Antsirabe (169.5 km)
+(1, 1, 1, 7500.00, '2024-01-01', 1),   -- Classique/Standard: 30% de 25000
+(1, 1, 2, 9000.00, '2024-01-01', 1),   -- Classique/Confort: 30% de 30000
+(1, 1, 3, 10500.00, '2024-01-01', 1),  -- Classique/VIP: 30% de 35000
+(1, 1, 4, 12000.00, '2024-01-01', 1),  -- Classique/Premium: 30% de 40000
+(1, 1, 5, 13500.00, '2024-01-01', 1),  -- Classique/Luxe: 30% de 45000
+(1, 2, 1, 6000.00, '2024-01-01', 1),   -- Premium/Standard: 30% de 20000
+(1, 2, 2, 7500.00, '2024-01-01', 1),   -- Premium/Confort: 30% de 25000
+(1, 2, 3, 9000.00, '2024-01-01', 1),   -- Premium/VIP: 30% de 30000
+(1, 2, 4, 10500.00, '2024-01-01', 1),  -- Premium/Premium: 30% de 35000
+(1, 2, 5, 12000.00, '2024-01-01', 1),  -- Premium/Luxe: 30% de 40000
+
+-- Réductions de 30% pour enfants sur la route Antananarivo - Fianarantsoa
+(2, 1, 1, 18000.00, '2024-01-01', 1),  -- Classique/Standard: 30% de 60000
+(2, 1, 2, 21000.00, '2024-01-01', 1),  -- Classique/Confort: 30% de 70000
+(2, 1, 3, 24000.00, '2024-01-01', 1),  -- Classique/VIP: 30% de 80000
+(2, 1, 4, 27000.00, '2024-01-01', 1),  -- Classique/Premium: 30% de 90000
+(2, 1, 5, 30000.00, '2024-01-01', 1),  -- Classique/Luxe: 30% de 100000
+(2, 2, 1, 15000.00, '2024-01-01', 1),  -- Premium/Standard: 30% de 50000
+(2, 2, 2, 18000.00, '2024-01-01', 1),  -- Premium/Confort: 30% de 60000
+(2, 2, 3, 21000.00, '2024-01-01', 1),  -- Premium/VIP: 30% de 70000
+(2, 2, 4, 24000.00, '2024-01-01', 1),  -- Premium/Premium: 30% de 80000
+(2, 2, 5, 27000.00, '2024-01-01', 1);  -- Premium/Luxe: 30% de 90000
+
 
 -- ============================================
 -- FIN DES DONNÉES

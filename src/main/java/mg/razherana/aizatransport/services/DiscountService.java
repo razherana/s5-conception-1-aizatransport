@@ -10,7 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Discount;
 import mg.razherana.aizatransport.models.destinations.DiscountType;
+import mg.razherana.aizatransport.models.destinations.Passenger;
 import mg.razherana.aizatransport.models.destinations.Route;
+import mg.razherana.aizatransport.models.destinations.Trip;
 import mg.razherana.aizatransport.models.destinations.TripType;
 import mg.razherana.aizatransport.models.transports.SeatType;
 import mg.razherana.aizatransport.repositories.DiscountRepository;
@@ -72,5 +74,41 @@ public class DiscountService {
         discount.setAmount(amount);
         discount.setEffectiveDate(effectiveDate);
         return discountRepository.save(discount);
+    }
+
+    /**
+     * Gets the applicable discount for a passenger on a specific trip and seat type.
+     * Currently supports kid discounts for passengers under 10 years old.
+     * 
+     * @param trip The trip for the reservation
+     * @param seatType The seat type selected
+     * @param passenger The passenger making the reservation
+     * @return The applicable discount, or null if no discount applies
+     */
+    public Discount getDiscountfor(Trip trip, SeatType seatType, Passenger passenger){
+        if (passenger.getBirthDate() == null) {
+            return null; // No discount if birth date is not available
+        }
+        
+        int age = passenger.getAge(LocalDate.now());
+        
+        // Check if passenger qualifies for kid discount
+        if (age <= DiscountType.KID_AGE) {
+            List<Discount> discounts = findByRouteIdAndTripTypeIdAndSeatTypeId(
+                trip.getRoute().getId(), 
+                trip.getTripType().getId(), 
+                seatType.getId()
+            );
+            
+            // Find the kid discount
+            LocalDate now = LocalDate.now();
+            return discounts.stream()
+                .filter(d -> d.getDiscountType().getName().equals(DiscountType.KIDS))
+                .filter(d -> !d.getEffectiveDate().isAfter(now))
+                .findFirst()
+                .orElse(null);
+        }
+        
+        return null; // No discount applicable
     }
 }

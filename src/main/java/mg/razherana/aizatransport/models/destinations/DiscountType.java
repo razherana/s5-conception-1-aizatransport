@@ -18,4 +18,5 @@ public class DiscountType extends BasicEntity {
     private String name;
 
     public static final String KIDS = "Enfant";
+    public static final Integer KID_AGE = 10;
 }

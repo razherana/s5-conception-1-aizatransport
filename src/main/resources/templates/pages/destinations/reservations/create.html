@@ -9,6 +9,8 @@
     <th:block layout:fragment="script">
       <script>
         let selectedSeats = [];
+        let currentPassengerId = null;
+        let currentTripId = null;
 
         // Make removeSeat globally accessible
         window.removeSeat = function(seatId) {
@@ -27,6 +29,39 @@
             updateHiddenInputs();
           }
         };
+        
+        // Function to fetch discount for a seat
+        async function fetchDiscount(passengerId, tripId, seatTypeId) {
+          if (!passengerId || !tripId || !seatTypeId) {
+            return null;
+          }
+          
+          try {
+            const response = await fetch(`/reservations/calculate-discount?passengerId=${passengerId}&tripId=${tripId}&seatTypeId=${seatTypeId}`);
+            const data = await response.json();
+            return data.hasDiscount ? data : null;
+          } catch (error) {
+            console.error('Error fetching discount:', error);
+            return null;
+          }
+        }
+        
+        // Function to apply discounts to all seats
+        async function applyDiscountsToSeats() {
+          if (!currentPassengerId || !currentTripId) {
+            return;
+          }
+          
+          for (let seat of selectedSeats) {
+            if (seat.seatTypeId) {
+              const discount = await fetchDiscount(currentPassengerId, currentTripId, seat.seatTypeId);
+              seat.discount = discount;
+            }
+          }
+          
+          updateSeatsDisplay();
+          updateTotalAmount();
+        }
 
         function openPassengerSelect() {
           const width = 900;
@@ -65,7 +100,13 @@
         }
 
         function updateTotalAmount() {
-          const total = selectedSeats.reduce((sum, seat) => sum + (parseFloat(seat.price) || 0), 0);
+          let total = 0;
+          selectedSeats.forEach(seat => {
+            const price = parseFloat(seat.price) || 0;
+            const discountAmount = seat.discount && seat.discount.hasDiscount ? seat.discount.amount : 0;
+            total += (price - discountAmount);
+          });
+          
           document.getElementById('totalAmount').textContent = total.toLocaleString('fr-FR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
@@ -75,10 +116,13 @@
 
         function updateHiddenInputs() {
           const hiddenContainer = document.getElementById('seatIdsContainer');
-          hiddenContainer.innerHTML = selectedSeats.map(seat => 
-            `<input type="hidden" name="seatIds" value="${seat.id}" />
-             <input type="hidden" name="seatPrices" value="${seat.price}" />`
-          ).join('');
+          hiddenContainer.innerHTML = selectedSeats.map(seat => {
+            const price = parseFloat(seat.price) || 0;
+            const discountAmount = seat.discount && seat.discount.hasDiscount ? seat.discount.amount : 0;
+            const finalPrice = price - discountAmount;
+            return `<input type="hidden" name="seatIds" value="${seat.id}" />
+             <input type="hidden" name="seatPrices" value="${finalPrice}" />`;
+          }).join('');
         }
 
         function updateSeatsDisplay() {
@@ -91,8 +135,13 @@
           } else {
             let html = '<div class="d-flex flex-wrap gap-2">';
             selectedSeats.forEach(seat => {
+              const price = parseFloat(seat.price) || 0;
+              const hasDiscount = seat.discount && seat.discount.hasDiscount;
+              const discountAmount = hasDiscount ? seat.discount.amount : 0;
+              const finalPrice = price - discountAmount;
+              
               html += `
-                <div class="card border-primary" style="min-width: 200px;">
+                <div class="card border-primary" style="min-width: 250px;">
                   <div class="card-body p-2">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                       <span class="badge bg-primary">
@@ -101,14 +150,32 @@
                       <button type="button" class="btn-close btn-sm" onclick="removeSeat('${seat.id}')" title="Retirer" style="font-size: 0.7rem;"></button>
                     </div>
                     <div>
-                      <label class="form-label mb-1" style="font-size: 0.75rem;">Prix (Ar):</label>
+                      <label class="form-label mb-1" style="font-size: 0.75rem;">Prix de base (Ar):</label>
                       <input type="number" 
-                             class="form-control form-control-sm" 
-                             value="${seat.price || 0}" 
+                             class="form-control form-control-sm mb-2" 
+                             value="${price}" 
                              step="0.01" 
                              min="0"
                              onchange="updateSeatPrice(${seat.id}, this.value)"
                              style="font-weight: 600; color: #0d6efd;">
+              `;
+              
+              if (hasDiscount) {
+                html += `
+                      <div class="alert alert-success p-2 mb-2" style="font-size: 0.75rem;">
+                        <i class="fa-solid fa-tag me-1"></i>
+                        <strong>Réduction ${seat.discount.typeName}</strong><br/>
+                        <small>Âge: ${seat.discount.passengerAge} ans</small><br/>
+                        <span class="text-danger fw-bold">- ${discountAmount.toLocaleString('fr-FR', {minimumFractionDigits: 2})} Ar</span>
+                      </div>
+                `;
+              }
+              
+              html += `
+                      <div class="text-end">
+                        <small class="text-muted">Prix final:</small><br/>
+                        <strong class="text-success fs-6">${finalPrice.toLocaleString('fr-FR', {minimumFractionDigits: 2})} Ar</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -125,13 +192,19 @@
           document.getElementById('seatCount').textContent = selectedSeats.length;
         }
 
-        window.addEventListener('message', function(event) {
+        window.addEventListener('message', async function(event) {
           if (event.data.type === 'selectPassenger') {
             document.getElementById('passengerId').value = event.data.id;
             document.getElementById('passengerName').value = event.data.name;
+            currentPassengerId = event.data.id;
+            
+            // Recalculate discounts when passenger changes
+            await applyDiscountsToSeats();
           } else if (event.data.type === 'selectTrip') {
             document.getElementById('tripId').value = event.data.id;
             document.getElementById('tripInfo').value = event.data.info;
+            currentTripId = event.data.id;
+            
             // Clear seats when changing trip
             selectedSeats = [];
             updateSeatsDisplay();
@@ -141,26 +214,26 @@
             const seat = { 
               id: event.data.id, 
               number: event.data.number,
-              price: event.data.price || 0
+              price: event.data.price || 0,
+              seatTypeId: event.data.seatTypeId
             };
             if (!selectedSeats.find(s => s.id === seat.id)) {
               selectedSeats.push(seat);
-              updateSeatsDisplay();
-              updateTotalAmount();
+              await applyDiscountsToSeats();
             }
           } else if (event.data.type === 'selectSeats') {
             // Multiple seats
-            event.data.seats.forEach(seat => {
-              if (!selectedSeats.find(s => s.id === seat.id)) {
+            for (const seatData of event.data.seats) {
+              if (!selectedSeats.find(s => s.id === seatData.id)) {
                 selectedSeats.push({
-                  id: seat.id,
-                  number: seat.number,
-                  price: seat.price || 0
+                  id: seatData.id,
+                  number: seatData.number,
+                  price: seatData.price || 0,
+                  seatTypeId: seatData.seatTypeId
                 });
               }
-            });
-            updateSeatsDisplay();
-            updateTotalAmount();
+            }
+            await applyDiscountsToSeats();
           }
         });
 
