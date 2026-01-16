@@ -67,7 +67,11 @@ public class TripController {
       Double caReservations = new HashSet<>(trip.getReservations())
           .stream()
           .filter((e) -> e.getStatus().equalsIgnoreCase(Reservation.ReservationStatus.RESERVE.name()))
-          .mapToDouble(Reservation::getAmount)
+          .mapToDouble((e) -> {
+            double amount = e.getAmount() != null ? e.getAmount() : 0.0;
+            double discount = e.getDiscount() != null ? e.getDiscount() : 0.0;
+            return amount - discount;
+          })
           .sum();
 
       Double caTickets = new HashSet<>(trip.getTickets())

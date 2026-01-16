@@ -119,9 +119,9 @@
           hiddenContainer.innerHTML = selectedSeats.map(seat => {
             const price = parseFloat(seat.price) || 0;
             const discountAmount = seat.discount && seat.discount.hasDiscount ? seat.discount.amount : 0;
-            const finalPrice = price - discountAmount;
             return `<input type="hidden" name="seatIds" value="${seat.id}" />
-             <input type="hidden" name="seatPrices" value="${finalPrice}" />`;
+             <input type="hidden" name="seatPrices" value="${price}" />
+             <input type="hidden" name="seatDiscounts" value="${discountAmount}" />`;
           }).join('');
         }
 

@@ -112,7 +112,8 @@
                   <th>Âge</th>
                   <th>Voyage</th>
                   <th>Siège</th>
-                  <th>Montant</th>
+                  <th>Prix</th>
+                  <th>Réduction</th>
                   <th>Date réservation</th>
                   <th>Date de voyage</th>
                   <th>Statut</th>
@@ -121,7 +122,7 @@
               </thead>
               <tbody>
                 <tr th:if="${#lists.isEmpty(reservations)}">
-                  <td colspan="10" class="text-center text-muted py-4">
+                  <td colspan="11" class="text-center text-muted py-4">
                     <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
                     Aucune réservation trouvée
                   </td>
@@ -150,7 +151,21 @@
                     <span class="badge bg-secondary" th:text="${reservation.seat?.seatNumber}">A1</span> - <span class="badge bg-secondary" th:text="${reservation.seat?.seatType.name}">Classique</span>
                   </td>
                   <td>
+                    <!-- Show original price if discount exists -->
+                    <span th:if="${reservation.discount != null and reservation.discount > 0}">
+                      <del class="text-muted small" th:text="${#numbers.formatDecimal(reservation.amount + reservation.discount, 0, 'COMMA', 0, 'POINT')} + ' Ar'">20,000 Ar</del>
+                      <br>
+                    </span>
                     <strong th:text="${#numbers.formatDecimal(reservation.amount, 0, 'COMMA', 0, 'POINT')} + ' Ar'">15,000 Ar</strong>
+                  </td>
+                  <td>
+                    <span th:if="${reservation.discount != null and reservation.discount > 0}" class="badge bg-success">
+                      <i class="fa-solid fa-tag me-1"></i>
+                      <span th:text="'- ' + ${#numbers.formatDecimal(reservation.discount, 0, 'COMMA', 0, 'POINT')} + ' Ar'">- 5,000 Ar</span>
+                    </span>
+                    <span th:if="${reservation.discount == null or reservation.discount == 0}" class="text-muted">
+                      <i class="fa-solid fa-minus"></i>
+                    </span>
                   </td>
                   <td th:text="${#temporals.format(reservation.reservationDate, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</td>
                   <td th:text="${#temporals.format(reservation.trip?.departureDatetime, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</td>

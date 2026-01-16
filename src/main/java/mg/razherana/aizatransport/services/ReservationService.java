@@ -77,8 +77,13 @@ public class ReservationService {
       reservation.setReservationDate(LocalDateTime.now());
     }
     
-    // Calculate and apply discount if applicable
-    if (reservation.getPassenger() != null && reservation.getTrip() != null && reservation.getSeat() != null) {
+    // Only calculate discount if not already set (for backward compatibility)
+    // When creating from the form, discount is already calculated and set by the controller
+    if (reservation.getDiscount() == null && 
+        reservation.getPassenger() != null && 
+        reservation.getTrip() != null && 
+        reservation.getSeat() != null && 
+        reservation.getSeat().getSeatType() != null) {
       mg.razherana.aizatransport.models.destinations.Discount discount = 
         discountService.getDiscountfor(
           reservation.getTrip(), 
@@ -88,8 +93,6 @@ public class ReservationService {
       
       if (discount != null) {
         reservation.setDiscount(discount.getAmount());
-      } else {
-        reservation.setDiscount(null);
       }
     }
     

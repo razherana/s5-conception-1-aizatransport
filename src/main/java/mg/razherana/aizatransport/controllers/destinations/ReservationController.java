@@ -62,6 +62,7 @@ public class ReservationController {
       @ModelAttribute Reservation reservation,
       @RequestParam(required = false) java.util.List<Integer> seatIds,
       @RequestParam(required = false) java.util.List<java.math.BigDecimal> seatPrices,
+      @RequestParam(required = false) java.util.List<java.math.BigDecimal> seatDiscounts,
       RedirectAttributes redirectAttributes) {
     
     if (seatIds != null && !seatIds.isEmpty()) {
@@ -72,11 +73,19 @@ public class ReservationController {
         newReservation.setPassenger(reservation.getPassenger());
         newReservation.setTrip(reservation.getTrip());
         
-        // Use individual seat price instead of total amount
+        // Set the original price (before discount)
         if (seatPrices != null && i < seatPrices.size()) {
           newReservation.setAmount(seatPrices.get(i).doubleValue());
         } else {
           newReservation.setAmount(0.0);
+        }
+        
+        // Set the discount amount separately
+        if (seatDiscounts != null && i < seatDiscounts.size()) {
+          Double discountAmount = seatDiscounts.get(i).doubleValue();
+          newReservation.setDiscount(discountAmount > 0 ? discountAmount : null);
+        } else {
+          newReservation.setDiscount(null);
         }
         
         newReservation.setStatus(reservation.getStatus());
