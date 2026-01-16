@@ -153,10 +153,10 @@
                   <td>
                     <!-- Show original price if discount exists -->
                     <span th:if="${reservation.discount != null and reservation.discount > 0}">
-                      <del class="text-muted small" th:text="${#numbers.formatDecimal(reservation.amount + reservation.discount, 0, 'COMMA', 0, 'POINT')} + ' Ar'">20,000 Ar</del>
+                      <del class="text-muted small" th:text="${#numbers.formatDecimal(reservation.amount, 0, 'COMMA', 0, 'POINT')} + ' Ar'">20,000 Ar</del>
                       <br>
                     </span>
-                    <strong th:text="${#numbers.formatDecimal(reservation.amount, 0, 'COMMA', 0, 'POINT')} + ' Ar'">15,000 Ar</strong>
+                    <strong th:text="${#numbers.formatDecimal(reservation.amount - (reservation.discount == null ? 0 : reservation.discount), 0, 'COMMA', 0, 'POINT')} + ' Ar'">15,000 Ar</strong>
                   </td>
                   <td>
                     <span th:if="${reservation.discount != null and reservation.discount > 0}" class="badge bg-success">

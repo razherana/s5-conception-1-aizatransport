@@ -103,7 +103,19 @@
           let total = 0;
           selectedSeats.forEach(seat => {
             const price = parseFloat(seat.price) || 0;
-            const discountAmount = seat.discount && seat.discount.hasDiscount ? seat.discount.amount : 0;
+            let discountAmount = 0;
+            
+            if (seat.discount && seat.discount.hasDiscount) {
+              // Check if it's a fixed amount discount (amount is not null, percentage is null)
+              if (seat.discount.amount != null && seat.discount.percentage == null) {
+                discountAmount = seat.discount.amount;
+              } 
+              // Check if it's a percentage discount (percentage is not null, amount is null)
+              else if (seat.discount.percentage != null && seat.discount.amount == null) {
+                discountAmount = price * (seat.discount.percentage / 100);
+              }
+            }
+            
             total += (price - discountAmount);
           });
           
@@ -118,7 +130,19 @@
           const hiddenContainer = document.getElementById('seatIdsContainer');
           hiddenContainer.innerHTML = selectedSeats.map(seat => {
             const price = parseFloat(seat.price) || 0;
-            const discountAmount = seat.discount && seat.discount.hasDiscount ? seat.discount.amount : 0;
+            let discountAmount = 0;
+            
+            if (seat.discount && seat.discount.hasDiscount) {
+              // Check if it's a fixed amount discount (amount is not null, percentage is null)
+              if (seat.discount.amount != null && seat.discount.percentage == null) {
+                discountAmount = seat.discount.amount;
+              } 
+              // Check if it's a percentage discount (percentage is not null, amount is null)
+              else if (seat.discount.percentage != null && seat.discount.amount == null) {
+                discountAmount = price * (seat.discount.percentage / 100);
+              }
+            }
+            
             return `<input type="hidden" name="seatIds" value="${seat.id}" />
              <input type="hidden" name="seatPrices" value="${price}" />
              <input type="hidden" name="seatDiscounts" value="${discountAmount}" />`;
@@ -137,7 +161,22 @@
             selectedSeats.forEach(seat => {
               const price = parseFloat(seat.price) || 0;
               const hasDiscount = seat.discount && seat.discount.hasDiscount;
-              const discountAmount = hasDiscount ? seat.discount.amount : 0;
+              let discountAmount = 0;
+              let discountDisplay = '';
+              
+              if (hasDiscount) {
+                // Check if it's a fixed amount discount (amount is not null, percentage is null)
+                if (seat.discount.amount != null && seat.discount.percentage == null) {
+                  discountAmount = seat.discount.amount;
+                  discountDisplay = `- ${discountAmount.toLocaleString('fr-FR', {minimumFractionDigits: 2})} Ar`;
+                } 
+                // Check if it's a percentage discount (percentage is not null, amount is null)
+                else if (seat.discount.percentage != null && seat.discount.amount == null) {
+                  discountAmount = price * (seat.discount.percentage / 100);
+                  discountDisplay = `- ${seat.discount.percentage.toLocaleString('fr-FR', {minimumFractionDigits: 2})}% (${discountAmount.toLocaleString('fr-FR', {minimumFractionDigits: 2})} Ar)`;
+                }
+              }
+              
               const finalPrice = price - discountAmount;
               
               html += `
@@ -166,7 +205,7 @@
                         <i class="fa-solid fa-tag me-1"></i>
                         <strong>Réduction ${seat.discount.typeName}</strong><br/>
                         <small>Âge: ${seat.discount.passengerAge} ans</small><br/>
-                        <span class="text-danger fw-bold">- ${discountAmount.toLocaleString('fr-FR', {minimumFractionDigits: 2})} Ar</span>
+                        <span class="text-danger fw-bold">${discountDisplay}</span>
                       </div>
                 `;
               }

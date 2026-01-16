@@ -183,12 +183,13 @@
                     <th>Type de trajet</th>
                     <th>Type de siège</th>
                     <th>Type de réduction</th>
-                    <th>Montant (Ar)</th>
+                    <th>Type</th>
+                    <th>Valeur</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr th:if="${discounts == null or #lists.isEmpty(discounts)}">
-                    <td colspan="5" class="text-center text-muted py-4">
+                    <td colspan="6" class="text-center text-muted py-4">
                       <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
                       Aucune réduction configurée
                     </td>
@@ -218,8 +219,21 @@
                       <span class="badge bg-warning text-dark" th:text="${discount.discountType.name}">Étudiant</span>
                     </td>
                     <td>
+                      <span th:if="${discount.amount != null}" class="badge bg-primary">
+                        <i class="fa-solid fa-coins me-1"></i>Montant fixe
+                      </span>
+                      <span th:if="${discount.percentage != null}" class="badge bg-info">
+                        <i class="fa-solid fa-percent me-1"></i>Pourcentage
+                      </span>
+                    </td>
+                    <td>
                       <strong class="text-success">
-                        - <span th:text="${#numbers.formatDecimal(discount.amount, 1, 'COMMA', 2, 'POINT')} + ' Ar'">5,000.00 Ar</span>
+                        <span th:if="${discount.amount != null}">
+                          - <span th:text="${#numbers.formatDecimal(discount.amount, 1, 'COMMA', 2, 'POINT')} + ' Ar'">5,000.00 Ar</span>
+                        </span>
+                        <span th:if="${discount.percentage != null}">
+                          - <span th:text="${#numbers.formatDecimal(discount.percentage, 1, 'COMMA', 2, 'POINT')} + ' %'">10.00 %</span>
+                        </span>
                       </strong>
                     </td>
                   </tr>
@@ -385,13 +399,34 @@
               </div>
 
               <div class="mb-3">
-                <label for="discountAmount" class="form-label">
-                  Montant de la réduction (Ar) <span class="text-danger">*</span>
+                <label class="form-label">
+                  Type de réduction <span class="text-danger">*</span>
                 </label>
-                <input type="number" step="0.01" class="form-control" id="discountAmount" name="amount" required
+                <div class="alert alert-info small mb-2">
+                  <i class="fa-solid fa-info-circle me-2"></i>
+                  Choisissez <strong>soit</strong> un montant fixe <strong>soit</strong> un pourcentage (pas les deux)
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="discountAmount" class="form-label">
+                  Montant de la réduction (Ar)
+                </label>
+                <input type="number" step="0.01" class="form-control" id="discountAmount" name="amount"
                   placeholder="Ex: 5000.00" min="0" />
                 <div class="form-text">
-                  Montant fixe de la réduction en Ariary (indépendant du prix de la route)
+                  Montant fixe de la réduction en Ariary
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="discountPercentage" class="form-label">
+                  Pourcentage de la réduction (%)
+                </label>
+                <input type="number" step="0.01" class="form-control" id="discountPercentage" name="percentage"
+                  placeholder="Ex: 10.00" min="0" max="100" />
+                <div class="form-text">
+                  Pourcentage de réduction appliqué au prix de la route
                 </div>
               </div>
 
@@ -613,6 +648,73 @@
       });
       document.getElementById('tripTypeId').addEventListener('change', updateCurrentPrice);
       document.getElementById('seatTypeId').addEventListener('change', updateCurrentPrice);
+
+      // Discount amount/percentage validation
+      const discountAmountInput = document.getElementById('discountAmount');
+      const discountPercentageInput = document.getElementById('discountPercentage');
+      const discountForm = document.querySelector('#addDiscountModal form');
+
+      function validateDiscountInputs() {
+        const hasAmount = discountAmountInput.value && parseFloat(discountAmountInput.value) > 0;
+        const hasPercentage = discountPercentageInput.value && parseFloat(discountPercentageInput.value) > 0;
+
+        // Clear validation states
+        discountAmountInput.classList.remove('is-invalid', 'is-valid');
+        discountPercentageInput.classList.remove('is-invalid', 'is-valid');
+
+        // If one is filled, disable the other
+        if (hasAmount) {
+          discountPercentageInput.disabled = true;
+          discountAmountInput.classList.add('is-valid');
+          return true;
+        } else if (hasPercentage) {
+          discountAmountInput.disabled = true;
+          discountPercentageInput.classList.add('is-valid');
+          return true;
+        } else {
+          // Neither is filled or both are zero
+          discountPercentageInput.disabled = false;
+          discountAmountInput.disabled = false;
+          return false;
+        }
+      }
+
+      discountAmountInput.addEventListener('input', validateDiscountInputs);
+      discountPercentageInput.addEventListener('input', validateDiscountInputs);
+
+      // Form submission validation
+      discountForm.addEventListener('submit', function (e) {
+        const hasAmount = discountAmountInput.value && parseFloat(discountAmountInput.value) > 0;
+        const hasPercentage = discountPercentageInput.value && parseFloat(discountPercentageInput.value) > 0;
+
+        if (!hasAmount && !hasPercentage) {
+          e.preventDefault();
+          discountAmountInput.classList.add('is-invalid');
+          discountPercentageInput.classList.add('is-invalid');
+          alert('Veuillez saisir soit un montant fixe soit un pourcentage de réduction.');
+          return false;
+        }
+
+        if (hasAmount && hasPercentage) {
+          e.preventDefault();
+          discountAmountInput.classList.add('is-invalid');
+          discountPercentageInput.classList.add('is-invalid');
+          alert('Veuillez saisir soit un montant fixe soit un pourcentage, pas les deux.');
+          return false;
+        }
+
+        return true;
+      });
+
+      // Reset validation when modal is closed
+      document.getElementById('addDiscountModal').addEventListener('hidden.bs.modal', function () {
+        discountAmountInput.value = '';
+        discountPercentageInput.value = '';
+        discountAmountInput.disabled = false;
+        discountPercentageInput.disabled = false;
+        discountAmountInput.classList.remove('is-invalid', 'is-valid');
+        discountPercentageInput.classList.remove('is-invalid', 'is-valid');
+      });
       /*]]>*/
     </script>
   </th:block>

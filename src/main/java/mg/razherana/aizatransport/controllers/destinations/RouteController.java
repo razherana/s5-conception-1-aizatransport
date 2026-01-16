@@ -285,12 +285,27 @@ public class RouteController {
       @RequestParam Integer tripTypeId,
       @RequestParam Integer seatTypeId,
       @RequestParam Integer discountTypeId,
-      @RequestParam Double amount,
+      @RequestParam(required = false) Double amount,
+      @RequestParam(required = false) Double percentage,
       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate effectiveDate,
       RedirectAttributes redirectAttributes) {
 
     try {
-      routeService.addDiscount(id, tripTypeId, seatTypeId, discountTypeId, amount, effectiveDate);
+      // Validate that exactly one of amount or percentage is provided
+      boolean hasAmount = amount != null && amount > 0;
+      boolean hasPercentage = percentage != null && percentage > 0;
+      
+      if (!hasAmount && !hasPercentage) {
+        redirectAttributes.addFlashAttribute("error", "Veuillez saisir soit un montant fixe soit un pourcentage de réduction.");
+        return "redirect:/routes/" + id + "/price-history";
+      }
+      
+      if (hasAmount && hasPercentage) {
+        redirectAttributes.addFlashAttribute("error", "Veuillez saisir soit un montant fixe soit un pourcentage, pas les deux.");
+        return "redirect:/routes/" + id + "/price-history";
+      }
+      
+      routeService.addDiscount(id, tripTypeId, seatTypeId, discountTypeId, amount, percentage, effectiveDate);
       redirectAttributes.addFlashAttribute("success", "Réduction ajoutée avec succès!");
     } catch (IllegalArgumentException e) {
       redirectAttributes.addFlashAttribute("error", e.getMessage());

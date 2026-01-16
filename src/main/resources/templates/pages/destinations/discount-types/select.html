@@ -47,6 +47,8 @@
                 </label>
                 <select name="sortBy" class="form-select">
                   <option value="name" th:selected="${sortBy == 'name'}">Nom</option>
+                  <option value="age" th:selected="${sortBy == 'age'}">Âge</option>
+                  <option value="comparator" th:selected="${sortBy == 'comparator'}">Comparateur</option>
                   <option value="id" th:selected="${sortBy == 'id'}">ID</option>
                 </select>
               </div>
@@ -81,12 +83,14 @@
                 <tr>
                   <th>ID</th>
                   <th>Nom du type</th>
+                  <th>Âge</th>
+                  <th>Comparateur</th>
                   <th class="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <tr th:if="${#lists.isEmpty(discountTypes)}">
-                  <td colspan="3" class="text-center text-muted py-4">
+                  <td colspan="5" class="text-center text-muted py-4">
                     <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
                     Aucun type de réduction trouvé
                   </td>
@@ -95,6 +99,17 @@
                   <td th:text="${discountType.id}">1</td>
                   <td>
                     <strong th:text="${discountType.name}">Étudiant</strong>
+                  </td>
+                  <td th:text="${discountType.age}">18</td>
+                  <td>
+                    <span th:switch="${discountType.comparator}">
+                      <span th:case="'LT'">Moins de (&lt;)</span>
+                      <span th:case="'LTE'">Moins ou égal à (&lt;=)</span>
+                      <span th:case="'EQ'">Égal à (=)</span>
+                      <span th:case="'GT'">Plus de (&gt;)</span>
+                      <span th:case="'GTE'">Plus ou égal à (&gt;=)</span>
+                      <span th:case="*" th:text="${discountType.comparator}"></span>
+                    </span>
                   </td>
                   <td class="text-end">
                     <button

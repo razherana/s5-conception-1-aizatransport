@@ -17,6 +17,13 @@ public class DiscountType extends BasicEntity {
     @Column(name = "name", unique = true)
     private String name;
 
-    public static final String KIDS = "Enfant";
-    public static final Integer KID_AGE = 10;
+    @Column(name = "age", nullable = false)
+    private Integer age;
+
+    @Column(name = "comparator", nullable = false)
+    private String comparator;
+
+    public static enum ComparatorType {
+        LT, LTE, EQ, GT, GTE
+    }
 }

@@ -144,7 +144,7 @@ public class RouteService {
 
   @Transactional
   public Discount addDiscount(Integer routeId, Integer tripTypeId, Integer seatTypeId, Integer discountTypeId,
-      Double amount, LocalDate effectiveDate) {
+      Double amount, Double percentage, LocalDate effectiveDate) {
     Route route = routeRepository.findById(routeId)
         .orElseThrow(() -> new IllegalArgumentException("Route non trouvée"));
     
@@ -158,7 +158,7 @@ public class RouteService {
         .orElseThrow(() -> new IllegalArgumentException("Ce type de remise n'existe pas"));
 
     // Create and save the discount
-    return discountService.createDiscount(route, tripType, seatType, discountType, amount, effectiveDate);
+    return discountService.createDiscount(route, tripType, seatType, discountType, amount, percentage, effectiveDate);
   }
 
   public RouteStatisticsDTO getRouteStatistics(Integer routeId) {

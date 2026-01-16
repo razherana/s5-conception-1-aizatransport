@@ -173,9 +173,17 @@ public class ReservationController {
       
       if (discount != null) {
         result.put("hasDiscount", true);
-        result.put("amount", discount.getAmount());
         result.put("typeName", discount.getDiscountType().getName());
         result.put("passengerAge", passenger.getAge(java.time.LocalDate.now()));
+        
+        // Check if it's a fixed amount or percentage
+        if (discount.getAmount() != null && discount.getAmount() > 0) {
+          result.put("amount", discount.getAmount());
+        } else if (discount.getPercentage() != null && discount.getPercentage() > 0) {
+          result.put("percentage", discount.getPercentage());
+        } else {
+          result.put("hasDiscount", false);
+        }
       } else {
         result.put("hasDiscount", false);
       }

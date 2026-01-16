@@ -59,26 +59,28 @@ public class DiscountService {
      * @param tripType The trip type
      * @param seatType The seat type
      * @param discountType The type of discount
-     * @param amount The discount amount
+     * @param amount The discount amount (can be null if percentage is set)
+     * @param percentage The discount percentage (can be null if amount is set)
      * @param effectiveDate The date when the discount becomes effective
      * @return The created discount
      */
     @Transactional
     public Discount createDiscount(Route route, TripType tripType, SeatType seatType, 
-                                   DiscountType discountType, Double amount, LocalDate effectiveDate) {
+                                   DiscountType discountType, Double amount, Double percentage, LocalDate effectiveDate) {
         Discount discount = new Discount();
         discount.setRoute(route);
         discount.setTripType(tripType);
         discount.setSeatType(seatType);
         discount.setDiscountType(discountType);
         discount.setAmount(amount);
+        discount.setPercentage(percentage);
         discount.setEffectiveDate(effectiveDate);
         return discountRepository.save(discount);
     }
 
     /**
      * Gets the applicable discount for a passenger on a specific trip and seat type.
-     * Currently supports kid discounts for passengers under 10 years old.
+     * Uses the DiscountType's age and comparator fields to determine eligibility.
      * 
      * @param trip The trip for the reservation
      * @param seatType The seat type selected
@@ -90,25 +92,42 @@ public class DiscountService {
             return null; // No discount if birth date is not available
         }
         
-        int age = passenger.getAge(LocalDate.now());
+        int passengerAge = passenger.getAge(LocalDate.now());
+        LocalDate now = LocalDate.now();
         
-        // Check if passenger qualifies for kid discount
-        if (age <= DiscountType.KID_AGE) {
-            List<Discount> discounts = findByRouteIdAndTripTypeIdAndSeatTypeId(
-                trip.getRoute().getId(), 
-                trip.getTripType().getId(), 
-                seatType.getId()
-            );
-            
-            // Find the kid discount
-            LocalDate now = LocalDate.now();
-            return discounts.stream()
-                .filter(d -> d.getDiscountType().getName().equals(DiscountType.KIDS))
-                .filter(d -> !d.getEffectiveDate().isAfter(now))
-                .findFirst()
-                .orElse(null);
-        }
+        // Get all discounts for this route/trip/seat combination
+        List<Discount> discounts = findByRouteIdAndTripTypeIdAndSeatTypeId(
+            trip.getRoute().getId(), 
+            trip.getTripType().getId(), 
+            seatType.getId()
+        );
         
-        return null; // No discount applicable
+        // Find the first discount that matches the passenger's age and is currently effective
+        return discounts.stream()
+            .filter(d -> !d.getEffectiveDate().isAfter(now)) // Must be effective
+            .filter(d -> matchesAgeRequirement(passengerAge, d.getDiscountType()))
+            .findFirst()
+            .orElse(null);
+    }
+
+    /**
+     * Checks if a passenger's age matches the discount type's age requirement.
+     * 
+     * @param passengerAge The passenger's age
+     * @param discountType The discount type with age and comparator
+     * @return true if the age requirement is met, false otherwise
+     */
+    private boolean matchesAgeRequirement(int passengerAge, DiscountType discountType) {
+        int requiredAge = discountType.getAge();
+        String comparator = discountType.getComparator();
+        
+        return switch (comparator) {
+            case "LT" -> passengerAge < requiredAge;
+            case "LTE" -> passengerAge <= requiredAge;
+            case "EQ" -> passengerAge == requiredAge;
+            case "GT" -> passengerAge > requiredAge;
+            case "GTE" -> passengerAge >= requiredAge;
+            default -> false;
+        };
     }
 }

@@ -31,8 +31,11 @@ public class Discount extends BasicEntity {
     @JoinColumn(name = "seat_type_id", nullable = false)
     private SeatType seatType;
 
-    @Column(name = "amount", nullable = false)
+    @Column(name = "amount", nullable = true)
     private Double amount;
+
+    @Column(name = "percentage", nullable = true)
+    private Double percentage;
 
     @Column(name = "effective_date", nullable = false)
     private LocalDate effectiveDate;

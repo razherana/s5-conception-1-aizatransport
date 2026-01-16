@@ -60,6 +60,51 @@
                     </div>
                   </div>
 
+                  <!-- Age -->
+                  <div class="col-md-6">
+                    <label for="age" class="form-label">
+                      Âge <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="age"
+                      th:field="*{age}"
+                      required
+                      min="0"
+                      max="150"
+                      placeholder="Ex: 18"
+                    />
+                    <div class="form-text">
+                      <i class="fa-solid fa-info-circle me-1"></i>
+                      Âge de référence pour la réduction
+                    </div>
+                  </div>
+
+                  <!-- Comparateur -->
+                  <div class="col-md-6">
+                    <label for="comparator" class="form-label">
+                      Comparateur <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select"
+                      id="comparator"
+                      th:field="*{comparator}"
+                      required
+                    >
+                      <option value="">Sélectionner...</option>
+                      <option value="LT">Moins de (&lt;)</option>
+                      <option value="LTE">Moins ou égal à (&lt;=)</option>
+                      <option value="EQ">Égal à (=)</option>
+                      <option value="GT">Plus de (&gt;)</option>
+                      <option value="GTE">Plus ou égal à (&gt;=)</option>
+                    </select>
+                    <div class="form-text">
+                      <i class="fa-solid fa-info-circle me-1"></i>
+                      Condition d'application de la réduction
+                    </div>
+                  </div>
+
                   <div class="col-12">
                     <hr class="my-3" />
                     <div class="d-flex justify-content-end gap-2">
