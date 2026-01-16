@@ -38,6 +38,4 @@ public class RoutePrice extends BasicEntity {
 
   @Column(name = "effective_date", nullable = false)
   private LocalDate effectiveDate;
-
-  
 }

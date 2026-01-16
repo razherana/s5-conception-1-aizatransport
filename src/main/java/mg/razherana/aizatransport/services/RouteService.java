@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.controllers.destinations.RouteStatisticsDTO;
+import mg.razherana.aizatransport.models.destinations.Discount;
+import mg.razherana.aizatransport.models.destinations.DiscountType;
 import mg.razherana.aizatransport.models.destinations.Reservation;
 import mg.razherana.aizatransport.models.destinations.Route;
 import mg.razherana.aizatransport.models.destinations.RoutePrice;
@@ -41,6 +43,9 @@ public class RouteService {
   private final TicketRepository ticketRepository;
   private final TripTypeService tripTypeService;
   private final SeatTypeService seatTypeService;
+  private final RoutePriceService routePriceService;
+  private final DiscountTypeService discountTypeService;
+  private final DiscountService discountService;
   // private final DestinationRepository destinationRepository;
 
   public List<Route> findAll() {
@@ -117,13 +122,14 @@ public class RouteService {
   }
 
   @Transactional
-  public RoutePrice addPrice(Integer routeId, Integer tripTypeId, Integer seatTypeId, BigDecimal price, LocalDate effectiveDate) {
+  public RoutePrice addPrice(Integer routeId, Integer tripTypeId, Integer seatTypeId, BigDecimal price,
+      LocalDate effectiveDate) {
     Route route = routeRepository.findById(routeId)
         .orElseThrow(() -> new RuntimeException("Route non trouv\u00e9e"));
-    
+
     TripType tripType = tripTypeService.findById(tripTypeId)
         .orElseThrow(() -> new RuntimeException("Type de trajet non trouv\u00e9"));
-    
+
     SeatType seatType = seatTypeService.findById(seatTypeId)
         .orElseThrow(() -> new RuntimeException("Type de si\u00e8ge non trouv\u00e9"));
 
@@ -135,6 +141,25 @@ public class RouteService {
     routePrice.setEffectiveDate(effectiveDate);
 
     return routePriceRepository.save(routePrice);
+  }
+
+  @Transactional
+  public Discount addDiscount(Integer routeId, Integer tripTypeId, Integer seatTypeId, Integer discountTypeId,
+      Double amount, LocalDate effectiveDate) {
+    Route route = routeRepository.findById(routeId)
+        .orElseThrow(() -> new IllegalArgumentException("Route non trouvée"));
+    
+    TripType tripType = tripTypeService.findById(tripTypeId)
+        .orElseThrow(() -> new IllegalArgumentException("Type de trajet non trouvé"));
+    
+    SeatType seatType = seatTypeService.findById(seatTypeId)
+        .orElseThrow(() -> new IllegalArgumentException("Type de siège non trouvé"));
+    
+    DiscountType discountType = discountTypeService.findById(discountTypeId)
+        .orElseThrow(() -> new IllegalArgumentException("Ce type de remise n'existe pas"));
+
+    // Create and save the discount
+    return discountService.createDiscount(route, tripType, seatType, discountType, amount, effectiveDate);
   }
 
   public RouteStatisticsDTO getRouteStatistics(Integer routeId) {
@@ -153,37 +178,37 @@ public class RouteService {
 
     // Revenue calculation using actual reservations and tickets
     BigDecimal totalRevenue = BigDecimal.ZERO;
-    
+
     // Sum revenue from reservations
     List<Reservation> reservations = reservationRepository.findAll().stream()
         .filter(r -> r.getTrip() != null && tripIds.contains(r.getTrip().getId()))
         .collect(Collectors.toList());
-    
+
     for (Reservation reservation : reservations) {
       if (reservation.getAmount() != null) {
         totalRevenue = totalRevenue.add(new BigDecimal(reservation.getAmount()));
       }
     }
-    
+
     // Sum revenue from tickets
     List<Ticket> tickets = ticketRepository.findAll().stream()
         .filter(t -> t.getTrip() != null && tripIds.contains(t.getTrip().getId()))
         .collect(Collectors.toList());
-    
+
     for (Ticket ticket : tickets) {
       if (ticket.getAmount() != null) {
         totalRevenue = totalRevenue.add(new BigDecimal(ticket.getAmount()));
       }
     }
 
-    BigDecimal averageRevenuePerTrip = completedTrips > 0 
+    BigDecimal averageRevenuePerTrip = completedTrips > 0
         ? totalRevenue.divide(new BigDecimal(completedTrips), 2, RoundingMode.HALF_UP)
         : BigDecimal.ZERO;
 
     // Trips over time (last 6 months)
     Map<String, Integer> tripsByMonth = new LinkedHashMap<>();
     DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MM/yyyy");
-    
+
     for (int i = 5; i >= 0; i--) {
       LocalDate monthDate = LocalDate.now().minusMonths(i);
       String monthKey = monthDate.format(monthFormatter);
@@ -203,7 +228,7 @@ public class RouteService {
     // Status distribution
     Map<String, Long> statusCounts = trips.stream()
         .collect(Collectors.groupingBy(Trip::getStatus, Collectors.counting()));
-    
+
     List<String> statusLabels = new ArrayList<>(statusCounts.keySet());
     List<Integer> statusCountsList = statusCounts.values().stream()
         .map(Long::intValue)
@@ -214,8 +239,7 @@ public class RouteService {
         .filter(t -> t.getDriver() != null)
         .collect(Collectors.groupingBy(
             t -> t.getDriver().getFullName(),
-            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)
-        ))
+            Collectors.collectingAndThen(Collectors.counting(), Long::intValue)))
         .entrySet().stream()
         .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
         .limit(5)
@@ -223,8 +247,7 @@ public class RouteService {
             Map.Entry::getKey,
             Map.Entry::getValue,
             (e1, e2) -> e1,
-            LinkedHashMap::new
-        ));
+            LinkedHashMap::new));
 
     // Monthly revenue (last 6 months)
     Map<String, BigDecimal> revenueByMonth = new LinkedHashMap<>();
@@ -239,7 +262,8 @@ public class RouteService {
       if (reservation.getReservationDate() != null && reservation.getAmount() != null) {
         String reservationMonth = reservation.getReservationDate().format(monthFormatter);
         if (revenueByMonth.containsKey(reservationMonth)) {
-          revenueByMonth.put(reservationMonth, revenueByMonth.get(reservationMonth).add(new BigDecimal(reservation.getAmount())));
+          revenueByMonth.put(reservationMonth,
+              revenueByMonth.get(reservationMonth).add(new BigDecimal(reservation.getAmount())));
         }
       }
     }
@@ -276,7 +300,6 @@ public class RouteService {
         topDrivers,
         maxDriverTrips,
         revenueMonthLabels,
-        revenueMonthData
-    );
+        revenueMonthData);
   }
 }

@@ -109,6 +109,7 @@
                 <tr>
                   <th>ID</th>
                   <th>Passager</th>
+                  <th>Âge</th>
                   <th>Voyage</th>
                   <th>Siège</th>
                   <th>Montant</th>
@@ -120,7 +121,7 @@
               </thead>
               <tbody>
                 <tr th:if="${#lists.isEmpty(reservations)}">
-                  <td colspan="8" class="text-center text-muted py-4">
+                  <td colspan="10" class="text-center text-muted py-4">
                     <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
                     Aucune réservation trouvée
                   </td>
@@ -130,6 +131,15 @@
                   <td>
                     <strong th:text="${reservation.passenger?.fullName}">Jean Dupont</strong><br>
                     <small class="text-muted" th:text="${reservation.passenger?.phone}">+261 34 12 345 67</small>
+                  </td>
+                  <td>
+                    <span th:if="${reservation.passenger?.birthDate != null}" class="badge bg-info">
+                      <i class="fa-solid fa-cake-candles me-1"></i>
+                      <span th:text="${reservation.passenger.getAge(#temporals.createToday())} + ' ans'">34 ans</span>
+                    </span>
+                    <span th:if="${reservation.passenger?.birthDate == null}" class="text-muted">
+                      <i class="fa-solid fa-minus"></i>
+                    </span>
                   </td>
                   <td>
                     <span th:if="${reservation.trip?.route}" th:text="${reservation.trip.route.departureDestination.name} + ' → ' + ${reservation.trip.route.arrivalDestination.name}">Tana → Antsirabe</span>

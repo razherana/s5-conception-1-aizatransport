@@ -1,5 +1,8 @@
 package mg.razherana.aizatransport.models.destinations;
 
+import java.time.LocalDate;
+import java.time.Period;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -21,4 +24,10 @@ public class Passenger extends BasicEntity {
   @Column(name = "phone", length = 30)
   private String phone;
 
+  @Column(name ="birth_date", nullable = true)
+  private LocalDate birthDate;
+
+  public Integer getAge(LocalDate date){
+    return Period.between(birthDate, date).getYears();
+  }
 }

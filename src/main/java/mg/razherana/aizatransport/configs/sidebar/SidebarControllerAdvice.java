@@ -55,6 +55,8 @@ public class SidebarControllerAdvice {
             "Types de dépenses",
             "/expenses-types",
             "fa-solid fa-list");
+    
+    gestion.createItem("Types de réduction", "/discount-types", "fa-solid fa-percent");
 
     sidebarItems.add(gestion);
   }

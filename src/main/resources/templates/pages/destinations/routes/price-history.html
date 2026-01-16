@@ -1,424 +1,621 @@
 <!DOCTYPE html>
-<html
-  xmlns:th="http://www.thymeleaf.org"
-  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-  layout:decorate="~{layouts/app}"
->
-  <head>
-    <title>Historique des prix</title>
-  </head>
-  <body>
-    <section layout:fragment="content" class="container-fluid py-4">
-      <!-- Header -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">
-          <i class="fa-solid fa-chart-line me-2"></i>
-          Historique des prix
-        </h1>
-        <a th:href="@{/routes}" class="btn btn-outline-secondary">
-          <i class="fa-solid fa-arrow-left me-1"></i>
-          Retour aux routes
-        </a>
-      </div>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}">
 
-      <!-- Messages flash -->
-      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-check-circle me-2"></i>
-        <span th:text="${success}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-exclamation-circle me-2"></i>
-        <span th:text="${error}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
+<head>
+  <title>Historique des prix</title>
+</head>
 
-      <!-- Route Info -->
-      <div class="card mb-4 bg-white border-0 shadow-sm">
-        <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-8">
-              <h5 class="mb-2">
-                <i class="fa-solid fa-map-marker-alt text-success me-2"></i>
-                <span th:text="${route.departureDestination.name}">Antananarivo</span>
-                <i class="fa-solid fa-arrow-right mx-3"></i>
-                <i class="fa-solid fa-map-marker-alt text-danger me-2"></i>
-                <span th:text="${route.arrivalDestination.name}">Toamasina</span>
-              </h5>
-              <p class="mb-0 text-muted">
-                <span th:if="${route.distanceKm != null}">
-                  <i class="fa-solid fa-road me-1"></i>
-                  Distance: <strong th:text="${route.distanceKm} + ' km'">365 km</strong>
-                </span>
-              </p>
+<body>
+  <section layout:fragment="content" class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h3 mb-0">
+        <i class="fa-solid fa-chart-line me-2"></i>
+        Historique des prix
+      </h1>
+      <a th:href="@{/routes}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>
+        Retour aux routes
+      </a>
+    </div>
+
+    <!-- Messages flash -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="fa-solid fa-check-circle me-2"></i>
+      <span th:text="${success}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="fa-solid fa-exclamation-circle me-2"></i>
+      <span th:text="${error}"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Route Info -->
+    <div class="card mb-4 bg-white border-0 shadow-sm">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h5 class="mb-2">
+              <i class="fa-solid fa-map-marker-alt text-success me-2"></i>
+              <span th:text="${route.departureDestination.name}">Antananarivo</span>
+              <i class="fa-solid fa-arrow-right mx-3"></i>
+              <i class="fa-solid fa-map-marker-alt text-danger me-2"></i>
+              <span th:text="${route.arrivalDestination.name}">Toamasina</span>
+            </h5>
+            <p class="mb-0 text-muted">
+              <span th:if="${route.distanceKm != null}">
+                <i class="fa-solid fa-road me-1"></i>
+                Distance: <strong th:text="${route.distanceKm} + ' km'">365 km</strong>
+              </span>
+            </p>
+          </div>
+          <div class="col-md-4 text-end">
+            <div class="h4 mb-0">
+              Prix actuel:
+              <span class="badge bg-success fs-5"
+                th:text="${#numbers.formatDecimal(currentPrice, 1, 'COMMA', 2, 'POINT')} + ' Ar'">
+                50,000.00 Ar
+              </span>
             </div>
-            <div class="col-md-4 text-end">
-              <div class="h4 mb-0">
-                Prix actuel: 
-                <span class="badge bg-success fs-5" th:text="${#numbers.formatDecimal(currentPrice, 1, 'COMMA', 2, 'POINT')} + ' Ar'">
-                  50,000.00 Ar
-                </span>
-              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Chart -->
+      <div class="col-lg-8">
+        <div class="card bg-white border-0 shadow-sm mb-4">
+          <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="fa-solid fa-chart-area me-2"></i>
+              Évolution des prix
+            </h5>
+            <div class="d-flex gap-2">
+              <select id="chartSeatTypeFilter" class="form-select" style="width: auto; max-width: 250px;">
+                <option value="" disabled selected>Sélectionner un type de siège...</option>
+                <option th:each="seatType : ${seatTypes}" th:value="${seatType.id}" th:text="${seatType.name}">Standard
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body">
+            <canvas id="priceChart" height="100"></canvas>
+          </div>
+        </div>
+
+        <!-- Price History Table -->
+        <div class="card bg-white border-0 shadow-sm">
+          <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="fa-solid fa-history me-2"></i>
+              Historique complet
+            </h5>
+            <div class="d-flex gap-2">
+              <select id="tripTypeFilter" class="form-select" style="width: auto; max-width: 200px;">
+                <option value="all">Tous les trajets</option>
+                <option th:each="tripType : ${tripTypes}" th:value="${tripType.id}" th:text="${tripType.name}">Express
+                </option>
+              </select>
+              <select id="seatTypeFilter" class="form-select" style="width: auto; max-width: 200px;">
+                <option value="all">Tous les sièges</option>
+                <option th:each="seatType : ${seatTypes}" th:value="${seatType.id}" th:text="${seatType.name}">Standard
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle" id="priceHistoryTable">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date d'effet</th>
+                    <th>Type de trajet</th>
+                    <th>Type de siège</th>
+                    <th>Prix (Ar)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:if="${#lists.isEmpty(priceHistoryDTOs)}">
+                    <td colspan="4" class="text-center text-muted py-4">
+                      <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
+                      Aucun historique de prix
+                    </td>
+                  </tr>
+                  <tr th:each="priceDTO : ${priceHistoryDTOs}" th:data-trip-type-id="${priceDTO.tripTypeId}"
+                    th:data-seat-type-id="${priceDTO.seatTypeId}">
+                    <td>
+                      <i class="fa-solid fa-calendar me-2"></i>
+                      <span th:text="${#temporals.format(priceDTO.effectiveDate, 'dd/MM/yyyy')}">01/01/2026</span>
+                      <span th:if="${priceDTO.current}" class="badge bg-primary ms-2">Actuel</span>
+                    </td>
+                    <td>
+                      <span class="badge bg-info" th:text="${priceDTO.tripTypeName}">Express</span>
+                      <span th:if="${!priceDTO.tripTypeActive}" class="badge bg-warning ms-1">
+                        <i class="fa-solid fa-exclamation-triangle"></i> Inactif
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge"
+                        th:style="'background-color: ' + ${priceDTO.seatTypeColor} + '; color: white;'"
+                        th:text="${priceDTO.seatTypeName}">Standard</span>
+                    </td>
+                    <td>
+                      <strong
+                        th:text="${#numbers.formatDecimal(priceDTO.price, 1, 'COMMA', 2, 'POINT')} + ' Ar'">50,000.00
+                        Ar</strong>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Discount History Table -->
+        <div class="card bg-white border-0 shadow-sm mt-4">
+          <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="fa-solid fa-percent me-2"></i>
+              Historique des réductions
+            </h5>
+            <div class="d-flex gap-2">
+              <select id="discountTripTypeFilter" class="form-select" style="width: auto; max-width: 200px;">
+                <option value="all">Tous les trajets</option>
+                <option th:each="tripType : ${tripTypes}" th:value="${tripType.id}" th:text="${tripType.name}">Express
+                </option>
+              </select>
+              <select id="discountSeatTypeFilter" class="form-select" style="width: auto; max-width: 200px;">
+                <option value="all">Tous les sièges</option>
+                <option th:each="seatType : ${seatTypes}" th:value="${seatType.id}" th:text="${seatType.name}">Standard
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle" id="discountHistoryTable">
+                <thead class="table-light">
+                  <tr>
+                    <th>Date d'effet</th>
+                    <th>Type de trajet</th>
+                    <th>Type de siège</th>
+                    <th>Type de réduction</th>
+                    <th>Montant (Ar)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:if="${discounts == null or #lists.isEmpty(discounts)}">
+                    <td colspan="5" class="text-center text-muted py-4">
+                      <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
+                      Aucune réduction configurée
+                    </td>
+                  </tr>
+                  <tr th:each="discount : ${discounts}" th:data-trip-type-id="${discount.tripType.id}"
+                    th:data-seat-type-id="${discount.seatType.id}">
+                    <td>
+                      <i class="fa-solid fa-calendar me-2"></i>
+                      <span th:text="${#temporals.format(discount.effectiveDate, 'dd/MM/yyyy')}">01/01/2026</span>
+                      <span th:if="${!discount.effectiveDate.isAfter(#temporals.createToday())}" 
+                            class="badge bg-success ms-2">Active</span>
+                      <span th:if="${discount.effectiveDate.isAfter(#temporals.createToday())}" 
+                            class="badge bg-secondary ms-2">À venir</span>
+                    </td>
+                    <td>
+                      <span class="badge bg-info" th:text="${discount.tripType.name}">Express</span>
+                      <span th:if="${!discount.tripType.active}" class="badge bg-warning ms-1">
+                        <i class="fa-solid fa-exclamation-triangle"></i> Inactif
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge"
+                        th:style="'background-color: ' + ${discount.seatType.color} + '; color: white;'"
+                        th:text="${discount.seatType.name}">Standard</span>
+                    </td>
+                    <td>
+                      <span class="badge bg-warning text-dark" th:text="${discount.discountType.name}">Étudiant</span>
+                    </td>
+                    <td>
+                      <strong class="text-success">
+                        - <span th:text="${#numbers.formatDecimal(discount.amount, 1, 'COMMA', 2, 'POINT')} + ' Ar'">5,000.00 Ar</span>
+                      </strong>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="row">
-        <!-- Chart -->
-        <div class="col-lg-8">
-          <div class="card bg-white border-0 shadow-sm mb-4">
-            <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
-              <h5 class="mb-0">
-                <i class="fa-solid fa-chart-area me-2"></i>
-                Évolution des prix
-              </h5>
-              <div class="d-flex gap-2">
-                <select id="chartSeatTypeFilter" class="form-select" style="width: auto; max-width: 250px;">
+      <!-- Add Price Form -->
+      <div class="col-lg-4">
+        <div class="card bg-white border-0 shadow-sm top-0 mb-4" style="top: 4em; z-index: 10;">
+          <div class="card-header bg-primary text-white border-0">
+            <h5 class="mb-0">
+              <i class="fa-solid fa-plus-circle me-2"></i>
+              Ajouter un nouveau prix
+            </h5>
+          </div>
+          <div class="card-body p-4">
+            <form th:action="@{/routes/{id}/add-price(id=${route.id})}" method="post">
+              <div class="mb-3">
+                <label for="tripTypeId" class="form-label">
+                  Type de trajet <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="tripTypeId" name="tripTypeId" required
+                  th:attr="data-classique-id=${classiqueId}">
+                  <option value="" disabled>Sélectionner un type de trajet...</option>
+                  <option th:each="tripType : ${tripTypes}" th:value="${tripType.id}" th:text="${tripType.name}"
+                    th:selected="${tripType.id == classiqueId}">Express</option>
+                </select>
+                <div class="form-text">
+                  Sélectionnez le type de trajet auquel ce prix s'applique
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="seatTypeId" class="form-label">
+                  Type de siège <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="seatTypeId" name="seatTypeId" required>
                   <option value="" disabled selected>Sélectionner un type de siège...</option>
-                  <option th:each="seatType : ${seatTypes}" th:value="${seatType.id}" th:text="${seatType.name}">Standard</option>
+                  <option th:each="seatType : ${seatTypes}" th:value="${seatType.id}" th:text="${seatType.name}"
+                    th:style="'background-color: ' + ${seatType.color} + '; color: white;'">Standard</option>
                 </select>
+                <div class="form-text">
+                  Sélectionnez le type de siège auquel ce prix s'applique
+                </div>
               </div>
-            </div>
-            <div class="card-body">
-              <canvas id="priceChart" height="100"></canvas>
-            </div>
-          </div>
 
-          <!-- Price History Table -->
-          <div class="card bg-white border-0 shadow-sm">
-            <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center">
-              <h5 class="mb-0">
-                <i class="fa-solid fa-history me-2"></i>
-                Historique complet
-              </h5>
-              <div class="d-flex gap-2">
-                <select id="tripTypeFilter" class="form-select" style="width: auto; max-width: 200px;">
-                  <option value="all">Tous les trajets</option>
-                  <option th:each="tripType : ${tripTypes}" th:value="${tripType.id}" th:text="${tripType.name}">Express</option>
-                </select>
-                <select id="seatTypeFilter" class="form-select" style="width: auto; max-width: 200px;">
-                  <option value="all">Tous les sièges</option>
-                  <option th:each="seatType : ${seatTypes}" th:value="${seatType.id}" th:text="${seatType.name}">Standard</option>
-                </select>
+              <div class="mb-3">
+                <label for="price" class="form-label">
+                  Prix (Ar) <span class="text-danger">*</span>
+                </label>
+                <input type="number" step="0.01" class="form-control" id="price" name="price" required
+                  placeholder="Ex: 55000.00" />
+                <div class="form-text">
+                  Prix actuel: <strong id="currentPriceText">Sélectionnez un type de trajet et un type de siège</strong>
+                </div>
               </div>
-            </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-hover align-middle" id="priceHistoryTable">
-                  <thead class="table-light">
-                    <tr>
-                      <th>Date d'effet</th>
-                      <th>Type de trajet</th>
-                      <th>Type de siège</th>
-                      <th>Prix (Ar)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr th:if="${#lists.isEmpty(priceHistoryDTOs)}">
-                      <td colspan="4" class="text-center text-muted py-4">
-                        <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
-                        Aucun historique de prix
-                      </td>
-                    </tr>
-                    <tr th:each="priceDTO : ${priceHistoryDTOs}" 
-                        th:data-trip-type-id="${priceDTO.tripTypeId}"
-                        th:data-seat-type-id="${priceDTO.seatTypeId}">
-                      <td>
-                        <i class="fa-solid fa-calendar me-2"></i>
-                        <span th:text="${#temporals.format(priceDTO.effectiveDate, 'dd/MM/yyyy')}">01/01/2026</span>
-                        <span th:if="${priceDTO.current}" class="badge bg-primary ms-2">Actuel</span>
-                      </td>
-                      <td>
-                        <span class="badge bg-info" th:text="${priceDTO.tripTypeName}">Express</span>
-                        <span th:if="${!priceDTO.tripTypeActive}" class="badge bg-warning ms-1">
-                          <i class="fa-solid fa-exclamation-triangle"></i> Inactif
-                        </span>
-                      </td>
-                      <td>
-                        <span class="badge" 
-                              th:style="'background-color: ' + ${priceDTO.seatTypeColor} + '; color: white;'"
-                              th:text="${priceDTO.seatTypeName}">Standard</span>
-                      </td>
-                      <td>
-                        <strong th:text="${#numbers.formatDecimal(priceDTO.price, 1, 'COMMA', 2, 'POINT')} + ' Ar'">50,000.00 Ar</strong>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+
+              <div class="mb-3">
+                <label for="effectiveDate" class="form-label">
+                  Date d'effet <span class="text-danger">*</span>
+                </label>
+                <input type="date" class="form-control" id="effectiveDate" name="effectiveDate" required
+                  th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
+                <div class="form-text">
+                  La date à partir de laquelle ce prix sera effectif
+                </div>
               </div>
-            </div>
+
+              <div class="alert alert-warning small">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                Ce nouveau prix sera ajouté pour la combinaison type de trajet + type de siège sélectionnée. Les anciens
+                prix seront conservés.
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fa-solid fa-save me-1"></i>
+                Enregistrer le prix
+              </button>
+            </form>
           </div>
         </div>
 
-        <!-- Add Price Form -->
-        <div class="col-lg-4">
-          <div class="card bg-white border-0 shadow-sm sticky-top" style="top: 4em; z-index: 10;">
-            <div class="card-header bg-primary text-white border-0">
-              <h5 class="mb-0">
-                <i class="fa-solid fa-plus-circle me-2"></i>
-                Ajouter un nouveau prix
-              </h5>
-            </div>
-            <div class="card-body p-4">
-              <form th:action="@{/routes/{id}/add-price(id=${route.id})}" method="post">
-                <div class="mb-3">
-                  <label for="tripTypeId" class="form-label">
-                    Type de trajet <span class="text-danger">*</span>
-                  </label>
-                  <select
-                    class="form-select"
-                    id="tripTypeId"
-                    name="tripTypeId"
-                    required
-                    th:attr="data-classique-id=${classiqueId}"
-                  >
-                    <option value="" disabled>Sélectionner un type de trajet...</option>
-                    <option th:each="tripType : ${tripTypes}" 
-                            th:value="${tripType.id}" 
-                            th:text="${tripType.name}"
-                            th:selected="${tripType.id == classiqueId}">Express</option>
-                  </select>
-                  <div class="form-text">
-                    Sélectionnez le type de trajet auquel ce prix s'applique
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="seatTypeId" class="form-label">
-                    Type de siège <span class="text-danger">*</span>
-                  </label>
-                  <select
-                    class="form-select"
-                    id="seatTypeId"
-                    name="seatTypeId"
-                    required
-                  >
-                    <option value="" disabled selected>Sélectionner un type de siège...</option>
-                    <option th:each="seatType : ${seatTypes}" 
-                            th:value="${seatType.id}" 
-                            th:text="${seatType.name}"
-                            th:style="'background-color: ' + ${seatType.color} + '; color: white;'">Standard</option>
-                  </select>
-                  <div class="form-text">
-                    Sélectionnez le type de siège auquel ce prix s'applique
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="price" class="form-label">
-                    Prix (Ar) <span class="text-danger">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    class="form-control"
-                    id="price"
-                    name="price"
-                    required
-                    placeholder="Ex: 55000.00"
-                  />
-                  <div class="form-text">
-                    Prix actuel: <strong id="currentPriceText">Sélectionnez un type de trajet et un type de siège</strong>
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="effectiveDate" class="form-label">
-                    Date d'effet <span class="text-danger">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    class="form-control"
-                    id="effectiveDate"
-                    name="effectiveDate"
-                    required
-                    th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
-                  />
-                  <div class="form-text">
-                    La date à partir de laquelle ce prix sera effectif
-                  </div>
-                </div>
-
-                <div class="alert alert-warning small">
-                  <i class="fa-solid fa-exclamation-triangle me-2"></i>
-                  Ce nouveau prix sera ajouté pour la combinaison type de trajet + type de siège sélectionnée. Les anciens prix seront conservés.
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100">
-                  <i class="fa-solid fa-save me-1"></i>
-                  Enregistrer le prix
-                </button>
-              </form>
-            </div>
+        <!-- Add Discount Card -->
+        <div class="card bg-white border-0 shadow-sm">
+          <div class="card-header bg-success text-white border-0">
+            <h5 class="mb-0">
+              <i class="fa-solid fa-percent me-2"></i>
+              Gérer les réductions
+            </h5>
+          </div>
+          <div class="card-body p-4">
+            <p class="text-muted small mb-3">
+              <i class="fa-solid fa-info-circle me-1"></i>
+              Ajoutez des réductions fixes pour chaque type de passager. Ces réductions restent valides même si le prix de la route change.
+            </p>
+            <button type="button" class="btn btn-success w-100" data-bs-toggle="modal"
+              data-bs-target="#addDiscountModal">
+              <i class="fa-solid fa-plus me-1"></i>
+              Ajouter une réduction
+            </button>
           </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Chart.js Script -->
-    <th:block layout:fragment="script-bottom">
-      <script th:inline="javascript">
-        /*<![CDATA[*/
-        const chartLabels = /*[[${chartData.labels}]]*/ [];
-        const chartPrices = /*[[${chartData.prices}]]*/ [];
-        const chartTripTypeIds = /*[[${chartData.tripTypeIds}]]*/ [];
-        const chartSeatTypeIds = /*[[${chartData.seatTypeIds}]]*/ [];
-        const classiqueId = /*[[${classiqueId}]]*/ null;
-        const pricesByCombo = /*[[${pricesByCombo}]]*/ {};
+    <!-- Add Discount Modal -->
+    <div class="modal fade" id="addDiscountModal" tabindex="-1" aria-labelledby="addDiscountModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="addDiscountModalLabel">
+              <i class="fa-solid fa-percent me-2"></i>
+              Ajouter une réduction
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form th:action="@{/routes/{id}/add-discount(id=${route.id})}" method="post">
+            <div class="modal-body">
+              <div class="alert alert-info small">
+                <i class="fa-solid fa-info-circle me-2"></i>
+                La réduction sera appliquée indépendamment pour la combinaison route/trajet/siège sélectionnée. Elle reste valide même si le prix de la route change.
+              </div>
 
-        let priceChart = null;
+              <div class="mb-3">
+                <label for="discountTripTypeId" class="form-label">
+                  Type de trajet <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="discountTripTypeId" name="tripTypeId" required>
+                  <option value="" disabled selected>Sélectionner un type de trajet...</option>
+                  <option th:each="tripType : ${tripTypes}" th:value="${tripType.id}" th:text="${tripType.name}">Express
+                  </option>
+                </select>
+              </div>
 
-        function updateChart(seatTypeId) {
-          if (!seatTypeId) {
-            // Clear chart if no seat type selected
-            if (priceChart) {
-              priceChart.destroy();
-              priceChart = null;
-            }
-            return;
-          }
+              <div class="mb-3">
+                <label for="discountSeatTypeId" class="form-label">
+                  Type de siège <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="discountSeatTypeId" name="seatTypeId" required>
+                  <option value="" disabled selected>Sélectionner un type de siège...</option>
+                  <option th:each="seatType : ${seatTypes}" th:value="${seatType.id}" th:text="${seatType.name}"
+                    th:style="'background-color: ' + ${seatType.color} + '; color: white;'">Standard</option>
+                </select>
+                <div class="form-text small">
+                  La réduction s'appliquera à cette combinaison
+                </div>
+              </div>
 
-          // Filter data for Classique trip type and selected seat type
-          const filteredData = chartLabels.reduce((acc, label, index) => {
-            if (chartTripTypeIds[index] === classiqueId && chartSeatTypeIds[index] == seatTypeId) {
-              acc.labels.push(label);
-              acc.prices.push(chartPrices[index]);
-            }
-            return acc;
-          }, { labels: [], prices: [] });
+              <div class="mb-3">
+                <label for="discountTypeId" class="form-label">
+                  Type de réduction <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="discountTypeId" name="discountTypeId" required>
+                  <option value="" disabled selected>Sélectionner un type de réduction...</option>
+                  <option th:each="discountType : ${discountTypes}" th:value="${discountType.id}"
+                    th:text="${discountType.name}">Étudiant</option>
+                </select>
+              </div>
 
-          // Get seat type name for label
-          const seatTypeSelect = document.getElementById('chartSeatTypeFilter');
-          const seatTypeName = seatTypeSelect.options[seatTypeSelect.selectedIndex].text;
+              <div class="mb-3">
+                <label for="discountAmount" class="form-label">
+                  Montant de la réduction (Ar) <span class="text-danger">*</span>
+                </label>
+                <input type="number" step="0.01" class="form-control" id="discountAmount" name="amount" required
+                  placeholder="Ex: 5000.00" min="0" />
+                <div class="form-text">
+                  Montant fixe de la réduction en Ariary (indépendant du prix de la route)
+                </div>
+              </div>
 
-          // Destroy existing chart
+              <div class="mb-3">
+                <label for="discountEffectiveDate" class="form-label">
+                  Date d'effet <span class="text-danger">*</span>
+                </label>
+                <input type="date" class="form-control" id="discountEffectiveDate" name="effectiveDate" required
+                  th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" />
+                <div class="form-text">
+                  La date à partir de laquelle cette réduction sera effective
+                </div>
+              </div>
+
+              <div class="alert alert-warning small">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                <strong>Note importante:</strong> Cette réduction reste fixe et ne change pas automatiquement si le prix de la route est modifié.
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fa-solid fa-times me-1"></i>
+                Annuler
+              </button>
+              <button type="submit" class="btn btn-success">
+                <i class="fa-solid fa-save me-1"></i>
+                Enregistrer la réduction
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chart.js Script -->
+  <th:block layout:fragment="script-bottom">
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      const chartLabels = /*[[${chartData.labels}]]*/[];
+      const chartPrices = /*[[${chartData.prices}]]*/[];
+      const chartTripTypeIds = /*[[${chartData.tripTypeIds}]]*/[];
+      const chartSeatTypeIds = /*[[${chartData.seatTypeIds}]]*/[];
+      const classiqueId = /*[[${classiqueId}]]*/ null;
+      const pricesByCombo = /*[[${pricesByCombo}]]*/ {};
+
+      let priceChart = null;
+
+      function updateChart(seatTypeId) {
+        if (!seatTypeId) {
+          // Clear chart if no seat type selected
           if (priceChart) {
             priceChart.destroy();
+            priceChart = null;
           }
+          return;
+        }
 
-          // Create the chart with filtered data
-          const ctx = document.getElementById('priceChart').getContext('2d');
-          priceChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: filteredData.labels,
-              datasets: [{
-                label: 'Prix (Ar) - Classique - ' + seatTypeName,
-                data: filteredData.prices,
-                borderColor: 'rgb(75, 192, 192)',
-                backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                tension: 0.3,
-                fill: true,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-                pointBackgroundColor: 'rgb(75, 192, 192)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              plugins: {
-                legend: {
-                  display: true,
-                  position: 'top'
-                },
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      return 'Prix: ' + context.parsed.y.toLocaleString('fr-FR', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      }) + ' Ar';
-                    }
-                  }
-                }
+        // Filter data for Classique trip type and selected seat type
+        const filteredData = chartLabels.reduce((acc, label, index) => {
+          if (chartTripTypeIds[index] === classiqueId && chartSeatTypeIds[index] == seatTypeId) {
+            acc.labels.push(label);
+            acc.prices.push(chartPrices[index]);
+          }
+          return acc;
+        }, { labels: [], prices: [] });
+
+        // Get seat type name for label
+        const seatTypeSelect = document.getElementById('chartSeatTypeFilter');
+        const seatTypeName = seatTypeSelect.options[seatTypeSelect.selectedIndex].text;
+
+        // Destroy existing chart
+        if (priceChart) {
+          priceChart.destroy();
+        }
+
+        // Create the chart with filtered data
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        priceChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: filteredData.labels,
+            datasets: [{
+              label: 'Prix (Ar) - Classique - ' + seatTypeName,
+              data: filteredData.prices,
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192, 0.1)',
+              tension: 0.3,
+              fill: true,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBackgroundColor: 'rgb(75, 192, 192)',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
               },
-              scales: {
-                y: {
-                  beginAtZero: false,
-                  ticks: {
-                    callback: function(value) {
-                      return value.toLocaleString('fr-FR') + ' Ar';
-                    }
-                  }
-                },
-                x: {
-                  grid: {
-                    display: false
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return 'Prix: ' + context.parsed.y.toLocaleString('fr-FR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    }) + ' Ar';
                   }
                 }
               }
-            }
-          });
-        }
-
-        // Filter price history by trip type and seat type
-        function filterTable() {
-          const tripTypeValue = document.getElementById('tripTypeFilter').value;
-          const seatTypeValue = document.getElementById('seatTypeFilter').value;
-          const tableRows = document.querySelectorAll('#priceHistoryTable tbody tr:not(:first-child)');
-          
-          tableRows.forEach(row => {
-            const tripTypeId = row.getAttribute('data-trip-type-id');
-            const seatTypeId = row.getAttribute('data-seat-type-id');
-            
-            const tripTypeMatch = tripTypeValue === 'all' || tripTypeId === tripTypeValue;
-            const seatTypeMatch = seatTypeValue === 'all' || seatTypeId === seatTypeValue;
-            
-            if (tripTypeMatch && seatTypeMatch) {
-              row.style.display = '';
-            } else {
-              row.style.display = 'none';
-            }
-          });
-        }
-
-        // Update price input based on selected trip type and seat type
-        function updateCurrentPrice() {
-          const tripTypeId = document.getElementById('tripTypeId').value;
-          const seatTypeId = document.getElementById('seatTypeId').value;
-          
-          if (tripTypeId && seatTypeId) {
-            const key = tripTypeId + '_' + seatTypeId;
-            const currentPrice = pricesByCombo[key];
-            
-            const priceInput = document.getElementById('price');
-            const priceText = document.getElementById('currentPriceText');
-            
-            if (currentPrice) {
-              priceInput.value = currentPrice;
-              priceText.textContent = parseFloat(currentPrice).toLocaleString('fr-FR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              }) + ' Ar';
-            } else {
-              priceInput.value = '';
-              priceText.textContent = 'Aucun prix configuré';
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                ticks: {
+                  callback: function (value) {
+                    return value.toLocaleString('fr-FR') + ' Ar';
+                  }
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
             }
           }
-        }
+        });
+      }
 
-        // Set Classique as default and apply initial filter
-        document.addEventListener('DOMContentLoaded', function() {
-          if (classiqueId) {
-            document.getElementById('tripTypeFilter').value = classiqueId;
-            document.getElementById('tripTypeId').value = classiqueId;
-            filterTable();
+      // Filter price history by trip type and seat type
+      function filterTable() {
+        const tripTypeValue = document.getElementById('tripTypeFilter').value;
+        const seatTypeValue = document.getElementById('seatTypeFilter').value;
+        const tableRows = document.querySelectorAll('#priceHistoryTable tbody tr:not(:first-child)');
+
+        tableRows.forEach(row => {
+          const tripTypeId = row.getAttribute('data-trip-type-id');
+          const seatTypeId = row.getAttribute('data-seat-type-id');
+
+          const tripTypeMatch = tripTypeValue === 'all' || tripTypeId === tripTypeValue;
+          const seatTypeMatch = seatTypeValue === 'all' || seatTypeId === seatTypeValue;
+
+          if (tripTypeMatch && seatTypeMatch) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
           }
         });
+      }
 
-        document.getElementById('tripTypeFilter').addEventListener('change', filterTable);
-        document.getElementById('seatTypeFilter').addEventListener('change', filterTable);
-        document.getElementById('chartSeatTypeFilter').addEventListener('change', function() {
-          updateChart(this.value);
+      // Filter discount history by trip type and seat type
+      function filterDiscountTable() {
+        const tripTypeValue = document.getElementById('discountTripTypeFilter').value;
+        const seatTypeValue = document.getElementById('discountSeatTypeFilter').value;
+        const tableRows = document.querySelectorAll('#discountHistoryTable tbody tr:not(:first-child)');
+
+        tableRows.forEach(row => {
+          const tripTypeId = row.getAttribute('data-trip-type-id');
+          const seatTypeId = row.getAttribute('data-seat-type-id');
+
+          const tripTypeMatch = tripTypeValue === 'all' || tripTypeId === tripTypeValue;
+          const seatTypeMatch = seatTypeValue === 'all' || seatTypeId === seatTypeValue;
+
+          if (tripTypeMatch && seatTypeMatch) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
         });
-        document.getElementById('tripTypeId').addEventListener('change', updateCurrentPrice);
-        document.getElementById('seatTypeId').addEventListener('change', updateCurrentPrice);
-        /*]]>*/
-      </script>
-    </th:block>
-  </body>
+      }
+
+      // Update price input based on selected trip type and seat type
+      function updateCurrentPrice() {
+        const tripTypeId = document.getElementById('tripTypeId').value;
+        const seatTypeId = document.getElementById('seatTypeId').value;
+
+        if (tripTypeId && seatTypeId) {
+          const key = tripTypeId + '_' + seatTypeId;
+          const currentPrice = pricesByCombo[key];
+
+          const priceInput = document.getElementById('price');
+          const priceText = document.getElementById('currentPriceText');
+
+          if (currentPrice) {
+            priceInput.value = currentPrice;
+            priceText.textContent = parseFloat(currentPrice).toLocaleString('fr-FR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) + ' Ar';
+          } else {
+            priceInput.value = '';
+            priceText.textContent = 'Aucun prix configuré';
+          }
+        }
+      }
+
+      // Set Classique as default and apply initial filter
+      document.addEventListener('DOMContentLoaded', function () {
+        if (classiqueId) {
+          document.getElementById('tripTypeFilter').value = classiqueId;
+          document.getElementById('tripTypeId').value = classiqueId;
+          document.getElementById('discountTripTypeFilter').value = classiqueId;
+          filterTable();
+          filterDiscountTable();
+        }
+      });
+
+      document.getElementById('tripTypeFilter').addEventListener('change', filterTable);
+      document.getElementById('seatTypeFilter').addEventListener('change', filterTable);
+      document.getElementById('discountTripTypeFilter').addEventListener('change', filterDiscountTable);
+      document.getElementById('discountSeatTypeFilter').addEventListener('change', filterDiscountTable);
+      document.getElementById('chartSeatTypeFilter').addEventListener('change', function () {
+        updateChart(this.value);
+      });
+      document.getElementById('tripTypeId').addEventListener('change', updateCurrentPrice);
+      document.getElementById('seatTypeId').addEventListener('change', updateCurrentPrice);
+      /*]]>*/
+    </script>
+  </th:block>
+</body>
+
 </html>

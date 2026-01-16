@@ -1,5 +1,8 @@
 package mg.razherana.aizatransport.models.destinations;
 
+import java.time.LocalDateTime;
+
+import groovy.transform.EqualsAndHashCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -8,10 +11,6 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import mg.razherana.aizatransport.models.bases.BasicExpenseEntity;
 import mg.razherana.aizatransport.models.transports.Seat;
-
-import java.time.LocalDateTime;
-
-import groovy.transform.EqualsAndHashCode;
 
 @Entity
 @Table(name = "reservations", schema = "public")
@@ -33,6 +32,9 @@ public class Reservation extends BasicExpenseEntity {
 
   @Column(name = "reservation_date")
   private LocalDateTime reservationDate;
+
+  @Column(name = "discount", nullable=true)
+  private Double discount;
 
   @Column(name = "status", nullable = false, length = 20)
   private String status;

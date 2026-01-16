@@ -21,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Route;
 import mg.razherana.aizatransport.models.destinations.RoutePrice;
 import mg.razherana.aizatransport.services.DestinationService;
+import mg.razherana.aizatransport.services.DiscountService;
+import mg.razherana.aizatransport.services.DiscountTypeService;
 import mg.razherana.aizatransport.services.RouteService;
 import mg.razherana.aizatransport.services.SeatTypeService;
 import mg.razherana.aizatransport.services.TripTypeService;
@@ -34,6 +36,8 @@ public class RouteController {
   private final SeatTypeService seatTypeService;
   private final RouteService routeService;
   private final DestinationService destinationService;
+  private final DiscountTypeService discountTypeService;
+  private final DiscountService discountService;
 
   @GetMapping
   public String list(
@@ -258,6 +262,8 @@ public class RouteController {
           model.addAttribute("pricesByCombo", pricesByCombo);
           model.addAttribute("tripTypes", tripTypeService.findAll());
           model.addAttribute("seatTypes", seatTypeService.findAll());
+          model.addAttribute("discountTypes", discountTypeService.findAll());
+          model.addAttribute("discounts", discountService.findByRouteId(id));
           
           // Find Classique trip type ID for chart filtering
           tripTypeService.findAll().stream()
@@ -271,6 +277,28 @@ public class RouteController {
           redirectAttributes.addFlashAttribute("error", "Route non trouvée!");
           return "redirect:/routes";
         });
+  }
+
+  @PostMapping("/{id}/add-discount")
+  public String addDiscount(
+      @PathVariable Integer id,
+      @RequestParam Integer tripTypeId,
+      @RequestParam Integer seatTypeId,
+      @RequestParam Integer discountTypeId,
+      @RequestParam Double amount,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate effectiveDate,
+      RedirectAttributes redirectAttributes) {
+
+    try {
+      routeService.addDiscount(id, tripTypeId, seatTypeId, discountTypeId, amount, effectiveDate);
+      redirectAttributes.addFlashAttribute("success", "Réduction ajoutée avec succès!");
+    } catch (IllegalArgumentException e) {
+      redirectAttributes.addFlashAttribute("error", e.getMessage());
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("error", "Erreur lors de l'ajout de la réduction: " + e.getMessage());
+    }
+
+    return "redirect:/routes/" + id + "/price-history";
   }
 
   @PostMapping("/{id}/add-price")

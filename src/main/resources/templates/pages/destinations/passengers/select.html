@@ -20,7 +20,7 @@
             <form method="post" th:action="@{/passengers/create}">
               <input type="hidden" name="target" th:value="${target}" />
               <div class="row g-3">
-                <div class="col-md-5">
+                <div class="col-md-4">
                   <label for="fullName" class="form-label">
                     <i class="fa-solid fa-user me-1"></i>
                     Nom complet <span class="text-danger">*</span>
@@ -35,7 +35,7 @@
                     maxlength="100"
                   />
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <label for="phone" class="form-label">
                     <i class="fa-solid fa-phone me-1"></i>
                     Téléphone <span class="text-danger">*</span>
@@ -51,6 +51,18 @@
                   />
                 </div>
                 <div class="col-md-3">
+                  <label for="birthDate" class="form-label">
+                    <i class="fa-solid fa-calendar me-1"></i>
+                    Date de naissance
+                  </label>
+                  <input
+                    type="date"
+                    id="birthDate"
+                    name="birthDate"
+                    class="form-control"
+                  />
+                </div>
+                <div class="col-md-2">
                   <label class="form-label">&nbsp;</label>
                   <button type="submit" class="btn btn-success w-100">
                     <i class="fa-solid fa-save me-1"></i>
@@ -132,12 +144,14 @@
                   <th>ID</th>
                   <th>Nom complet</th>
                   <th>Téléphone</th>
+                  <th>Date de naissance</th>
+                  <th>Âge</th>
                   <th class="text-end">Action</th>
                 </tr>
               </thead>
               <tbody>
                 <tr th:if="${#lists.isEmpty(passengers)}">
-                  <td colspan="4" class="text-center text-muted py-4">
+                  <td colspan="6" class="text-center text-muted py-4">
                     <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
                     Aucun passager trouvé
                   </td>
@@ -148,6 +162,23 @@
                     <strong th:text="${passenger.fullName}">Jean Dupont</strong>
                   </td>
                   <td th:text="${passenger.phone}">+261 34 12 345 67</td>
+                  <td>
+                    <span th:if="${passenger.birthDate != null}">
+                      <i class="fa-solid fa-cake-candles me-1"></i>
+                      <span th:text="${#temporals.format(passenger.birthDate, 'dd/MM/yyyy')}">01/01/1990</span>
+                    </span>
+                    <span th:if="${passenger.birthDate == null}" class="text-muted">
+                      <i class="fa-solid fa-minus"></i>
+                    </span>
+                  </td>
+                  <td>
+                    <span th:if="${passenger.birthDate != null}">
+                      <span th:text="${passenger.getAge(#temporals.createToday())} + ' ans'">34 ans</span>
+                    </span>
+                    <span th:if="${passenger.birthDate == null}" class="text-muted">
+                      <i class="fa-solid fa-minus"></i>
+                    </span>
+                  </td>
                   <td class="text-end">
                     <button
                       type="button"

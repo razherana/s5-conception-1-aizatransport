@@ -80,27 +80,27 @@ INSERT INTO public.drivers (full_name, license_number, phone, status, created_at
 -- ============================================
 -- PASSENGERS (Passagers)
 -- ============================================
-INSERT INTO public.passengers (full_name, phone) VALUES
-('Rakoto Jean', '+261 32 11 11 111'),
-('Randrianasolo Marie', '+261 33 22 22 222'),
-('Andrianampoinimerina Pierre', '+261 34 33 33 333'),
-('Ramiandrasoa Sofia', '+261 32 44 44 444'),
-('Randrianampoinimerina Victor', '+261 33 55 55 555'),
-('Ratsimandresy Nathalie', '+261 34 66 66 666'),
-('Razafindrakoto Philippe', '+261 32 77 77 777'),
-('Rasolofo Émilie', '+261 33 88 88 888'),
-('Andriamampoinimerina Paul', '+261 34 99 99 999'),
-('Ravelo Henriette', '+261 32 10 10 100'),
-('Razafitsalama Joseph', '+261 33 20 20 200'),
-('Ratsimamanga Bernadette', '+261 34 30 30 300'),
-('Rafetrarimanana Laurent', '+261 32 40 40 400'),
-('Rambahoaka Christine', '+261 33 50 50 500'),
-('Ratsimanaro Michel', '+261 34 60 60 600'),
-('Razafintsalama Jacqueline', '+261 32 70 70 700'),
-('Ranjanahary Guillaume', '+261 33 80 80 800'),
-('Ramaroson Isabelle', '+261 34 90 90 900'),
-('Rakotoson Adrien', '+261 32 15 25 305'),
-('Rafavatonina Angélique', '+261 33 25 35 405');
+INSERT INTO public.passengers (full_name, phone, birth_date) VALUES
+('Rakoto Jean', '+261 32 11 11 111', '1985-03-15'),
+('Randrianasolo Marie', '+261 33 22 22 222', '1990-07-22'),
+('Andrianampoinimerina Pierre', '+261 34 33 33 333', '1978-11-08'),
+('Ramiandrasoa Sofia', '+261 32 44 44 444', '1992-05-18'),
+('Randrianampoinimerina Victor', '+261 33 55 55 555', '1988-09-30'),
+('Ratsimandresy Nathalie', '+261 34 66 66 666', '1995-02-14'),
+('Razafindrakoto Philippe', '+261 32 77 77 777', '1983-12-25'),
+('Rasolofo Émilie', '+261 33 88 88 888', '1991-06-10'),
+('Andriamampoinimerina Paul', '+261 34 99 99 999', '1987-04-03'),
+('Ravelo Henriette', '+261 32 10 10 100', '1975-08-27'),
+('Razafitsalama Joseph', '+261 33 20 20 200', '1980-01-19'),
+('Ratsimamanga Bernadette', '+261 34 30 30 300', '1993-10-11'),
+('Rafetrarimanana Laurent', '+261 32 40 40 400', '1982-03-07'),
+('Rambahoaka Christine', '+261 33 50 50 500', '1989-12-16'),
+('Ratsimanaro Michel', '+261 34 60 60 600', '1986-07-05'),
+('Razafintsalama Jacqueline', '+261 32 70 70 700', '1994-09-22'),
+('Ranjanahary Guillaume', '+261 33 80 80 800', '1981-11-28'),
+('Ramaroson Isabelle', '+261 34 90 90 900', '2020-04-13'),
+('Rakotoson Adrien', '+261 32 15 25 305', '2015-06-20'),
+('Rafavatonina Angélique', '+261 33 25 35 405', '2008-02-09');
 
 -- ============================================
 -- ROUTES (Trajets)
