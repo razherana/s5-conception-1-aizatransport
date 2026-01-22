@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Reservation;
+import mg.razherana.aizatransport.models.destinations.ClientType;
 import mg.razherana.aizatransport.repositories.ReservationRepository;
+import mg.razherana.aizatransport.repositories.ClientTypeRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +21,7 @@ public class ReservationService {
 
   private final ReservationRepository reservationRepository;
   private final DiscountService discountService;
+  private final ClientTypeRepository clientTypeRepository;
 
   public List<Reservation> findAll() {
     return reservationRepository.findAll();
@@ -27,11 +30,11 @@ public class ReservationService {
   public List<Reservation> findAllFiltered(String passengerName, String status, String sortBy, String sortOrder) {
     List<Reservation> reservations = reservationRepository.findAll();
 
-    // Filtrage par nom de passager
+    // Filtrage par nom de client
     if (passengerName != null && !passengerName.isEmpty()) {
       reservations = reservations.stream()
-          .filter(r -> r.getPassenger() != null &&
-              r.getPassenger().getFullName().toLowerCase().contains(passengerName.toLowerCase()))
+          .filter(r -> r.getClient() != null &&
+              r.getClient().getFullName().toLowerCase().contains(passengerName.toLowerCase()))
           .collect(Collectors.toList());
     }
 
@@ -63,7 +66,7 @@ public class ReservationService {
       case "reservationdate" -> Comparator.comparing(Reservation::getReservationDate);
       case "status" -> Comparator.comparing(Reservation::getStatus);
       case "amount" -> Comparator.comparing(Reservation::getAmount);
-      case "passenger" -> Comparator.comparing(r -> r.getPassenger() != null ? r.getPassenger().getFullName() : "");
+      case "client" -> Comparator.comparing(r -> r.getClient() != null ? r.getClient().getFullName() : "");
       default -> null;
     };
   }
@@ -77,10 +80,22 @@ public class ReservationService {
       reservation.setReservationDate(LocalDateTime.now());
     }
     
+    // Auto-assign "Passenger" client type if the client doesn't have one
+    if (reservation.getClient() != null && reservation.getClient().getClientType() == null) {
+      ClientType passengerType = clientTypeRepository.findAll().stream()
+          .filter(ct -> "Passager".equalsIgnoreCase(ct.getName()) || "Passenger".equalsIgnoreCase(ct.getName()))
+          .findFirst()
+          .orElse(null);
+      
+      if (passengerType != null) {
+        reservation.getClient().setClientType(passengerType);
+      }
+    }
+    
     // Only calculate discount if not already set (for backward compatibility)
     // When creating from the form, discount is already calculated and set by the controller
     if (reservation.getDiscount() == null && 
-        reservation.getPassenger() != null && 
+        reservation.getClient() != null && 
         reservation.getTrip() != null && 
         reservation.getSeat() != null && 
         reservation.getSeat().getSeatType() != null) {
@@ -88,7 +103,7 @@ public class ReservationService {
         discountService.getDiscountfor(
           reservation.getTrip(), 
           reservation.getSeat().getSeatType(), 
-          reservation.getPassenger()
+          reservation.getClient()
         );
       
       if (discount != null) {

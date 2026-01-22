@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Nouveau client</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-user-plus me-2"></i>
+          Nouveau client
+        </h1>
+        <a th:href="@{/clients}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-body p-4">
+              <form
+                th:action="@{/clients/create}"
+                th:object="${client}"
+                method="post"
+              >
+                <div class="row g-3">
+                  <!-- Nom complet -->
+                  <div class="col-md-6">
+                    <label for="fullName" class="form-label">
+                      <i class="fa-solid fa-user me-1"></i>
+                      Nom complet <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="fullName"
+                      th:field="*{fullName}"
+                      required
+                      maxlength="100"
+                      placeholder="Ex: Société SA"
+                    />
+                  </div>
+
+                  <!-- Téléphone -->
+                  <div class="col-md-6">
+                    <label for="phone" class="form-label">
+                      <i class="fa-solid fa-phone me-1"></i>
+                      Téléphone <span class="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="phone"
+                      th:field="*{phone}"
+                      required
+                      maxlength="30"
+                      placeholder="Ex: +261 34 12 345 67"
+                    />
+                  </div>
+
+                  <!-- Date de naissance -->
+                  <div class="col-md-6">
+                    <label for="birthDate" class="form-label">
+                      <i class="fa-solid fa-calendar me-1"></i>
+                      Date de naissance
+                    </label>
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="birthDate"
+                      th:field="*{birthDate}"
+                    />
+                    <small class="text-muted">
+                      Optionnel - Utilisé pour calculer l'âge du client
+                    </small>
+                  </div>
+
+                  <!-- Type de client -->
+                  <div class="col-md-6">
+                    <label for="clientType" class="form-label">
+                      <i class="fa-solid fa-user-tag me-1"></i>
+                      Type de client <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-select"
+                      id="clientType"
+                      th:field="*{clientType.id}"
+                      required
+                    >
+                      <option value="">-- Sélectionner un type --</option>
+                      <option
+                        th:each="type : ${clientTypes}"
+                        th:value="${type.id}"
+                        th:text="${type.name}"
+                      >
+                        Passager
+                      </option>
+                    </select>
+                    <small class="text-muted">
+                      Le type de client peut affecter les tarifs et les réductions
+                    </small>
+                  </div>
+
+                  <div class="col-12">
+                    <hr class="my-3" />
+                    <div class="d-flex justify-content-end gap-2">
+                      <a
+                        th:href="@{/clients}"
+                        class="btn btn-outline-secondary"
+                      >
+                        <i class="fa-solid fa-times me-1"></i>
+                        Annuler
+                      </a>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-save me-1"></i>
+                        Enregistrer
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

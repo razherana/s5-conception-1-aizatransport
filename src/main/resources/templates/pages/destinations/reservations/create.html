@@ -9,7 +9,7 @@
     <th:block layout:fragment="script">
       <script>
         let selectedSeats = [];
-        let currentPassengerId = null;
+        let currentClientId = null;
         let currentTripId = null;
 
         // Make removeSeat globally accessible
@@ -31,13 +31,13 @@
         };
         
         // Function to fetch discount for a seat
-        async function fetchDiscount(passengerId, tripId, seatTypeId) {
-          if (!passengerId || !tripId || !seatTypeId) {
+        async function fetchDiscount(clientId, tripId, seatTypeId) {
+          if (!clientId || !tripId || !seatTypeId) {
             return null;
           }
           
           try {
-            const response = await fetch(`/reservations/calculate-discount?passengerId=${passengerId}&tripId=${tripId}&seatTypeId=${seatTypeId}`);
+            const response = await fetch(`/reservations/calculate-discount?passengerId=${clientId}&tripId=${tripId}&seatTypeId=${seatTypeId}`);
             const data = await response.json();
             return data.hasDiscount ? data : null;
           } catch (error) {
@@ -48,13 +48,13 @@
         
         // Function to apply discounts to all seats
         async function applyDiscountsToSeats() {
-          if (!currentPassengerId || !currentTripId) {
+          if (!currentClientId || !currentTripId) {
             return;
           }
           
           for (let seat of selectedSeats) {
             if (seat.seatTypeId) {
-              const discount = await fetchDiscount(currentPassengerId, currentTripId, seat.seatTypeId);
+              const discount = await fetchDiscount(currentClientId, currentTripId, seat.seatTypeId);
               seat.discount = discount;
             }
           }
@@ -63,12 +63,12 @@
           updateTotalAmount();
         }
 
-        function openPassengerSelect() {
+        function openClientSelect() {
           const width = 900;
           const height = 600;
           const left = (screen.width / 2) - (width / 2);
           const top = (screen.height / 2) - (height / 2);
-          window.open('/passengers/select?target=passengerInput', 'selectPassenger', 
+          window.open('/clients/select?target=clientInput', 'selectClient', 
             `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
         }
 
@@ -232,12 +232,12 @@
         }
 
         window.addEventListener('message', async function(event) {
-          if (event.data.type === 'selectPassenger') {
-            document.getElementById('passengerId').value = event.data.id;
-            document.getElementById('passengerName').value = event.data.name;
-            currentPassengerId = event.data.id;
+          if (event.data.type === 'selectClient') {
+            document.getElementById('clientId').value = event.data.id;
+            document.getElementById('clientName').value = event.data.name;
+            currentClientId = event.data.id;
             
-            // Recalculate discounts when passenger changes
+            // Recalculate discounts when client changes
             await applyDiscountsToSeats();
           } else if (event.data.type === 'selectTrip') {
             document.getElementById('tripId').value = event.data.id;
@@ -305,15 +305,15 @@
             <div class="card-body p-4">
               <form th:action="@{/reservations/create}" th:object="${reservation}" method="post">
                 <div class="row g-3">
-                  <!-- Passager -->
+                  <!-- Client -->
                   <div class="col-md-12">
                     <label class="form-label">
-                      Passager <span class="text-danger">*</span>
+                      Client <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                      <input type="hidden" id="passengerId" th:field="*{passenger.id}" required />
-                      <input type="text" id="passengerName" class="form-control" placeholder="Cliquez pour sélectionner" readonly required />
-                      <button type="button" class="btn btn-outline-primary" onclick="openPassengerSelect()">
+                      <input type="hidden" id="clientId" th:field="*{client.id}" required />
+                      <input type="text" id="clientName" class="form-control" placeholder="Cliquez pour sélectionner" readonly required />
+                      <button type="button" class="btn btn-outline-primary" onclick="openClientSelect()">
                         <i class="fa-solid fa-search"></i> Sélectionner
                       </button>
                     </div>

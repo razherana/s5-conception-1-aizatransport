@@ -1,5 +1,12 @@
 package mg.razherana.aizatransport.models.destinations;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -12,13 +19,6 @@ import lombok.Setter;
 import mg.razherana.aizatransport.models.bases.BasicEntity;
 import mg.razherana.aizatransport.models.transports.Driver;
 import mg.razherana.aizatransport.models.transports.Vehicle;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 
 @Entity
@@ -68,6 +68,10 @@ public class Trip extends BasicEntity {
   @OneToMany(mappedBy = "trip")
   @Fetch(FetchMode.SUBSELECT)
   private Set<Ticket> tickets = new HashSet<>();
+
+  @OneToMany(mappedBy = "trip")
+  @Fetch(FetchMode.SUBSELECT)
+  private Set<Diffusion> diffusions = new HashSet<>();
 
   public TripStatus getStatusEnum() {
     return TripStatus.valueOf(this.status);

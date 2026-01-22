@@ -8,14 +8,14 @@
     <title>Modifier réservation</title>
     <th:block layout:fragment="script">
       <script>
-        function openPassengerSelect() {
+        function openClientSelect() {
           const width = 900;
           const height = 600;
           const left = screen.width / 2 - width / 2;
           const top = screen.height / 2 - height / 2;
           window.open(
-            "/passengers/select?target=passengerInput",
-            "selectPassenger",
+            "/clients/select?target=clientInput",
+            "selectClient",
             `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`
           );
         }
@@ -50,9 +50,9 @@
         }
 
         window.addEventListener("message", function (event) {
-          if (event.data.type === "selectPassenger") {
-            document.getElementById("passengerId").value = event.data.id;
-            document.getElementById("passengerName").value = event.data.name;
+          if (event.data.type === "selectClient") {
+            document.getElementById("clientId").value = event.data.id;
+            document.getElementById("clientName").value = event.data.name;
           } else if (event.data.type === "selectTrip") {
             document.getElementById("tripId").value = event.data.id;
             document.getElementById("tripInfo").value = event.data.info;
@@ -98,23 +98,23 @@
                 method="post"
               >
                 <div class="row g-3">
-                  <!-- Passager -->
+                  <!-- Client -->
                   <div class="col-md-12">
                     <label class="form-label">
-                      Passager <span class="text-danger">*</span>
+                      Client <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                       <input
                         type="hidden"
-                        id="passengerId"
-                        th:field="*{passenger.id}"
+                        id="clientId"
+                        th:field="*{client.id}"
                         required
                       />
                       <input
                         type="text"
-                        id="passengerName"
+                        id="clientName"
                         class="form-control"
-                        th:value="${reservation.passenger?.fullName}"
+                        th:value="${reservation.client?.fullName}"
                         placeholder="Cliquez pour sélectionner"
                         readonly
                         required
@@ -122,7 +122,7 @@
                       <button
                         type="button"
                         class="btn btn-outline-primary"
-                        onclick="openPassengerSelect()"
+                        onclick="openClientSelect()"
                       >
                         <i class="fa-solid fa-search"></i> Sélectionner
                       </button>

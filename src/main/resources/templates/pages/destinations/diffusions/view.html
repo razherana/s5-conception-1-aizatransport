@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Détails de la diffusion</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-eye me-2"></i>
+          Détails de la diffusion
+        </h1>
+        <div>
+          <a th:href="@{/diffusions/update/{id}(id=${diffusion.id})}" class="btn btn-primary me-2">
+            <i class="fa-solid fa-edit me-1"></i>
+            Modifier
+          </a>
+          <a th:href="@{/diffusions}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Retour à la liste
+          </a>
+        </div>
+      </div>
+
+      <!-- Informations de la diffusion -->
+      <div class="row">
+        <!-- Informations générales -->
+        <div class="col-lg-6 mb-4">
+          <div class="card bg-white border-0 shadow-sm h-100">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-info-circle me-2"></i>
+                Informations générales
+              </h5>
+            </div>
+            <div class="card-body">
+              <table class="table table-borderless">
+                <tbody>
+                  <tr>
+                    <th width="40%">ID:</th>
+                    <td th:text="${diffusion.id}"></td>
+                  </tr>
+                  <tr>
+                    <th>Client (Société):</th>
+                    <td>
+                      <div class="fw-bold" th:text="${diffusion.client?.fullName}"></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Montant:</th>
+                    <td>
+                      <span class="h5 mb-0 text-primary fw-bold" th:text="${#numbers.formatDecimal(diffusion.amount, 0, 'COMMA', 2, 'POINT')}"></span>
+                      <span class="text-muted">Ar</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Date de paiement:</th>
+                    <td>
+                      <span th:if="${diffusion.paymentDate != null}" th:text="${#temporals.format(diffusion.paymentDate, 'dd/MM/yyyy HH:mm')}"></span>
+                      <span th:if="${diffusion.paymentDate == null}" class="text-muted">Non payé</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Statut:</th>
+                    <td>
+                      <span 
+                        class="badge"
+                        th:classappend="${diffusion.status == 'PAYE'} ? 'bg-success' : (${diffusion.status == 'EN_ATTENTE'} ? 'bg-warning' : 'bg-danger')"
+                        th:text="${diffusion.status}"
+                      ></span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Informations du voyage -->
+        <div class="col-lg-6 mb-4">
+          <div class="card bg-white border-0 shadow-sm h-100">
+            <div class="card-header bg-info text-white">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-route me-2"></i>
+                Informations du voyage
+              </h5>
+            </div>
+            <div class="card-body">
+              <table class="table table-borderless" th:if="${diffusion.trip != null}">
+                <tbody>
+                  <tr>
+                    <th width="40%">Route:</th>
+                    <td>
+                      <span th:text="${diffusion.trip.route?.departureDestination?.name}"></span>
+                      <i class="fa-solid fa-arrow-right mx-2"></i>
+                      <span th:text="${diffusion.trip.route?.arrivalDestination?.name}"></span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Date de départ:</th>
+                    <td th:text="${#temporals.format(diffusion.trip.departureDatetime, 'dd/MM/yyyy HH:mm')}"></td>
+                  </tr>
+                  <tr th:if="${diffusion.trip.arrivalDatetime != null}">
+                    <th>Date d'arrivée:</th>
+                    <td th:text="${#temporals.format(diffusion.trip.arrivalDatetime, 'dd/MM/yyyy HH:mm')}"></td>
+                  </tr>
+                  <tr>
+                    <th>Type de voyage:</th>
+                    <td th:text="${diffusion.trip.tripType?.name}"></td>
+                  </tr>
+                  <tr th:if="${diffusion.trip.vehicle != null}">
+                    <th>Véhicule:</th>
+                    <td th:text="${diffusion.trip.vehicle?.plateNumber}"></td>
+                  </tr>
+                  <tr th:if="${diffusion.trip.driver != null}">
+                    <th>Chauffeur:</th>
+                    <td th:text="${diffusion.trip.driver?.fullName}"></td>
+                  </tr>
+                  <tr>
+                    <th>Statut du voyage:</th>
+                    <td>
+                      <span 
+                        class="badge"
+                        th:classappend="${diffusion.trip.status == 'TERMINE'} ? 'bg-success' : (${diffusion.trip.status == 'EN_COURS'} ? 'bg-primary' : (${diffusion.trip.status == 'PLANIFIE'} ? 'bg-info' : 'bg-secondary'))"
+                        th:text="${diffusion.trip.status}"
+                      ></span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div th:if="${diffusion.trip == null}" class="text-muted text-center py-4">
+                <i class="fa-solid fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Aucune information de voyage disponible</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Informations du client -->
+        <div class="col-lg-12 mb-4">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+              <h5 class="mb-0">
+                <i class="fa-solid fa-building me-2"></i>
+                Détails du client (Société)
+              </h5>
+            </div>
+            <div class="card-body" th:if="${diffusion.client != null}">
+              <div class="row">
+                <div class="col-md-6">
+                  <table class="table table-borderless">
+                    <tbody>
+                      <tr>
+                        <th width="40%">Nom complet:</th>
+                        <td th:text="${diffusion.client.fullName}"></td>
+                      </tr>
+                      <tr th:if="${diffusion.client.phone != null}">
+                        <th>Téléphone:</th>
+                        <td th:text="${diffusion.client.phone}"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="col-md-6">
+                  <table class="table table-borderless">
+                    <tbody>
+                      <tr th:if="${diffusion.client.clientType != null}">
+                        <th>Type de client:</th>
+                        <td th:text="${diffusion.client.clientType.name}"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <button
+              type="button"
+              class="btn btn-danger"
+              data-bs-toggle="modal"
+              data-bs-target="#deleteModal"
+            >
+              <i class="fa-solid fa-trash me-1"></i>
+              Supprimer
+            </button>
+            <a th:href="@{/diffusions/update/{id}(id=${diffusion.id})}" class="btn btn-primary">
+              <i class="fa-solid fa-edit me-1"></i>
+              Modifier
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de confirmation de suppression -->
+      <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirmer la suppression</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              Êtes-vous sûr de vouloir supprimer cette diffusion ?
+              <br/>
+              <strong>Cette action est irréversible.</strong>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+              <form th:action="@{/diffusions/delete/{id}(id=${diffusion.id})}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-danger">
+                  <i class="fa-solid fa-trash me-1"></i>
+                  Supprimer définitivement
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

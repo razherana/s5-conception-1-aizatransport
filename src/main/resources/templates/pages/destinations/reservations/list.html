@@ -41,7 +41,7 @@
               <div class="col-md-4">
                 <label class="form-label">
                   <i class="fa-solid fa-filter me-1"></i>
-                  Nom du passager
+                  Nom du client
                 </label>
                 <input
                   type="text"
@@ -73,7 +73,7 @@
                 </label>
                 <select name="sortBy" class="form-select">
                   <option value="reservationDate" th:selected="${sortBy == 'reservationDate'}">Date de réservation</option>
-                  <option value="passenger" th:selected="${sortBy == 'passenger'}">Passager</option>
+                  <option value="client" th:selected="${sortBy == 'client'}">Client</option>
                   <option value="amount" th:selected="${sortBy == 'amount'}">Montant</option>
                   <option value="status" th:selected="${sortBy == 'status'}">Statut</option>
                 </select>
@@ -130,15 +130,15 @@
                 <tr th:each="reservation : ${reservations}">
                   <td th:text="${reservation.id}">1</td>
                   <td>
-                    <strong th:text="${reservation.passenger?.fullName}">Jean Dupont</strong><br>
-                    <small class="text-muted" th:text="${reservation.passenger?.phone}">+261 34 12 345 67</small>
+                    <strong th:text="${reservation.client?.fullName}">Jean Dupont</strong><br>
+                    <small class="text-muted" th:text="${reservation.client?.phone}">+261 34 12 345 67</small>
                   </td>
                   <td>
-                    <span th:if="${reservation.passenger?.birthDate != null}" class="badge bg-info">
+                    <span th:if="${reservation.client?.birthDate != null}" class="badge bg-info">
                       <i class="fa-solid fa-cake-candles me-1"></i>
-                      <span th:text="${reservation.passenger.getAge(#temporals.createToday())} + ' ans'">34 ans</span>
+                      <span th:text="${reservation.client.getAge(#temporals.createToday())} + ' ans'">34 ans</span>
                     </span>
-                    <span th:if="${reservation.passenger?.birthDate == null}" class="text-muted">
+                    <span th:if="${reservation.client?.birthDate == null}" class="text-muted">
                       <i class="fa-solid fa-minus"></i>
                     </span>
                   </td>
@@ -178,6 +178,9 @@
                   </td>
                   <td class="text-end">
                     <div class="btn-group">
+                      <a th:if="${reservation.status != 'PAYE'}" th:href="@{/revenues/create/reservation/{id}(id=${reservation.id})}" class="btn btn-sm btn-success" title="Payer">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                      </a>
                       <a th:href="@{/reservations/update/{id}(id=${reservation.id})}" class="btn btn-sm btn-outline-primary" title="Modifier">
                         <i class="fa-solid fa-edit"></i>
                       </a>

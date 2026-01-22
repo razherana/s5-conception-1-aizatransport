@@ -42,11 +42,15 @@ public class SidebarControllerAdvice {
     destinations.createItem("Destinations", "/destinations", "fa-solid fa-map-marker-alt");
     destinations.createItem("Voyages", "/trips", "fa-solid fa-road");
     destinations.createItem("Types de voyage", "/trip-types", "fa-solid fa-star");
+    destinations.createItem("Clients", "/clients", "fa-solid fa-users");
+    destinations.createItem("Types de clients", "/client-types", "fa-solid fa-user-tag");
     sidebarItems.add(destinations);
 
     // Gestion Section
     SidebarDTO gestion = SidebarDTO.createMenuStatic("Gestion");
+    gestion.createItem("Recettes", "/revenues", "fa-solid fa-money-bill-wave");
     gestion.createItem("Réservations", "/reservations", "fa-solid fa-ticket");
+    gestion.createItem("Diffusions", "/diffusions", "fa-solid fa-bullhorn");
     gestion.createItem("Tickets", "/tickets", "fa-solid fa-ticket");
     gestion.createItem("Dépenses", "/expenses", "fa-solid fa-money-bill-wave");
 

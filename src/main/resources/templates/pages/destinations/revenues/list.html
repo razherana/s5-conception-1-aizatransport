@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Liste des recettes</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-money-bill-wave me-2"></i>
+          Liste des recettes
+        </h1>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- Filtres et tri -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <form method="get" th:action="@{/revenues}">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="fa-solid fa-calendar me-1"></i>
+                  Date min
+                </label>
+                <input type="date" name="dateMin" class="form-control" th:value="${dateMin}" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="fa-solid fa-calendar me-1"></i>
+                  Date max
+                </label>
+                <input type="date" name="dateMax" class="form-control" th:value="${dateMax}" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Type de source
+                </label>
+                <select name="sourceType" class="form-select">
+                  <option value="">Tous les types</option>
+                  <option value="Réservation" th:selected="${selectedSourceType == 'Réservation'}">Réservation</option>
+                  <option value="Diffusion" th:selected="${selectedSourceType == 'Diffusion'}">Diffusion</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Méthode de paiement
+                </label>
+                <select name="paymentMethod" class="form-select">
+                  <option value="">Toutes les méthodes</option>
+                  <option
+                    th:each="method : ${paymentMethods}"
+                    th:value="${method}"
+                    th:text="${method}"
+                    th:selected="${method == selectedPaymentMethod}"
+                  ></option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">
+                  <i class="fa-solid fa-sort me-1"></i>
+                  Trier par
+                </label>
+                <select name="sortBy" class="form-select">
+                  <option value="paymentDate" th:selected="${sortBy == 'paymentDate'}">Date de paiement</option>
+                  <option value="amount" th:selected="${sortBy == 'amount'}">Montant</option>
+                  <option value="paymentMethod" th:selected="${sortBy == 'paymentMethod'}">Méthode</option>
+                  <option value="sourceType" th:selected="${sortBy == 'sourceType'}">Type</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Ordre</label>
+                <select name="sortOrder" class="form-select">
+                  <option value="asc" th:selected="${sortOrder == 'asc'}">Croissant</option>
+                  <option value="desc" th:selected="${sortOrder == 'desc'}">Décroissant</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary me-2">
+                  <i class="fa-solid fa-search me-1"></i>
+                  Filtrer
+                </button>
+                <a th:href="@{/revenues}" class="btn btn-outline-secondary">
+                  <i class="fa-solid fa-times me-1"></i>
+                  Réinitialiser
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Liste des recettes -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <!-- Total Section -->
+          <div class="alert alert-info mb-3" th:if="${totalAmount != null}">
+            <div class="row">
+              <div class="col-md-6">
+                <h5 class="mb-0">
+                  <i class="fa-solid fa-calculator me-2"></i>
+                  Total des recettes
+                </h5>
+              </div>
+              <div class="col-md-6 text-end">
+                <h4 class="mb-0 text-success">
+                  <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 2, 'POINT')}"></span> Ar
+                </h4>
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Date de paiement</th>
+                  <th>Type</th>
+                  <th>Source</th>
+                  <th>Montant</th>
+                  <th>Méthode</th>
+                  <th>Référence</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(revenues)}">
+                  <td colspan="8" class="text-center text-muted py-4">
+                    <i class="fa-solid fa-inbox fa-2x mb-2"></i>
+                    <p class="mb-0">Aucune recette trouvée</p>
+                  </td>
+                </tr>
+                <tr th:each="revenue : ${revenues}">
+                  <td th:text="${revenue.id}"></td>
+                  <td th:text="${#temporals.format(revenue.paymentDate, 'dd/MM/yyyy HH:mm')}"></td>
+                  <td>
+                    <span 
+                      class="badge"
+                      th:classappend="${revenue.sourceType == 'Réservation'} ? 'bg-info' : 'bg-warning'"
+                      th:text="${revenue.sourceType}"
+                    ></span>
+                  </td>
+                  <td>
+                    <span th:if="${revenue.reservation != null}">
+                      Rés. #<span th:text="${revenue.reservation.id}"></span> - 
+                      <span th:text="${revenue.reservation.client?.fullName}"></span>
+                    </span>
+                    <span th:if="${revenue.diffusion != null}">
+                      Diff. #<span th:text="${revenue.diffusion.id}"></span> - 
+                      <span th:text="${revenue.diffusion.client?.fullName}"></span>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="fw-bold text-success" th:text="${#numbers.formatDecimal(revenue.amount, 0, 'COMMA', 2, 'POINT')}"></span> Ar
+                  </td>
+                  <td th:text="${revenue.paymentMethod}"></td>
+                  <td th:text="${revenue.reference != null ? revenue.reference : '-'}"></td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <a 
+                        th:href="@{/revenues/update/{id}(id=${revenue.id})}"
+                        class="btn btn-outline-primary"
+                        title="Modifier"
+                      >
+                        <i class="fa-solid fa-edit"></i>
+                      </a>
+                      <button
+                        type="button"
+                        class="btn btn-outline-danger"
+                        title="Supprimer"
+                        data-bs-toggle="modal"
+                        th:attr="data-bs-target='#deleteModal' + ${revenue.id}"
+                      >
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+
+                    <!-- Modal de confirmation de suppression -->
+                    <div 
+                      class="modal fade" 
+                      th:id="'deleteModal' + ${revenue.id}"
+                      tabindex="-1"
+                    >
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Confirmer la suppression</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                          </div>
+                          <div class="modal-body">
+                            Êtes-vous sûr de vouloir supprimer cette recette ?
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <form th:action="@{/revenues/delete/{id}(id=${revenue.id})}" method="post" class="d-inline">
+                              <button type="submit" class="btn btn-danger">
+                                <i class="fa-solid fa-trash me-1"></i>
+                                Supprimer
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

@@ -13,12 +13,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Discount;
-import mg.razherana.aizatransport.models.destinations.Passenger;
+import mg.razherana.aizatransport.models.destinations.Client;
 import mg.razherana.aizatransport.models.destinations.Reservation;
 import mg.razherana.aizatransport.models.destinations.Trip;
 import mg.razherana.aizatransport.models.transports.Seat;
 import mg.razherana.aizatransport.services.DiscountService;
-import mg.razherana.aizatransport.services.PassengerService;
+import mg.razherana.aizatransport.services.ClientService;
 import mg.razherana.aizatransport.services.ReservationService;
 import mg.razherana.aizatransport.services.TripService;
 
@@ -29,7 +29,7 @@ public class ReservationController {
 
   private final ReservationService reservationService;
   private final DiscountService discountService;
-  private final PassengerService passengerService;
+  private final ClientService clientService;
   private final TripService tripService;
 
   @GetMapping
@@ -70,7 +70,7 @@ public class ReservationController {
       int count = 0;
       for (int i = 0; i < seatIds.size(); i++) {
         Reservation newReservation = new Reservation();
-        newReservation.setPassenger(reservation.getPassenger());
+        newReservation.setClient(reservation.getClient());
         newReservation.setTrip(reservation.getTrip());
         
         // Set the original price (before discount)
@@ -155,10 +155,10 @@ public class ReservationController {
     java.util.Map<String, Object> result = new java.util.HashMap<>();
     
     try {
-      Passenger passenger = passengerService.findById(passengerId).orElse(null);
+      Client client = clientService.findById(passengerId).orElse(null);
       Trip trip = tripService.findById(tripId).orElse(null);
       
-      if (passenger == null || trip == null) {
+      if (client == null || trip == null) {
         result.put("hasDiscount", false);
         return result;
       }
@@ -169,12 +169,12 @@ public class ReservationController {
       seatType.setId(seatTypeId);
       tempSeat.setSeatType(seatType);
       
-      Discount discount = discountService.getDiscountfor(trip, seatType, passenger);
+      Discount discount = discountService.getDiscountfor(trip, seatType, client);
       
       if (discount != null) {
         result.put("hasDiscount", true);
         result.put("typeName", discount.getDiscountType().getName());
-        result.put("passengerAge", passenger.getAge(java.time.LocalDate.now()));
+        result.put("passengerAge", client.getAge(java.time.LocalDate.now()));
         
         // Check if it's a fixed amount or percentage
         if (discount.getAmount() != null && discount.getAmount() > 0) {

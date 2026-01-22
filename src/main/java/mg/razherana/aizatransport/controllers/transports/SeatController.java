@@ -121,22 +121,22 @@ public class SeatController {
         .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(tripId))
         .toList();
 
-    // Create a map of seat ID to passenger name
+    // Create a map of seat ID to client name
     Map<Integer, String> seatPassengerMap = new HashMap<>();
 
     for (Reservation reservation : reservations) {
-      if (reservation.getSeat() != null && reservation.getPassenger() != null) {
+      if (reservation.getSeat() != null && reservation.getClient() != null) {
         seatPassengerMap.put(
             reservation.getSeat().getId(),
-            reservation.getPassenger().getFullName() + " (Rés.)");
+            reservation.getClient().getFullName() + " (Rés.)");
       }
     }
 
     for (Ticket ticket : tickets) {
-      if (ticket.getSeat() != null && ticket.getPassenger() != null) {
+      if (ticket.getSeat() != null && ticket.getClient() != null) {
         seatPassengerMap.put(
             ticket.getSeat().getId(),
-            ticket.getPassenger().getFullName() + " (Tick.)");
+            ticket.getClient().getFullName() + " (Tick.)");
       }
     }
 

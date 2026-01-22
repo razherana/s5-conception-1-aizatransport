@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layouts/app}">
+
+<head>
+    <title>Nouvelle diffusion</title>
+</head>
+
+<body>
+    <section layout:fragment="content" class="container-fluid py-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">
+                <i class="fa-solid fa-bullhorn me-2"></i>
+                Nouvelle diffusion
+            </h1>
+            <a th:href="@{/diffusions}" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i>
+                Retour à la liste
+            </a>
+        </div>
+
+        <!-- Formulaire -->
+        <div class="card bg-white border-0 shadow-sm">
+            <div class="card-body">
+                <form th:action="@{/diffusions/create}" th:object="${diffusion}" method="post">
+                    <div class="row g-3">
+                        <!-- Client (Société) -->
+                        <div class="col-md-6">
+                            <label for="client" class="form-label">
+                                <i class="fa-solid fa-building me-1"></i>
+                                Client (Société) <span class="text-danger">*</span>
+                            </label>
+                            <select id="client" th:field="*{client.id}" class="form-select" required>
+                                <option value="">Sélectionnez un client</option>
+                                <option th:each="client : ${clients}" th:value="${client.id}"
+                                    th:text="${client.fullName}"></option>
+                            </select>
+                            <small class="text-muted">Choisissez une société cliente</small>
+                        </div>
+
+                        <!-- Voyage -->
+                        <div class="col-md-6">
+                            <label for="trip" class="form-label">
+                                <i class="fa-solid fa-route me-1"></i>
+                                Voyage <span class="text-danger">*</span>
+                            </label>
+                            <select id="trip" th:field="*{trip.id}" class="form-select" required>
+                                <option value="">Sélectionnez un voyage</option>
+                                <option th:each="trip : ${trips}" th:value="${trip.id}"
+                                    th:text="${trip.route?.departureDestination?.name + ' → ' + trip.route?.arrivalDestination?.name + ' (' + #temporals.format(trip.departureDatetime, 'dd/MM/yyyy HH:mm') + ')'}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Nombre de diffusions -->
+                        <div class="col-md-6">
+                            <label for="quantity" class="form-label">
+                                <i class="fa-solid fa-hashtag me-1"></i>
+                                Nombre de diffusions <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="quantity" name="quantity" class="form-control"
+                                min="1" value="1" required placeholder="Ex: 5" />
+                            <small class="text-muted">Nombre de diffusions identiques à créer</small>
+                        </div>
+
+                        <!-- Montant -->
+                        <div class="col-md-6">
+                            <label for="amount" class="form-label">
+                                <i class="fa-solid fa-dollar-sign me-1"></i>
+                                Montant (Ar) <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="amount" th:field="*{amount}" class="form-control" step="0.01"
+                                min="0" required placeholder="Ex: 50000.00" />
+                        </div>
+
+                        <!-- Designation -->
+                        <div class="col-md-12">
+                            <label for="designation" class="form-label">
+                                <i class="fa-solid fa-file-alt me-1"></i>
+                                Désignation
+                            </label>
+                            <input type="text" id="designation" th:field="*{designation}" class="form-control"
+                                placeholder="Description de la diffusion" />
+                            <small class="text-muted">Description ou motif de la diffusion</small>
+                        </div>
+
+                        <!-- Date de paiement -->
+                        <div class="col-md-6">
+                            <label for="paymentDate" class="form-label">
+                                <i class="fa-solid fa-calendar me-1"></i>
+                                Date de paiement
+                            </label>
+                            <input type="datetime-local" id="paymentDate" th:field="*{paymentDate}"
+                                class="form-control" />
+                            <small class="text-muted">Laissez vide si pas encore payé</small>
+                        </div>
+
+                        <!-- Statut -->
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">
+                                <i class="fa-solid fa-info-circle me-1"></i>
+                                Statut <span class="text-danger">*</span>
+                            </label>
+                            <select id="status" th:field="*{status}" class="form-select" required>
+                                <option value="">Sélectionnez un statut</option>
+                                <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="col-12">
+                            <hr class="my-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-save me-1"></i>
+                                Enregistrer
+                            </button>
+                            <a th:href="@{/diffusions}" class="btn btn-secondary">
+                                <i class="fa-solid fa-times me-1"></i>
+                                Annuler
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>

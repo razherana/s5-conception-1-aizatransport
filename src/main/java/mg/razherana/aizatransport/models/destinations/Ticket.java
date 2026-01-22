@@ -1,5 +1,7 @@
 package mg.razherana.aizatransport.models.destinations;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -11,8 +13,6 @@ import lombok.Setter;
 import mg.razherana.aizatransport.models.bases.BasicExpenseEntity;
 import mg.razherana.aizatransport.models.transports.Seat;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "tickets", schema = "public")
 @Getter
@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 public class Ticket extends BasicExpenseEntity {
 
   @ManyToOne
-  @JoinColumn(name = "passenger_id", nullable = false)
-  private Passenger passenger;
+  @JoinColumn(name = "client_id", nullable = false)
+  private Client client;
 
   @ManyToOne
   @JoinColumn(name = "trip_id", nullable = false)

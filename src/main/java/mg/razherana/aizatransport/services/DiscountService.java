@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Discount;
 import mg.razherana.aizatransport.models.destinations.DiscountType;
-import mg.razherana.aizatransport.models.destinations.Passenger;
+import mg.razherana.aizatransport.models.destinations.Client;
 import mg.razherana.aizatransport.models.destinations.Route;
 import mg.razherana.aizatransport.models.destinations.Trip;
 import mg.razherana.aizatransport.models.destinations.TripType;
@@ -79,20 +79,20 @@ public class DiscountService {
     }
 
     /**
-     * Gets the applicable discount for a passenger on a specific trip and seat type.
+     * Gets the applicable discount for a client on a specific trip and seat type.
      * Uses the DiscountType's age and comparator fields to determine eligibility.
      * 
      * @param trip The trip for the reservation
      * @param seatType The seat type selected
-     * @param passenger The passenger making the reservation
+     * @param client The client making the reservation
      * @return The applicable discount, or null if no discount applies
      */
-    public Discount getDiscountfor(Trip trip, SeatType seatType, Passenger passenger){
-        if (passenger.getBirthDate() == null) {
+    public Discount getDiscountfor(Trip trip, SeatType seatType, Client client){
+        if (client.getBirthDate() == null) {
             return null; // No discount if birth date is not available
         }
         
-        int passengerAge = passenger.getAge(LocalDate.now());
+        int clientAge = client.getAge(LocalDate.now());
         LocalDate now = LocalDate.now();
         
         // Get all discounts for this route/trip/seat combination
@@ -102,10 +102,10 @@ public class DiscountService {
             seatType.getId()
         );
         
-        // Find the first discount that matches the passenger's age and is currently effective
+        // Find the first discount that matches the client's age and is currently effective
         return discounts.stream()
             .filter(d -> !d.getEffectiveDate().isAfter(now)) // Must be effective
-            .filter(d -> matchesAgeRequirement(passengerAge, d.getDiscountType()))
+            .filter(d -> matchesAgeRequirement(clientAge, d.getDiscountType()))
             .findFirst()
             .orElse(null);
     }

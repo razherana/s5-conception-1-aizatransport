@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Enregistrer un paiement</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-money-bill-wave me-2"></i>
+          Enregistrer un paiement
+        </h1>
+        <a th:href="@{/revenues}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour à la liste
+        </a>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <form th:action="@{/revenues/create}" th:object="${revenue}" method="post">
+            <!-- Hidden fields for reservation/diffusion -->
+            <input type="hidden" th:field="*{reservation.id}" th:if="${revenue.reservation != null}" />
+            <input type="hidden" th:field="*{diffusion.id}" th:if="${revenue.diffusion != null}" />
+            
+            <div class="row g-3">
+              <!-- Source Information -->
+              <div class="col-12">
+                <div class="alert alert-info">
+                  <h5>
+                    <i class="fa-solid fa-info-circle me-2"></i>
+                    Informations sur la source
+                  </h5>
+                  <div th:if="${revenue.reservation != null}">
+                    <strong>Type:</strong> Réservation #<span th:text="${revenue.reservation.id}"></span><br/>
+                    <strong>Client:</strong> <span th:text="${revenue.reservation.client?.fullName}"></span><br/>
+                    <strong>Voyage:</strong> 
+                    <span th:text="${revenue.reservation.trip?.route?.departureDestination?.name}"></span> → 
+                    <span th:text="${revenue.reservation.trip?.route?.arrivalDestination?.name}"></span>
+                  </div>
+                  <div th:if="${revenue.diffusion != null}">
+                    <strong>Type:</strong> Diffusion #<span th:text="${revenue.diffusion.id}"></span><br/>
+                    <strong>Client:</strong> <span th:text="${revenue.diffusion.client?.fullName}"></span><br/>
+                    <strong>Voyage:</strong> 
+                    <span th:text="${revenue.diffusion.trip?.route?.departureDestination?.name}"></span> → 
+                    <span th:text="${revenue.diffusion.trip?.route?.arrivalDestination?.name}"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Montant -->
+              <div class="col-md-6">
+                <label for="amount" class="form-label">
+                  <i class="fa-solid fa-dollar-sign me-1"></i>
+                  Montant (Ar) <span class="text-danger">*</span>
+                </label>
+                <input 
+                  type="number" 
+                  id="amount" 
+                  th:field="*{amount}" 
+                  class="form-control" 
+                  step="0.01"
+                  min="0"
+                  required
+                />
+              </div>
+
+              <!-- Date de paiement -->
+              <div class="col-md-6">
+                <label for="paymentDate" class="form-label">
+                  <i class="fa-solid fa-calendar me-1"></i>
+                  Date de paiement <span class="text-danger">*</span>
+                </label>
+                <input 
+                  type="datetime-local" 
+                  id="paymentDate" 
+                  th:field="*{paymentDate}" 
+                  class="form-control"
+                  required
+                />
+              </div>
+
+              <!-- Méthode de paiement -->
+              <div class="col-md-6">
+                <label for="paymentMethod" class="form-label">
+                  <i class="fa-solid fa-credit-card me-1"></i>
+                  Méthode de paiement <span class="text-danger">*</span>
+                </label>
+                <select 
+                  id="paymentMethod" 
+                  th:field="*{paymentMethod}" 
+                  class="form-select" 
+                  required
+                >
+                  <option value="">Sélectionnez une méthode</option>
+                  <option 
+                    th:each="method : ${paymentMethods}" 
+                    th:value="${method}"
+                    th:text="${method}"
+                  ></option>
+                </select>
+              </div>
+
+              <!-- Référence -->
+              <div class="col-md-6">
+                <label for="reference" class="form-label">
+                  <i class="fa-solid fa-hashtag me-1"></i>
+                  Référence
+                </label>
+                <input 
+                  type="text" 
+                  id="reference" 
+                  th:field="*{reference}" 
+                  class="form-control"
+                  placeholder="Ex: Chèque #123456"
+                />
+                <small class="text-muted">Numéro de chèque, référence virement, etc.</small>
+              </div>
+
+              <!-- Notes -->
+              <div class="col-12">
+                <label for="notes" class="form-label">
+                  <i class="fa-solid fa-note-sticky me-1"></i>
+                  Notes
+                </label>
+                <textarea 
+                  id="notes" 
+                  th:field="*{notes}" 
+                  class="form-control" 
+                  rows="3"
+                  placeholder="Notes additionnelles..."
+                ></textarea>
+              </div>
+
+              <!-- Boutons -->
+              <div class="col-12">
+                <hr class="my-3">
+                <button type="submit" class="btn btn-success">
+                  <i class="fa-solid fa-check me-1"></i>
+                  Enregistrer le paiement
+                </button>
+                <a th:href="@{/revenues}" class="btn btn-secondary">
+                  <i class="fa-solid fa-times me-1"></i>
+                  Annuler
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

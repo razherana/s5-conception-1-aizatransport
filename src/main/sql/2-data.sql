@@ -78,29 +78,45 @@ INSERT INTO public.drivers (full_name, license_number, phone, status, created_at
 ('Émilie Rasolofo', 'PER-2020-019012', '+261 33 77 88 999', 'Actif', '2020-09-30');
 
 -- ============================================
--- PASSENGERS (Passagers)
+-- CLIENT TYPES (Types de clients)
 -- ============================================
-INSERT INTO public.passengers (full_name, phone, birth_date) VALUES
-('Rakoto Jean', '+261 32 11 11 111', '1985-03-15'),
-('Randrianasolo Marie', '+261 33 22 22 222', '1990-07-22'),
-('Andrianampoinimerina Pierre', '+261 34 33 33 333', '1978-11-08'),
-('Ramiandrasoa Sofia', '+261 32 44 44 444', '1992-05-18'),
-('Randrianampoinimerina Victor', '+261 33 55 55 555', '1988-09-30'),
-('Ratsimandresy Nathalie', '+261 34 66 66 666', '1995-02-14'),
-('Razafindrakoto Philippe', '+261 32 77 77 777', '1983-12-25'),
-('Rasolofo Émilie', '+261 33 88 88 888', '1991-06-10'),
-('Andriamampoinimerina Paul', '+261 34 99 99 999', '1987-04-03'),
-('Ravelo Henriette', '+261 32 10 10 100', '1975-08-27'),
-('Razafitsalama Joseph', '+261 33 20 20 200', '1980-01-19'),
-('Ratsimamanga Bernadette', '+261 34 30 30 300', '1993-10-11'),
-('Rafetrarimanana Laurent', '+261 32 40 40 400', '1982-03-07'),
-('Rambahoaka Christine', '+261 33 50 50 500', '1989-12-16'),
-('Ratsimanaro Michel', '+261 34 60 60 600', '1986-07-05'),
-('Razafintsalama Jacqueline', '+261 32 70 70 700', '1994-09-22'),
-('Ranjanahary Guillaume', '+261 33 80 80 800', '1981-11-28'),
-('Ramaroson Isabelle', '+261 34 90 90 900', '2020-04-13'),
-('Rakotoson Adrien', '+261 32 15 25 305', '2015-06-20'),
-('Rafavatonina Angélique', '+261 33 25 35 405', '2008-02-09');
+INSERT INTO public.client_types (name, description) VALUES
+('Passager', 'Client individuel voyageant seul ou en petit groupe'),
+('Société', 'Client professionnel ou entreprise pour transport de groupe');
+
+-- ============================================
+-- CLIENTS (Clients)
+-- ============================================
+-- Clients de type Passager
+INSERT INTO public.clients (full_name, phone, birth_date, client_type_id) VALUES
+('Rakoto Jean', '+261 32 11 11 111', '1985-03-15', 1),
+('Randrianasolo Marie', '+261 33 22 22 222', '1990-07-22', 1),
+('Andrianampoinimerina Pierre', '+261 34 33 33 333', '1978-11-08', 1),
+('Ramiandrasoa Sofia', '+261 32 44 44 444', '1992-05-18', 1),
+('Randrianampoinimerina Victor', '+261 33 55 55 555', '1988-09-30', 1),
+('Ratsimandresy Nathalie', '+261 34 66 66 666', '1995-02-14', 1),
+('Razafindrakoto Philippe', '+261 32 77 77 777', '1983-12-25', 1),
+('Rasolofo Émilie', '+261 33 88 88 888', '1991-06-10', 1),
+('Andriamampoinimerina Paul', '+261 34 99 99 999', '1987-04-03', 1),
+('Ravelo Henriette', '+261 32 10 10 100', '1975-08-27', 1),
+('Razafitsalama Joseph', '+261 33 20 20 200', '1980-01-19', 1),
+('Ratsimamanga Bernadette', '+261 34 30 30 300', '1993-10-11', 1),
+('Rafetrarimanana Laurent', '+261 32 40 40 400', '1982-03-07', 1),
+('Rambahoaka Christine', '+261 33 50 50 500', '1989-12-16', 1),
+('Ratsimanaro Michel', '+261 34 60 60 600', '1986-07-05', 1),
+('Razafintsalama Jacqueline', '+261 32 70 70 700', '1994-09-22', 1),
+('Ranjanahary Guillaume', '+261 33 80 80 800', '1981-11-28', 1),
+('Ramaroson Isabelle', '+261 34 90 90 900', '2020-04-13', 1),
+('Rakotoson Adrien', '+261 32 15 25 305', '2015-06-20', 1),
+('Rafavatonina Angélique', '+261 33 25 35 405', '2008-02-09', 1);
+
+-- Clients de type Société
+INSERT INTO public.clients (full_name, phone, birth_date, client_type_id) VALUES
+('JIRAMA Antananarivo', '+261 20 22 123 45', NULL, 2),
+('Air Madagascar', '+261 20 22 222 22', NULL, 2),
+('Telma Madagascar', '+261 34 07 123 45', NULL, 2),
+('Groupe STAR', '+261 33 11 222 33', NULL, 2),
+('Société Minière KRAOMA', '+261 20 62 123 45', NULL, 2);
 
 -- ============================================
 -- ROUTES (Trajets)
@@ -692,6 +708,65 @@ INSERT INTO public.discounts (route_id, trip_type_id, seat_type_id, amount, effe
 (2, 2, 3, 21000.00, '2024-01-01', 1),  -- Premium/VIP: 30% de 70000
 (2, 2, 4, 24000.00, '2024-01-01', 1),  -- Premium/Premium: 30% de 80000
 (2, 2, 5, 27000.00, '2024-01-01', 1);  -- Premium/Luxe: 30% de 90000
+
+-- ============================================
+-- TRIPS (Voyages - exemples)
+-- ============================================
+INSERT INTO public.trips (route_id, trip_type_id, vehicle_id, driver_id, departure_datetime, status, active) VALUES
+-- Voyages Antananarivo - Antsirabe
+(1, 1, 1, 1, '2024-01-25 08:00:00', 'Planifié', true),
+(1, 2, 2, 2, '2024-01-26 09:00:00', 'Planifié', true),
+(1, 1, 3, 3, '2024-01-27 07:30:00', 'Planifié', true),
+-- Voyages Antananarivo - Fianarantsoa
+(2, 1, 5, 4, '2024-01-25 06:00:00', 'Planifié', true),
+(2, 2, 6, 5, '2024-01-26 06:30:00', 'Planifié', true),
+-- Voyages Antananarivo - Toliara
+(3, 1, 8, 7, '2024-01-28 05:00:00', 'Planifié', true),
+-- Voyages retour
+(14, 1, 1, 1, '2024-01-25 14:00:00', 'Planifié', true),
+(15, 1, 5, 4, '2024-01-25 15:00:00', 'Planifié', true);
+
+-- ============================================
+-- SEATS (Sièges - exemples pour les véhicules)
+-- ============================================
+-- Véhicule 3101 TAB (Peugeot 504, 14 places)
+INSERT INTO public.seats (vehicle_id, seat_number, seat_type_id, status) VALUES
+(1, 'A1', 1, 'Disponible'), (1, 'A2', 1, 'Disponible'), (1, 'A3', 2, 'Disponible'), (1, 'A4', 2, 'Disponible'),
+(1, 'B1', 1, 'Disponible'), (1, 'B2', 1, 'Disponible'), (1, 'B3', 2, 'Disponible'), (1, 'B4', 2, 'Disponible'),
+(1, 'C1', 1, 'Disponible'), (1, 'C2', 1, 'Disponible'), (1, 'C3', 3, 'Disponible'), (1, 'C4', 3, 'Disponible'),
+(1, 'D1', 3, 'Disponible'), (1, 'D2', 3, 'Disponible');
+
+-- ============================================
+-- RESERVATIONS (Réservations - exemples)
+-- ============================================
+INSERT INTO public.reservations (client_id, trip_id, seat_id, reservation_date, amount, discount, status) VALUES
+(1, 1, 1, '2024-01-20 10:30:00', 25000.00, 7500.00, 'RESERVE'),
+(2, 1, 2, '2024-01-20 11:00:00', 25000.00, NULL, 'PAYE'),
+(3, 2, 3, '2024-01-21 09:15:00', 30000.00, NULL, 'RESERVE'),
+(4, 4, 5, '2024-01-22 14:20:00', 60000.00, 18000.00, 'RESERVE'),
+(5, 5, 6, '2024-01-22 15:45:00', 70000.00, NULL, 'PAYE');
+
+-- ============================================
+-- DIFFUSIONS (Diffusions - exemples pour sociétés)
+-- ============================================
+INSERT INTO public.diffusions (client_id, trip_id, amount, payment_date, status) VALUES
+(21, 1, 350000.00, '2024-01-23 10:00:00', 'PAYE'),
+(22, 4, 840000.00, NULL, 'EN_ATTENTE'),
+(23, 5, 980000.00, '2024-01-24 11:30:00', 'PAYE'),
+(24, 6, 1680000.00, NULL, 'EN_ATTENTE'),
+(25, 3, 392000.00, '2024-01-24 15:00:00', 'PAYE');
+
+-- ============================================
+-- REVENUES (Recettes - exemples)
+-- ============================================
+INSERT INTO public.revenues (reservation_id, diffusion_id, amount, payment_date, payment_method, reference, notes) VALUES
+-- Paiements de réservations
+(2, NULL, 25000.00, '2024-01-20 11:05:00', 'ESPECES', 'RES-2024-001', 'Paiement comptant'),
+(5, NULL, 70000.00, '2024-01-22 15:50:00', 'MOBILE_MONEY', 'MVOLA-123456', 'Paiement via MVola'),
+-- Paiements de diffusions
+(NULL, 1, 350000.00, '2024-01-23 10:05:00', 'VIREMENT', 'VIREMENT-2024-001', 'Virement bancaire JIRAMA'),
+(NULL, 3, 980000.00, '2024-01-24 11:35:00', 'CHEQUE', 'CHQ-45678', 'Chèque Telma Madagascar'),
+(NULL, 5, 392000.00, '2024-01-24 15:05:00', 'CARTE_BANCAIRE', 'CB-2024-789', 'Paiement par carte');
 
 
 -- ============================================

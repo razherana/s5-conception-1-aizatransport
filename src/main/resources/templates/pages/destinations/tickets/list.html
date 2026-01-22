@@ -41,7 +41,7 @@
               <div class="col-md-5">
                 <label class="form-label">
                   <i class="fa-solid fa-filter me-1"></i>
-                  Nom du passager
+                  Nom du client
                 </label>
                 <input
                   type="text"
@@ -58,7 +58,7 @@
                 </label>
                 <select name="sortBy" class="form-select">
                   <option value="purchaseDate" th:selected="${sortBy == 'purchaseDate'}">Date d'achat</option>
-                  <option value="passenger" th:selected="${sortBy == 'passenger'}">Passager</option>
+                  <option value="client" th:selected="${sortBy == 'client'}">Client</option>
                   <option value="amount" th:selected="${sortBy == 'amount'}">Montant</option>
                 </select>
               </div>
@@ -111,15 +111,15 @@
                 <tr th:each="ticket : ${tickets}">
                   <td th:text="${ticket.id}">1</td>
                   <td>
-                    <strong th:text="${ticket.passenger?.fullName}">Jean Dupont</strong><br>
-                    <small class="text-muted" th:text="${ticket.passenger?.phone}">+261 34 12 345 67</small>
+                    <strong th:text="${ticket.client?.fullName}">Jean Dupont</strong><br>
+                    <small class="text-muted" th:text="${ticket.client?.phone}">+261 34 12 345 67</small>
                   </td>
                   <td>
-                    <span th:if="${ticket.passenger?.birthDate != null}" class="badge bg-info">
+                    <span th:if="${ticket.client?.birthDate != null}" class="badge bg-info">
                       <i class="fa-solid fa-cake-candles me-1"></i>
-                      <span th:text="${ticket.passenger.getAge(#temporals.createToday())} + ' ans'">34 ans</span>
+                      <span th:text="${ticket.client.getAge(#temporals.createToday())} + ' ans'">34 ans</span>
                     </span>
-                    <span th:if="${ticket.passenger?.birthDate == null}" class="text-muted">
+                    <span th:if="${ticket.client?.birthDate == null}" class="text-muted">
                       <i class="fa-solid fa-minus"></i>
                     </span>
                   </td>

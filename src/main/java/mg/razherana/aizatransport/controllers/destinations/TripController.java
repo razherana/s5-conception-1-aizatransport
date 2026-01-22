@@ -270,29 +270,29 @@ public class TripController {
               .filter(t -> t.getTrip() != null && t.getTrip().getId().equals(id))
               .toList();
 
-          // Create maps of seat ID to passenger name and passenger ID
+          // Create maps of seat ID to client name and client ID
           Map<Integer, String> seatPassengerMap = new HashMap<>();
           Map<Integer, Integer> seatPassengerIds = new HashMap<>();
 
           for (Reservation reservation : reservations) {
-            if (reservation.getSeat() != null && reservation.getPassenger() != null) {
+            if (reservation.getSeat() != null && reservation.getClient() != null) {
               seatPassengerMap.put(
                   reservation.getSeat().getId(),
-                  reservation.getPassenger().getFullName() + " (Rés.)");
+                  reservation.getClient().getFullName() + " (Rés.)");
               seatPassengerIds.put(
                   reservation.getSeat().getId(),
-                  reservation.getPassenger().getId());
+                  reservation.getClient().getId());
             }
           }
 
           for (Ticket ticket : tickets) {
-            if (ticket.getSeat() != null && ticket.getPassenger() != null) {
+            if (ticket.getSeat() != null && ticket.getClient() != null) {
               seatPassengerMap.put(
                   ticket.getSeat().getId(),
-                  ticket.getPassenger().getFullName() + " (Tick.)");
+                  ticket.getClient().getFullName() + " (Tick.)");
               seatPassengerIds.put(
                   ticket.getSeat().getId(),
-                  ticket.getPassenger().getId());
+                  ticket.getClient().getId());
             }
           }
 

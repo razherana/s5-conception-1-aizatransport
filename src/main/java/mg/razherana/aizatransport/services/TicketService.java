@@ -25,11 +25,11 @@ public class TicketService {
   public List<Ticket> findAllFiltered(String passengerName, String sortBy, String sortOrder) {
     List<Ticket> tickets = ticketRepository.findAll();
 
-    // Filtrage par nom de passager
+    // Filtrage par nom de client
     if (passengerName != null && !passengerName.isEmpty()) {
       tickets = tickets.stream()
-          .filter(t -> t.getPassenger() != null && 
-                       t.getPassenger().getFullName().toLowerCase().contains(passengerName.toLowerCase()))
+          .filter(t -> t.getClient() != null && 
+                       t.getClient().getFullName().toLowerCase().contains(passengerName.toLowerCase()))
           .collect(Collectors.toList());
     }
 
@@ -53,7 +53,7 @@ public class TicketService {
     return switch (sortBy.toLowerCase()) {
       case "purchasedate" -> Comparator.comparing(Ticket::getPurchaseDate);
       case "amount" -> Comparator.comparing(Ticket::getAmount);
-      case "passenger" -> Comparator.comparing(t -> t.getPassenger() != null ? t.getPassenger().getFullName() : "");
+      case "client" -> Comparator.comparing(t -> t.getClient() != null ? t.getClient().getFullName() : "");
       default -> null;
     };
   }

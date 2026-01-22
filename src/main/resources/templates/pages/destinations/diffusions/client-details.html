@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Détails des diffusions - Client</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-list me-2"></i>
+          Détails des diffusions
+        </h1>
+        <div>
+          <a th:href="@{/diffusions/client/{clientId}/payment(clientId=${clientId})}" 
+             class="btn btn-success me-2"
+             th:if="${totalRemaining > 0}">
+            <i class="fa-solid fa-money-bill-wave me-1"></i>
+            Effectuer un paiement
+          </a>
+          <a th:href="@{/diffusions}" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Retour à la liste
+          </a>
+        </div>
+      </div>
+
+      <!-- Client Info -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="fa-solid fa-building me-2"></i>
+            <span th:text="${clientName}"></span>
+          </h5>
+          <div class="row mt-3">
+            <div class="col-md-3">
+              <div class="text-muted small">Montant total</div>
+              <div class="h4" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 2, 'POINT')} + ' Ar'"></div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-muted small">Montant payé</div>
+              <div class="h4 text-success" th:text="${#numbers.formatDecimal(totalPaid, 0, 'COMMA', 2, 'POINT')} + ' Ar'"></div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-muted small">Reste à payer</div>
+              <div class="h4 text-danger" th:text="${#numbers.formatDecimal(totalRemaining, 0, 'COMMA', 2, 'POINT')} + ' Ar'"></div>
+            </div>
+            <div class="col-md-3">
+              <div class="text-muted small">Nombre de diffusions</div>
+              <div class="h4" th:text="${diffusionCount}"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Liste des diffusions -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="fa-solid fa-bullhorn me-2"></i>
+            Liste des diffusions
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Voyage</th>
+                  <th>Désignation</th>
+                  <th>Montant</th>
+                  <th>Payé</th>
+                  <th>Reste</th>
+                  <th>Statut</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(diffusionDetails)}">
+                  <td colspan="8" class="text-center text-muted py-4">
+                    <i class="fa-solid fa-inbox fa-2x mb-2"></i>
+                    <p class="mb-0">Aucune diffusion trouvée</p>
+                  </td>
+                </tr>
+                <tr th:each="detail : ${diffusionDetails}">
+                  <td th:text="${detail.diffusion.id}"></td>
+                  <td>
+                    <div th:if="${detail.diffusion.trip != null}">
+                      <span th:text="${detail.diffusion.trip.route?.departureDestination?.name}"></span>
+                      <i class="fa-solid fa-arrow-right mx-1"></i>
+                      <span th:text="${detail.diffusion.trip.route?.arrivalDestination?.name}"></span>
+                      <br/>
+                      <small class="text-muted" th:text="${#temporals.format(detail.diffusion.trip.departureDatetime, 'dd/MM/yyyy HH:mm')}"></small>
+                    </div>
+                  </td>
+                  <td>
+                    <span th:text="${detail.diffusion.designation ?: '-'}"></span>
+                  </td>
+                  <td>
+                    <span class="fw-bold" th:text="${#numbers.formatDecimal(detail.diffusion.amount, 0, 'COMMA', 2, 'POINT')}"></span> Ar
+                  </td>
+                  <td>
+                    <span class="text-success" th:text="${#numbers.formatDecimal(detail.amountPaid, 0, 'COMMA', 2, 'POINT')}"></span> Ar
+                  </td>
+                  <td>
+                    <span class="text-danger" th:text="${#numbers.formatDecimal(detail.amountRemaining, 0, 'COMMA', 2, 'POINT')}"></span> Ar
+                  </td>
+                  <td>
+                    <span 
+                      class="badge"
+                      th:classappend="${detail.fullyPaid} ? 'bg-success' : (${detail.amountPaid > 0} ? 'bg-warning' : 'bg-danger')"
+                      th:text="${detail.fullyPaid} ? 'PAYÉ' : (${detail.amountPaid > 0} ? 'PARTIEL' : 'EN ATTENTE')"
+                    ></span>
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <a 
+                        th:href="@{/diffusions/view/{id}(id=${detail.diffusion.id})}"
+                        class="btn btn-outline-info"
+                        title="Voir"
+                      >
+                        <i class="fa-solid fa-eye"></i>
+                      </a>
+                      <a 
+                        th:href="@{/diffusions/update/{id}(id=${detail.diffusion.id})}"
+                        class="btn btn-outline-primary"
+                        title="Modifier"
+                      >
+                        <i class="fa-solid fa-edit"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historique des paiements -->
+      <div class="card mt-4 bg-white border-0 shadow-sm" th:if="${not #lists.isEmpty(payments)}">
+        <div class="card-body">
+          <h5 class="card-title mb-3">
+            <i class="fa-solid fa-history me-2"></i>
+            Historique des paiements
+          </h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Date</th>
+                  <th>Diffusion</th>
+                  <th>Montant</th>
+                  <th>Méthode</th>
+                  <th>Référence</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="payment : ${payments}">
+                  <td th:text="${#temporals.format(payment.paymentDate, 'dd/MM/yyyy HH:mm')}"></td>
+                  <td>
+                    <a th:href="@{/diffusions/view/{id}(id=${payment.diffusion.id})}" 
+                       th:text="'#' + ${payment.diffusion.id}">
+                    </a>
+                  </td>
+                  <td>
+                    <span class="fw-bold text-success" th:text="${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 2, 'POINT')}"></span> Ar
+                  </td>
+                  <td th:text="${payment.paymentMethod}"></td>
+                  <td th:text="${payment.reference ?: '-'}"></td>
+                  <td th:text="${payment.notes ?: '-'}"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

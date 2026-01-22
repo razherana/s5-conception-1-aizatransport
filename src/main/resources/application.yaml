@@ -11,7 +11,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/s5_conception_1_aizatransport
     username: postgres
-    password: postgres
+    password: psql
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 20000

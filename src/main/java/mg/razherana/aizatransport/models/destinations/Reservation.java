@@ -15,12 +15,12 @@ import mg.razherana.aizatransport.models.transports.Seat;
 @Entity
 @Table(name = "reservations", schema = "public")
 @Data
-@EqualsAndHashCode(excludes = {"passenger", "trip", "seat"})
+@EqualsAndHashCode(excludes = {"client", "trip", "seat"})
 public class Reservation extends BasicExpenseEntity {
 
   @ManyToOne
-  @JoinColumn(name = "passenger_id", nullable = false)
-  private Passenger passenger;
+  @JoinColumn(name = "client_id", nullable = false)
+  private Client client;
 
   @ManyToOne
   @JoinColumn(name = "trip_id", nullable = false)
@@ -45,6 +45,7 @@ public class Reservation extends BasicExpenseEntity {
 
   public enum ReservationStatus {
     RESERVE,
+    PAYE,
     ANNULE;
   }
 

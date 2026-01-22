@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Effectuer un paiement</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-money-bill-wave me-2"></i>
+          Effectuer un paiement
+        </h1>
+        <a th:href="@{/diffusions/client/{clientId}(clientId=${clientId})}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i>
+          Retour
+        </a>
+      </div>
+
+      <!-- Client Info -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="fa-solid fa-building me-2"></i>
+            <span th:text="${clientName}"></span>
+          </h5>
+          <div class="row mt-3">
+            <div class="col-md-4">
+              <div class="text-muted small">Montant total</div>
+              <div class="h4" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 2, 'POINT')} + ' Ar'"></div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-muted small">Montant payé</div>
+              <div class="h4 text-success" th:text="${#numbers.formatDecimal(totalPaid, 0, 'COMMA', 2, 'POINT')} + ' Ar'"></div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-muted small">Reste à payer</div>
+              <div class="h4 text-danger" th:text="${#numbers.formatDecimal(totalRemaining, 0, 'COMMA', 2, 'POINT')} + ' Ar'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulaire de paiement -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <form th:action="@{/diffusions/client/{clientId}/payment(clientId=${clientId})}" 
+                method="post">
+            <div class="row g-3">
+              <!-- Diffusion -->
+              <div class="col-md-12">
+                <label for="diffusionId" class="form-label">
+                  <i class="fa-solid fa-bullhorn me-1"></i>
+                  Sélectionner une diffusion <span class="text-danger">*</span>
+                </label>
+                <select id="diffusionId" name="diffusion.id" class="form-select" required>
+                  <option value="">Choisir une diffusion</option>
+                  <option th:each="detail : ${diffusionDetails}" 
+                          th:value="${detail.diffusion.id}"
+                          th:text="${'#' + detail.diffusion.id + ' - ' + (detail.diffusion.designation ?: 'Sans désignation') + ' - Montant: ' + #numbers.formatDecimal(detail.diffusion.amount, 0, 'COMMA', 2, 'POINT') + ' Ar - Reste: ' + #numbers.formatDecimal(detail.amountRemaining, 0, 'COMMA', 2, 'POINT') + ' Ar'}"
+                          th:disabled="${detail.amountRemaining <= 0}">
+                  </option>
+                </select>
+                <small class="text-muted">Sélectionnez la diffusion pour laquelle vous effectuez le paiement</small>
+              </div>
+
+              <!-- Montant -->
+              <div class="col-md-6">
+                <label for="amount" class="form-label">
+                  <i class="fa-solid fa-dollar-sign me-1"></i>
+                  Montant du paiement (Ar) <span class="text-danger">*</span>
+                </label>
+                <input type="number" 
+                       id="amount" 
+                       name="amount" 
+                       class="form-control" 
+                       step="0.01"
+                       min="0.01" 
+                       required 
+                       placeholder="Ex: 25000.00" />
+                <small class="text-muted">Montant de ce paiement partiel</small>
+              </div>
+
+              <!-- Date de paiement -->
+              <div class="col-md-6">
+                <label for="paymentDate" class="form-label">
+                  <i class="fa-solid fa-calendar me-1"></i>
+                  Date de paiement <span class="text-danger">*</span>
+                </label>
+                <input type="datetime-local" 
+                       id="paymentDate" 
+                       name="paymentDate"
+                       class="form-control" 
+                       required />
+              </div>
+
+              <!-- Méthode de paiement -->
+              <div class="col-md-6">
+                <label for="paymentMethod" class="form-label">
+                  <i class="fa-solid fa-credit-card me-1"></i>
+                  Méthode de paiement <span class="text-danger">*</span>
+                </label>
+                <select id="paymentMethod" name="paymentMethod" class="form-select" required>
+                  <option value="">Sélectionnez une méthode</option>
+                  <option value="ESPECES">Espèces</option>
+                  <option value="CARTE_BANCAIRE">Carte bancaire</option>
+                  <option value="VIREMENT">Virement</option>
+                  <option value="CHEQUE">Chèque</option>
+                  <option value="MOBILE_MONEY">Mobile Money</option>
+                </select>
+              </div>
+
+              <!-- Référence -->
+              <div class="col-md-6">
+                <label for="reference" class="form-label">
+                  <i class="fa-solid fa-hashtag me-1"></i>
+                  Référence
+                </label>
+                <input type="text" 
+                       id="reference" 
+                       name="reference" 
+                       class="form-control"
+                       placeholder="Ex: CHQ-2024-001" />
+                <small class="text-muted">Numéro de chèque, transaction, etc.</small>
+              </div>
+
+              <!-- Notes -->
+              <div class="col-md-12">
+                <label for="notes" class="form-label">
+                  <i class="fa-solid fa-note-sticky me-1"></i>
+                  Notes
+                </label>
+                <textarea id="notes" 
+                          name="notes" 
+                          class="form-control" 
+                          rows="3"
+                          placeholder="Commentaires ou notes supplémentaires"></textarea>
+              </div>
+
+              <!-- Boutons -->
+              <div class="col-12">
+                <hr class="my-3">
+                <button type="submit" class="btn btn-success">
+                  <i class="fa-solid fa-check me-1"></i>
+                  Enregistrer le paiement
+                </button>
+                <a th:href="@{/diffusions/client/{clientId}(clientId=${clientId})}" class="btn btn-secondary">
+                  <i class="fa-solid fa-times me-1"></i>
+                  Annuler
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
