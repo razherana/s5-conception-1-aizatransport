@@ -135,6 +135,7 @@
                 <tr>
                   <th>ID Trajet</th>
                   <th>Itinéraire</th>
+                  <th>Véhicule</th>
                   <th>Date départ</th>
                   <th>Statut</th>
                   <th class="text-end">CA Réservations</th>
@@ -160,6 +161,10 @@
                       Itinéraire
                     </span>
                     <span th:unless="${stat.trip.route != null}" class="text-muted">-</span>
+                  </td>
+                  <td>
+                    <span th:text="${stat.trip.vehicle.plateNumber}">
+                    </span>
                   </td>
                   <td>
                     <i class="fa-solid fa-calendar me-1"></i>
@@ -208,84 +213,7 @@
         </div>
       </div>
 
-      <!-- Graphique CA par trajet -->
-      <div class="card bg-white border-0 shadow-sm mt-4" th:if="${!#lists.isEmpty(tripStats)}">
-        <div class="card-header bg-white border-bottom py-3">
-          <h5 class="mb-0">
-            <i class="fa-solid fa-chart-bar me-2"></i>
-            Graphique CA par Trajet
-          </h5>
-        </div>
-        <div class="card-body">
-          <canvas id="caChart" height="100"></canvas>
-        </div>
-      </div>
     </section>
 
-    <!-- Chart.js Script -->
-    <script layout:fragment="scripts" th:inline="javascript">
-      document.addEventListener('DOMContentLoaded', function() {
-        const tripStats = /*[[${tripStats}]]*/ [];
-        
-        if (tripStats && tripStats.length > 0) {
-          const ctx = document.getElementById('caChart');
-          
-          const labels = tripStats.map(stat => `Trajet ${stat.trip.id}`);
-          const caReservations = tripStats.map(stat => stat.caReservations);
-          const caDiffusions = tripStats.map(stat => stat.caDiffusions);
-          
-          new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: labels,
-              datasets: [
-                {
-                  label: 'CA Réservations',
-                  data: caReservations,
-                  backgroundColor: 'rgba(40, 167, 69, 0.7)',
-                  borderColor: 'rgba(40, 167, 69, 1)',
-                  borderWidth: 1
-                },
-                {
-                  label: 'CA Diffusions',
-                  data: caDiffusions,
-                  backgroundColor: 'rgba(23, 162, 184, 0.7)',
-                  borderColor: 'rgba(23, 162, 184, 1)',
-                  borderWidth: 1
-                }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    callback: function(value) {
-                      return value.toLocaleString('fr-FR') + ' Ar';
-                    }
-                  }
-                }
-              },
-              plugins: {
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      let label = context.dataset.label || '';
-                      if (label) {
-                        label += ': ';
-                      }
-                      label += context.parsed.y.toLocaleString('fr-FR') + ' Ar';
-                      return label;
-                    }
-                  }
-                }
-              }
-            }
-          });
-        }
-      });
-    </script>
   </body>
 </html>

@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Reservation;
+import mg.razherana.aizatransport.models.destinations.Reservation.ReservationStatus;
 import mg.razherana.aizatransport.models.destinations.Revenue;
 import mg.razherana.aizatransport.models.destinations.Trip;
-import mg.razherana.aizatransport.models.destinations.Reservation.ReservationStatus;
 import mg.razherana.aizatransport.repositories.RevenueRepository;
 
 @Service
@@ -24,7 +24,7 @@ public class RevenueService {
 
   private final RevenueRepository revenueRepository;
   private final ReservationService reservationService;
-  private final DiffusionFilleService diffusionFilleService;
+  private final DiffusionService diffusionService;
 
   public List<Revenue> findAll() {
     return revenueRepository.findAll();
@@ -120,16 +120,16 @@ public class RevenueService {
         .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(trip.getId()))
         .filter(r -> (r.getReservationDate().isAfter(min) || r.getReservationDate().isEqual(min))
             && (r.getReservationDate().isBefore(max) || r.getReservationDate().isEqual(max)))
-        .filter(r -> r.getStatusEnum() == ReservationStatus.PAYE)
+        .filter(r -> r.getStatusEnum() != ReservationStatus.ANNULE)
         .mapToDouble(Reservation::getTotalAmount)
         .sum();
   }
-
+  
   public double getCADiffusions(Trip trip, LocalDateTime min, LocalDateTime max) {
-    return diffusionFilleService.findAll().stream()
-        .filter(d -> d.getDiffusion().getTrip() != null && d.getDiffusion().getTrip().getId().equals(trip.getId()))
-        .filter(r -> (r.getPaymentDate().isAfter(min) || r.getPaymentDate().isEqual(min))
-            && (r.getPaymentDate().isBefore(max) || r.getPaymentDate().isEqual(max)))
+    return diffusionService.findAll().stream()
+        .filter(d -> d.getTrip() != null && d.getTrip().getId().equals(trip.getId()))
+        .filter(r -> (r.getTrip().getDepartureDatetime().isAfter(min) || r.getTrip().getDepartureDatetime().isEqual(min))
+            && (r.getTrip().getDepartureDatetime().isBefore(max) || r.getTrip().getDepartureDatetime().isEqual(max)))
         .mapToDouble(d -> d.getAmount())
         .sum();
   }

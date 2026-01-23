@@ -120,20 +120,15 @@ public class RevenueController {
 
   @PostMapping("/create")
   public String create(@ModelAttribute Revenue revenue, RedirectAttributes redirectAttributes) {
-    // Update status of reservation or diffusion to PAYE
+    // Update status of reservation to PAYE
     if (revenue.getReservation() != null && revenue.getReservation().getId() != null) {
       // Fetch the full reservation from database before updating
       reservationService.findById(revenue.getReservation().getId()).ifPresent(reservation -> {
         reservation.setStatus("PAYE");
         reservationService.save(reservation);
       });
-    } else if (revenue.getDiffusion() != null && revenue.getDiffusion().getId() != null) {
-      // Fetch the full diffusion from database before updating
-      diffusionService.findById(revenue.getDiffusion().getId()).ifPresent(diffusion -> {
-        diffusion.setStatus("PAYE");
-        diffusionService.save(diffusion);
-      });
     }
+    // Note: Diffusion no longer has status field - payment tracking moved to Facture system
     
     revenueService.save(revenue);
     redirectAttributes.addFlashAttribute("success", "Recette enregistrée avec succès!");

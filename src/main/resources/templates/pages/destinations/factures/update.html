@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.ultraq.net.nz/thymeleaf/layout"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Modifier la facture</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-edit me-2"></i>
+          Modifier la facture
+        </h1>
+        <a th:href="@{/factures/view/{id}(id=${facture.id})}" class="btn btn-secondary">
+          <i class="fa-solid fa-arrow-left me-2"></i>Retour
+        </a>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-body">
+              <form th:action="@{/factures/update/{id}(id=${facture.id})}" method="post" th:object="${facture}">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="client" class="form-label">
+                      Client <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="client" th:field="*{client.id}" required>
+                      <option value="">Sélectionner un client</option>
+                      <option th:each="client : ${clients}" 
+                              th:value="${client.id}" 
+                              th:text="${client.fullName}"></option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="ref" class="form-label">
+                      Référence <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="ref" 
+                           th:field="*{ref}" required>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="factureDate" class="form-label">
+                      Date de facture <span class="text-danger">*</span>
+                    </label>
+                    <input type="datetime-local" class="form-control" id="factureDate" 
+                           th:field="*{factureDate}" required>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                  <a th:href="@{/factures/view/{id}(id=${facture.id})}" class="btn btn-secondary">Annuler</a>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-save me-2"></i>Enregistrer les modifications
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h6 class="card-title">
+                <i class="fa-solid fa-info-circle me-2"></i>Note
+              </h6>
+              <p class="small mb-0">
+                Utilisez la page de détails pour gérer les diffusions et les paiements associés à cette facture.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

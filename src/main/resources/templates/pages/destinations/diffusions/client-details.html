@@ -16,11 +16,9 @@
           Détails des diffusions
         </h1>
         <div>
-          <a th:href="@{/diffusions/client/{clientId}/payment(clientId=${clientId})}" 
-             class="btn btn-success me-2"
-             th:if="${totalRemaining > 0}">
-            <i class="fa-solid fa-money-bill-wave me-1"></i>
-            Effectuer un paiement
+          <a th:href="@{/factures}" class="btn btn-success me-2">
+            <i class="fa-solid fa-file-invoice me-1"></i>
+            Voir les factures
           </a>
           <a th:href="@{/diffusions}" class="btn btn-outline-secondary">
             <i class="fa-solid fa-arrow-left me-1"></i>

@@ -85,39 +85,19 @@
                 />
               </div>
 
-              <!-- Date de paiement -->
+              <!-- Designation -->
               <div class="col-md-6">
-                <label for="paymentDate" class="form-label">
-                  <i class="fa-solid fa-calendar me-1"></i>
-                  Date de paiement
+                <label for="designation" class="form-label">
+                  <i class="fa-solid fa-file-alt me-1"></i>
+                  Désignation
                 </label>
                 <input 
-                  type="datetime-local" 
-                  id="paymentDate" 
-                  th:field="*{paymentDate}" 
+                  type="text" 
+                  id="designation" 
+                  th:field="*{designation}" 
                   class="form-control"
+                  placeholder="Description de la diffusion"
                 />
-              </div>
-
-              <!-- Statut -->
-              <div class="col-md-6">
-                <label for="status" class="form-label">
-                  <i class="fa-solid fa-info-circle me-1"></i>
-                  Statut <span class="text-danger">*</span>
-                </label>
-                <select 
-                  id="status" 
-                  th:field="*{status}" 
-                  class="form-select" 
-                  required
-                >
-                  <option value="">Sélectionnez un statut</option>
-                  <option 
-                    th:each="status : ${statuses}" 
-                    th:value="${status}"
-                    th:text="${status}"
-                  ></option>
-                </select>
               </div>
 
               <!-- Boutons -->

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Détails de la facture</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-file-invoice me-2"></i>
+          Facture <span th:text="${facture.ref}"></span>
+        </h1>
+        <div>
+          <a th:href="@{/factures/{id}/add-payment(id=${facture.id})}" 
+             class="btn btn-success me-2"
+             th:if="${!isFullyPaid}">
+            <i class="fa-solid fa-money-bill me-2"></i>Enregistrer un paiement
+          </a>
+          <a th:href="@{/factures/update/{id}(id=${facture.id})}" class="btn btn-primary me-2">
+            <i class="fa-solid fa-edit me-2"></i>Modifier
+          </a>
+          <a href="/factures" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left me-2"></i>Retour
+          </a>
+        </div>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <div class="row">
+        <!-- Invoice Info -->
+        <div class="col-lg-8">
+          <div class="card mb-4 bg-white border-0 shadow-sm">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Informations générales</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="text-muted small">Client</label>
+                  <div class="fw-bold" th:text="${facture.client?.fullName}"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="text-muted small">Référence</label>
+                  <div class="fw-bold" th:text="${facture.ref}"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="text-muted small">Date de facture</label>
+                  <div th:text="${#temporals.format(facture.factureDate, 'dd/MM/yyyy HH:mm')}"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="text-muted small">Statut</label>
+                  <div>
+                    <span th:if="${isFullyPaid}" class="badge bg-success">
+                      <i class="fa-solid fa-check me-1"></i>Payée
+                    </span>
+                    <span th:unless="${isFullyPaid}" class="badge bg-warning text-dark">
+                      <i class="fa-solid fa-clock me-1"></i>En attente
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diffusions -->
+          <div class="card mb-4 bg-white border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">Diffusions incluses</h5>
+              <a th:href="@{/factures/{id}/add-diffusion(id=${facture.id})}" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-plus me-1"></i>Ajouter
+              </a>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Voyage</th>
+                      <th>Désignation</th>
+                      <th class="text-end">Montant</th>
+                      <th class="text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:if="${facture.factureDiffusionFilles.isEmpty()}">
+                      <td colspan="4" class="text-center text-muted py-3">
+                        Aucune diffusion ajoutée
+                      </td>
+                    </tr>
+                    <tr th:each="fdf : ${facture.factureDiffusionFilles}">
+                      <td>
+                        <span th:if="${fdf.diffusion?.trip != null}">
+                          <span th:text="${fdf.diffusion.trip.route?.departureDestination?.name}"></span>
+                          <i class="fa-solid fa-arrow-right mx-1"></i>
+                          <span th:text="${fdf.diffusion.trip.route?.arrivalDestination?.name}"></span>
+                        </span>
+                      </td>
+                      <td th:text="${fdf.diffusion?.designation}"></td>
+                      <td class="text-end">
+                        <strong th:text="${#numbers.formatDecimal(fdf.diffusion?.amount, 0, 'POINT', 2, 'COMMA')} + ' Ar'"></strong>
+                      </td>
+                      <td class="text-center">
+                        <form th:action="@{/factures/{factureId}/remove-diffusion/{diffusionId}(factureId=${facture.id}, diffusionId=${fdf.diffusion?.id})}" 
+                              method="post" class="d-inline">
+                          <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                  onclick="return confirm('Retirer cette diffusion de la facture?')">
+                            <i class="fa-solid fa-trash"></i>
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payments -->
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Historique des paiements</h5>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th class="text-end">Montant</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:if="${facture.facturePayments.isEmpty()}">
+                      <td colspan="2" class="text-center text-muted py-3">
+                        Aucun paiement enregistré
+                      </td>
+                    </tr>
+                    <tr th:each="payment : ${facture.facturePayments}">
+                      <td th:text="${#temporals.format(payment.paymentDate, 'dd/MM/yyyy HH:mm')}"></td>
+                      <td class="text-end">
+                        <strong th:text="${#numbers.formatDecimal(payment.amount, 0, 'POINT', 2, 'COMMA')} + ' Ar'"></strong>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="col-lg-4">
+          <div class="card bg-light sticky-top" style="top: 20px;">
+            <div class="card-body">
+              <h5 class="card-title mb-4">
+                <i class="fa-solid fa-calculator me-2"></i>Résumé financier
+              </h5>
+              
+              <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                <span class="text-muted">Montant total</span>
+                <strong class="fs-5" th:text="${#numbers.formatDecimal(totalAmount, 0, 'POINT', 2, 'COMMA')} + ' Ar'"></strong>
+              </div>
+              
+              <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                <span class="text-muted">Montant payé</span>
+                <strong class="text-success" th:text="${#numbers.formatDecimal(amountPaid, 0, 'POINT', 2, 'COMMA')} + ' Ar'"></strong>
+              </div>
+              
+              <div class="d-flex justify-content-between mb-4">
+                <span class="fw-bold">Reste à payer</span>
+                <strong class="fs-4" 
+                        th:classappend="${amountRemaining <= 0} ? 'text-success' : 'text-danger'"
+                        th:text="${#numbers.formatDecimal(amountRemaining, 0, 'POINT', 2, 'COMMA')} + ' Ar'"></strong>
+              </div>
+
+              <div th:if="${isFullyPaid}" class="alert alert-success mb-0">
+                <i class="fa-solid fa-check-circle me-2"></i>
+                Cette facture est entièrement payée
+              </div>
+
+              <div th:unless="${isFullyPaid}" class="alert alert-warning mb-0">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                Paiement en attente
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

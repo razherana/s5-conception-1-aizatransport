@@ -1,6 +1,5 @@
 package mg.razherana.aizatransport.services;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -25,21 +24,14 @@ public class DiffusionService {
     return diffusionRepository.findAll();
   }
 
-  public List<Diffusion> findAllFiltered(String clientName, String status, String sortBy, String sortOrder) {
-    List<Diffusion> diffusions = diffusionRepository.findAllWithPayments();
+  public List<Diffusion> findAllFiltered(String clientName, String sortBy, String sortOrder) {
+    List<Diffusion> diffusions = diffusionRepository.findAll();
 
     // Filtrage par nom de client
     if (clientName != null && !clientName.isEmpty()) {
       diffusions = diffusions.stream()
           .filter(d -> d.getClient() != null &&
               d.getClient().getFullName().toLowerCase().contains(clientName.toLowerCase()))
-          .collect(Collectors.toList());
-    }
-
-    // Filtrage par statut
-    if (status != null && !status.isEmpty()) {
-      diffusions = diffusions.stream()
-          .filter(d -> d.getStatus().equalsIgnoreCase(status))
           .collect(Collectors.toList());
     }
 
@@ -61,21 +53,15 @@ public class DiffusionService {
 
   private Comparator<Diffusion> getComparator(String sortBy) {
     return switch (sortBy.toLowerCase()) {
-      case "paymentdate" -> Comparator.comparing(Diffusion::getPaymentDate, 
-          Comparator.nullsLast(Comparator.naturalOrder()));
-      case "status" -> Comparator.comparing(Diffusion::getStatus);
-      case "amount" -> Comparator.comparing(Diffusion::getAmount);
+      case "amount" -> Comparator.comparing(Diffusion::getAmount, Comparator.nullsLast(Comparator.naturalOrder()));
       case "client" -> Comparator.comparing(d -> d.getClient() != null ? d.getClient().getFullName() : "");
+      case "trip" -> Comparator.comparing(d -> d.getTrip() != null && d.getTrip().getId() != null ? d.getTrip().getId() : 0);
       default -> null;
     };
   }
 
   public Optional<Diffusion> findById(Integer id) {
     return diffusionRepository.findById(id);
-  }
-
-  public Optional<Diffusion> findByIdWithPayments(Integer id) {
-    return diffusionRepository.findByIdWithPayments(id);
   }
 
   public Diffusion save(Diffusion diffusion) {
@@ -98,46 +84,7 @@ public class DiffusionService {
     diffusionRepository.deleteById(id);
   }
 
-  public List<String> getAllStatuses() {
-    return Arrays.stream(Diffusion.DiffusionStatus.values())
-        .map(Enum::name)
-        .collect(Collectors.toList());
-  }
-
   public List<Diffusion> findAllByClientId(Integer clientId) {
-    return diffusionRepository.findAllByClientIdWithPayments(clientId);
-  }
-
-  /**
-   * Calculate the total amount already paid for a diffusion
-   * Note: Diffusion should be loaded with diffusionFilles collection
-   */
-  public Double calculateAmountPaid(Diffusion diffusion) {
-    if (diffusion == null || diffusion.getDiffusionFilles() == null || diffusion.getDiffusionFilles().isEmpty()) {
-      return 0.0;
-    }
-    return diffusion.getDiffusionFilles().stream()
-        .mapToDouble(df -> df.getAmount() != null ? df.getAmount() : 0.0)
-        .sum();
-  }
-
-  /**
-   * Calculate the remaining amount to be paid for a diffusion
-   * Note: Diffusion should be loaded with diffusionFilles collection
-   */
-  public Double calculateAmountRemaining(Diffusion diffusion) {
-    if (diffusion == null) {
-      return 0.0;
-    }
-    double total = diffusion.getAmount() != null ? diffusion.getAmount() : 0.0;
-    double paid = calculateAmountPaid(diffusion);
-    return total - paid;
-  }
-
-  /**
-   * Check if a diffusion is fully paid
-   */
-  public boolean isFullyPaid(Diffusion diffusion) {
-    return calculateAmountRemaining(diffusion) <= 0.001; // Using small epsilon for double comparison
+    return diffusionRepository.findAllByClientId(clientId);
   }
 }

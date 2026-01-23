@@ -85,30 +85,6 @@
                             <small class="text-muted">Description ou motif de la diffusion</small>
                         </div>
 
-                        <!-- Date de paiement -->
-                        <div class="col-md-6">
-                            <label for="paymentDate" class="form-label">
-                                <i class="fa-solid fa-calendar me-1"></i>
-                                Date de paiement
-                            </label>
-                            <input type="datetime-local" id="paymentDate" th:field="*{paymentDate}"
-                                class="form-control" />
-                            <small class="text-muted">Laissez vide si pas encore payé</small>
-                        </div>
-
-                        <!-- Statut -->
-                        <div class="col-md-6">
-                            <label for="status" class="form-label">
-                                <i class="fa-solid fa-info-circle me-1"></i>
-                                Statut <span class="text-danger">*</span>
-                            </label>
-                            <select id="status" th:field="*{status}" class="form-select" required>
-                                <option value="">Sélectionnez un statut</option>
-                                <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}">
-                                </option>
-                            </select>
-                        </div>
-
                         <!-- Boutons -->
                         <div class="col-12">
                             <hr class="my-3">

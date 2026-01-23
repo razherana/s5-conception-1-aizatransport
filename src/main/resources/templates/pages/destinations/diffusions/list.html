@@ -38,7 +38,7 @@
         <div class="card-body">
           <form method="get" th:action="@{/diffusions}">
             <div class="row g-3">
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <label class="form-label">
                   <i class="fa-solid fa-filter me-1"></i>
                   Nom du client
@@ -51,31 +51,15 @@
                   placeholder="Rechercher par nom"
                 />
               </div>
-              <div class="col-md-3">
-                <label class="form-label">
-                  <i class="fa-solid fa-filter me-1"></i>
-                  Statut
-                </label>
-                <select name="status" class="form-select">
-                  <option value="">Tous les statuts</option>
-                  <option
-                    th:each="status : ${statuses}"
-                    th:value="${status}"
-                    th:text="${status}"
-                    th:selected="${status == selectedStatus}"
-                  ></option>
-                </select>
-              </div>
-              <div class="col-md-3">
+              <div class="col-md-4">
                 <label class="form-label">
                   <i class="fa-solid fa-sort me-1"></i>
                   Trier par
                 </label>
                 <select name="sortBy" class="form-select">
-                  <option value="paymentDate" th:selected="${sortBy == 'paymentDate'}">Date de paiement</option>
                   <option value="client" th:selected="${sortBy == 'client'}">Client</option>
                   <option value="amount" th:selected="${sortBy == 'amount'}">Montant</option>
-                  <option value="status" th:selected="${sortBy == 'status'}">Statut</option>
+                  <option value="trip" th:selected="${sortBy == 'trip'}">Voyage</option>
                 </select>
               </div>
               <div class="col-md-2">
@@ -107,60 +91,74 @@
             <table class="table table-hover align-middle">
               <thead class="table-light">
                 <tr>
+                  <th>ID</th>
                   <th>Client (Société)</th>
-                  <th>Montant total</th>
-                  <th>Montant payé</th>
-                  <th>Reste à payer</th>
-                  <th>Statut</th>
+                  <th>Voyage</th>
+                  <th>Désignation</th>
+                  <th>Montant</th>
                   <th class="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                <tr th:if="${#lists.isEmpty(clientDiffusionSummaries)}">
+                <tr th:if="${#lists.isEmpty(diffusions)}">
                   <td colspan="6" class="text-center text-muted py-4">
                     <i class="fa-solid fa-inbox fa-2x mb-2"></i>
                     <p class="mb-0">Aucune diffusion trouvée</p>
                   </td>
                 </tr>
-                <tr th:each="summary : ${clientDiffusionSummaries}">
+                <tr th:each="diffusion : ${diffusions}">
                   <td>
-                    <div class="fw-bold" th:text="${summary.clientName}"></div>
+                    <span class="text-muted" th:text="'#' + ${diffusion.id}"></span>
                   </td>
                   <td>
-                    <span class="fw-bold" th:text="${#numbers.formatDecimal(summary.totalAmount, 0, 'COMMA', 2, 'POINT')}"></span> Ar
+                    <div class="fw-bold" th:text="${diffusion.client?.fullName}"></div>
                   </td>
                   <td>
-                    <span class="text-success fw-bold" th:text="${#numbers.formatDecimal(summary.paidAmount, 0, 'COMMA', 2, 'POINT')}"></span> Ar
+                    <div th:if="${diffusion.trip != null}">
+                      <span th:text="${diffusion.trip.route?.departureDestination?.name}"></span>
+                      <i class="fa-solid fa-arrow-right mx-1"></i>
+                      <span th:text="${diffusion.trip.route?.arrivalDestination?.name}"></span>
+                      <br/>
+                      <small class="text-muted" th:text="${#temporals.format(diffusion.trip.departureDatetime, 'dd/MM/yyyy HH:mm')}"></small>
+                    </div>
+                    <span th:if="${diffusion.trip == null}" class="text-muted">-</span>
                   </td>
                   <td>
-                    <span class="text-danger fw-bold" th:text="${#numbers.formatDecimal(summary.remainingAmount, 0, 'COMMA', 2, 'POINT')}"></span> Ar
+                    <span th:text="${diffusion.designation ?: '-'}"></span>
                   </td>
                   <td>
-                    <span 
-                      class="badge"
-                      th:classappend="${summary.remainingAmount <= 0} ? 'bg-success' : (${summary.remainingAmount < summary.totalAmount} ? 'bg-warning' : 'bg-danger')"
-                      th:text="${summary.remainingAmount <= 0} ? 'PAYÉ' : (${summary.remainingAmount < summary.totalAmount} ? 'PARTIELLEMENT PAYÉ' : 'EN ATTENTE')"
-                    ></span>
+                    <span class="fw-bold" th:text="${#numbers.formatDecimal(diffusion.amount, 0, 'COMMA', 2, 'POINT')}"></span> Ar
                   </td>
                   <td class="text-end">
                     <div class="btn-group btn-group-sm">
                       <a 
-                        th:href="@{/diffusions/client/{clientId}(clientId=${summary.clientId})}"
+                        th:href="@{/diffusions/view/{id}(id=${diffusion.id})}"
                         class="btn btn-outline-info"
-                        title="Voir les détails"
+                        title="Voir"
                       >
-                        <i class="fa-solid fa-list"></i>
-                        Détails
+                        <i class="fa-solid fa-eye"></i>
                       </a>
                       <a 
-                        th:if="${summary.remainingAmount > 0}"
-                        th:href="@{/diffusions/client/{clientId}/payment(clientId=${summary.clientId})}"
-                        class="btn btn-success"
-                        title="Effectuer un paiement"
+                        th:href="@{/diffusions/update/{id}(id=${diffusion.id})}"
+                        class="btn btn-outline-primary"
+                        title="Modifier"
                       >
-                        <i class="fa-solid fa-money-bill-wave"></i>
-                        Payer
+                        <i class="fa-solid fa-edit"></i>
                       </a>
+                      <form 
+                        th:action="@{/diffusions/delete/{id}(id=${diffusion.id})}"
+                        method="post"
+                        style="display: inline;"
+                        onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette diffusion ?');"
+                      >
+                        <button 
+                          type="submit"
+                          class="btn btn-outline-danger btn-sm"
+                          title="Supprimer"
+                        >
+                          <i class="fa-solid fa-trash"></i>
+                        </button>
+                      </form>
                     </div>
                   </td>
                 </tr>

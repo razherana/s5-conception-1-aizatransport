@@ -55,6 +55,7 @@ public class SidebarControllerAdvice {
 
     gestion.createItem("Réservations", "/reservations", "fa-solid fa-ticket");
     gestion.createItem("Diffusions", "/diffusions", "fa-solid fa-bullhorn");
+    gestion.createItem("Factures", "/factures", "fa-solid fa-file-invoice");
     gestion.createItem("Tickets", "/tickets", "fa-solid fa-ticket");
     gestion.createItem("Dépenses", "/expenses", "fa-solid fa-money-bill-wave");
 

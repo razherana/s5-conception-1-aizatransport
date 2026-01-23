@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Créer une facture</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-file-invoice me-2"></i>
+          Créer une facture
+        </h1>
+        <a th:href="@{/factures}" class="btn btn-secondary">
+          <i class="fa-solid fa-arrow-left me-2"></i>Retour
+        </a>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Informations de la facture</h5>
+            </div>
+            <div class="card-body">
+              <form th:action="@{/factures/create}" method="post" th:object="${facture}">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="client" class="form-label">
+                      Client <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="client" th:field="*{client.id}" required>
+                      <option value="">Sélectionner un client</option>
+                      <option th:each="client : ${clients}" 
+                              th:value="${client.id}" 
+                              th:text="${client.fullName}"></option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="ref" class="form-label">
+                      Référence <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="ref" 
+                           th:field="*{ref}" placeholder="F-2026-001" required>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="factureDate" class="form-label">
+                      Date de facture <span class="text-danger">*</span>
+                    </label>
+                    <input type="datetime-local" class="form-control" id="factureDate" 
+                           th:field="*{factureDate}" required>
+                  </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="mb-3">
+                  <h6 class="mb-3">Sélectionner les diffusions à inclure</h6>
+                  <div class="alert alert-info">
+                    <i class="fa-solid fa-info-circle me-2"></i>
+                    Sélectionnez les diffusions que vous souhaitez inclure dans cette facture. 
+                    Vous pourrez aussi en ajouter plus tard.
+                  </div>
+                  
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                      <thead>
+                        <tr>
+                          <th style="width: 50px;">
+                            <input type="checkbox" id="selectAll" class="form-check-input">
+                          </th>
+                          <th>Client</th>
+                          <th>Voyage</th>
+                          <th>Désignation</th>
+                          <th class="text-end">Montant</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr th:if="${diffusions.isEmpty()}">
+                          <td colspan="5" class="text-center text-muted py-3">
+                            Aucune diffusion disponible
+                          </td>
+                        </tr>
+                        <tr th:each="diffusion : ${diffusions}">
+                          <td>
+                            <input type="checkbox" name="selectedDiffusions" 
+                                   th:value="${diffusion.id}" 
+                                   class="form-check-input diffusion-checkbox">
+                          </td>
+                          <td th:text="${diffusion.client?.fullName}"></td>
+                          <td>
+                            <span th:if="${diffusion.trip != null}">
+                              <span th:text="${diffusion.trip.route?.departureDestination?.name}"></span>
+                              <i class="fa-solid fa-arrow-right mx-1"></i>
+                              <span th:text="${diffusion.trip.route?.arrivalDestination?.name}"></span>
+                            </span>
+                          </td>
+                          <td th:text="${diffusion.designation}"></td>
+                          <td class="text-end">
+                            <strong th:text="${#numbers.formatDecimal(diffusion.amount, 0, 'POINT', 2, 'COMMA')} + ' Ar'"></strong>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                  <a href="/factures" class="btn btn-secondary">Annuler</a>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-save me-2"></i>Créer la facture
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h6 class="card-title">
+                <i class="fa-solid fa-info-circle me-2"></i>Informations
+              </h6>
+              <ul class="small mb-0">
+                <li class="mb-2">Une facture regroupe plusieurs diffusions</li>
+                <li class="mb-2">Vous pouvez ajouter/retirer des diffusions après création</li>
+                <li class="mb-2">Les paiements sont enregistrés au niveau de la facture</li>
+                <li>La référence doit être unique</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <script>
+      // Select all checkbox functionality
+      document.getElementById('selectAll')?.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.diffusion-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+      });
+
+      // Filter diffusions by selected client
+      document.getElementById('client')?.addEventListener('change', function() {
+        const selectedClientId = this.value;
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+          if (!row.dataset.clientId) return;
+          
+          if (!selectedClientId || row.dataset.clientId === selectedClientId) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+            row.querySelector('.diffusion-checkbox').checked = false;
+          }
+        });
+      });
+    </script>
+    </section>
+  </body>
+</html>

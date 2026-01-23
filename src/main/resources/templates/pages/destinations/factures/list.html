@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Liste des factures</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-file-invoice me-2"></i>
+          Liste des factures
+        </h1>
+        <a th:href="@{/factures/create}" class="btn btn-primary">
+          <i class="fa-solid fa-plus me-1"></i>
+          Nouvelle facture
+        </a>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- Filtres et tri -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <form method="get" action="/factures" class="row g-3">
+            <div class="col-md-4">
+              <label for="clientName" class="form-label">Client</label>
+              <input type="text" class="form-control" id="clientName" name="clientName" 
+                     th:value="${selectedClientName}" placeholder="Nom du client">
+            </div>
+            <div class="col-md-3">
+              <label for="sortBy" class="form-label">Trier par</label>
+              <select class="form-select" id="sortBy" name="sortBy">
+                <option value="facturedate" th:selected="${sortBy == 'facturedate'}">Date facture</option>
+                <option value="ref" th:selected="${sortBy == 'ref'}">Référence</option>
+                <option value="client" th:selected="${sortBy == 'client'}">Client</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="sortOrder" class="form-label">Ordre</label>
+              <select class="form-select" id="sortOrder" name="sortOrder">
+                <option value="asc" th:selected="${sortOrder == 'asc'}">Croissant</option>
+                <option value="desc" th:selected="${sortOrder == 'desc'}">Décroissant</option>
+              </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fa-solid fa-filter me-2"></i>Filtrer
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Référence</th>
+                  <th>Client</th>
+                  <th>Date</th>
+                  <th class="text-end">Montant total</th>
+                  <th class="text-end">Montant payé</th>
+                  <th class="text-end">Reste à payer</th>
+                  <th class="text-center">Statut</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${factureDTOs.isEmpty()}">
+                  <td colspan="8" class="text-center text-muted py-4">
+                    <i class="fa-solid fa-inbox fa-3x mb-3 d-block"></i>
+                    Aucune facture trouvée
+                  </td>
+                </tr>
+                <tr th:each="dto : ${factureDTOs}">
+                  <td>
+                    <strong th:text="${dto.facture.ref}"></strong>
+                  </td>
+                  <td th:text="${dto.facture.client?.fullName}"></td>
+                  <td th:text="${#temporals.format(dto.facture.factureDate, 'dd/MM/yyyy HH:mm')}"></td>
+                  <td class="text-end">
+                    <span th:text="${#numbers.formatDecimal(dto.totalAmount, 0, 'POINT', 2, 'COMMA')} + ' Ar'"></span>
+                  </td>
+                  <td class="text-end">
+                    <span th:text="${#numbers.formatDecimal(dto.amountPaid, 0, 'POINT', 2, 'COMMA')} + ' Ar'"></span>
+                  </td>
+                  <td class="text-end">
+                    <span th:text="${#numbers.formatDecimal(dto.amountRemaining, 0, 'POINT', 2, 'COMMA')} + ' Ar'"></span>
+                  </td>
+                  <td class="text-center">
+                    <span th:if="${dto.fullyPaid}" class="badge bg-success">
+                      <i class="fa-solid fa-check me-1"></i>Payée
+                    </span>
+                    <span th:unless="${dto.fullyPaid}" class="badge bg-warning text-dark">
+                      <i class="fa-solid fa-clock me-1"></i>En attente
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <a th:href="@{/factures/view/{id}(id=${dto.facture.id})}" 
+                         class="btn btn-outline-info" title="Voir">
+                        <i class="fa-solid fa-eye"></i>
+                      </a>
+                      <a th:href="@{/factures/{id}/add-payment(id=${dto.facture.id})}" 
+                         class="btn btn-outline-success" title="Payer"
+                         th:classappend="${dto.fullyPaid} ? 'disabled' : ''">
+                        <i class="fa-solid fa-money-bill"></i>
+                      </a>
+                      <a th:href="@{/factures/update/{id}(id=${dto.facture.id})}" 
+                         class="btn btn-outline-primary" title="Modifier">
+                        <i class="fa-solid fa-edit"></i>
+                      </a>
+                      <button type="button" class="btn btn-outline-danger" title="Supprimer"
+                              data-bs-toggle="modal" th:data-bs-target="'#deleteModal' + ${dto.facture.id}">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+
+                    <!-- Delete Modal -->
+                    <div class="modal fade" th:id="'deleteModal' + ${dto.facture.id}" tabindex="-1">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Confirmer la suppression</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                          </div>
+                          <div class="modal-body">
+                            <p>Êtes-vous sûr de vouloir supprimer la facture <strong th:text="${dto.facture.ref}"></strong>?</p>
+                            <p class="text-danger mb-0">
+                              <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                              Cette action est irréversible.
+                            </p>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <form th:action="@{/factures/delete/{id}(id=${dto.facture.id})}" method="post" class="d-inline">
+                              <button type="submit" class="btn btn-danger">Supprimer</button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

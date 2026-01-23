@@ -58,22 +58,9 @@
                       <span class="text-muted">Ar</span>
                     </td>
                   </tr>
-                  <tr>
-                    <th>Date de paiement:</th>
-                    <td>
-                      <span th:if="${diffusion.paymentDate != null}" th:text="${#temporals.format(diffusion.paymentDate, 'dd/MM/yyyy HH:mm')}"></span>
-                      <span th:if="${diffusion.paymentDate == null}" class="text-muted">Non payé</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>Statut:</th>
-                    <td>
-                      <span 
-                        class="badge"
-                        th:classappend="${diffusion.status == 'PAYE'} ? 'bg-success' : (${diffusion.status == 'EN_ATTENTE'} ? 'bg-warning' : 'bg-danger')"
-                        th:text="${diffusion.status}"
-                      ></span>
-                    </td>
+                  <tr th:if="${diffusion.designation != null && !diffusion.designation.isEmpty()}">
+                    <th>Désignation:</th>
+                    <td th:text="${diffusion.designation}"></td>
                   </tr>
                 </tbody>
               </table>
