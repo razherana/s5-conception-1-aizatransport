@@ -22,4 +22,14 @@ public interface TripRepository extends JpaRepository<Trip, Integer> {
   })
   @Query("SELECT t FROM Trip t")
   public List<Trip> findAllWithVehicleSeatsAndSeatType();
+
+  @EntityGraph(attributePaths = {
+      "vehicle",
+      "diffusions",
+      "route",
+      "route.departureDestination",
+      "route.arrivalDestination"
+  })
+  @Query("SELECT t FROM Trip t")
+  public List<Trip> findAllWithDiffusions();
 }

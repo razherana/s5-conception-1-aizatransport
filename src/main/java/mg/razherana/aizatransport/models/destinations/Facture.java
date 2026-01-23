@@ -31,9 +31,9 @@ public class Facture extends BasicEntity {
     @Column(name = "ref", nullable = false, length = 100)
     private String ref;
     
-    @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL)
     private Set<FactureDiffusionFille> factureDiffusionFilles = new HashSet<>();
     
-    @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "facture", cascade = CascadeType.ALL)
     private Set<FacturePayment> facturePayments = new HashSet<>();
 }

@@ -7,11 +7,15 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import mg.razherana.aizatransport.models.destinations.Facture;
+import mg.razherana.aizatransport.models.destinations.FacturePayment;
 import mg.razherana.aizatransport.models.destinations.Reservation;
 import mg.razherana.aizatransport.models.destinations.Reservation.ReservationStatus;
 import mg.razherana.aizatransport.models.destinations.Revenue;
@@ -25,6 +29,7 @@ public class RevenueService {
   private final RevenueRepository revenueRepository;
   private final ReservationService reservationService;
   private final DiffusionService diffusionService;
+  private final FactureDiffusionFilleService factureDiffusionFilleService;
 
   public List<Revenue> findAll() {
     return revenueRepository.findAll();
@@ -111,10 +116,12 @@ public class RevenueService {
         .collect(Collectors.toList());
   }
 
+  @Transactional
   public double getCATotalTrip(Trip trip, LocalDateTime min, LocalDateTime max) {
     return getCADiffusions(trip, min, max) + getCAReservations(trip, min, max);
   }
 
+  @Transactional
   public double getCAReservations(Trip trip, LocalDateTime min, LocalDateTime max) {
     return reservationService.findAll().stream()
         .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(trip.getId()))
@@ -124,13 +131,46 @@ public class RevenueService {
         .mapToDouble(Reservation::getTotalAmount)
         .sum();
   }
-  
+
+  @Transactional
   public double getCADiffusions(Trip trip, LocalDateTime min, LocalDateTime max) {
     return diffusionService.findAll().stream()
         .filter(d -> d.getTrip() != null && d.getTrip().getId().equals(trip.getId()))
-        .filter(r -> (r.getTrip().getDepartureDatetime().isAfter(min) || r.getTrip().getDepartureDatetime().isEqual(min))
+        .filter(r -> (r.getTrip().getDepartureDatetime().isAfter(min)
+            || r.getTrip().getDepartureDatetime().isEqual(min))
             && (r.getTrip().getDepartureDatetime().isBefore(max) || r.getTrip().getDepartureDatetime().isEqual(max)))
         .mapToDouble(d -> d.getAmount())
         .sum();
+  }
+
+  @Transactional
+  public double getPaidDiffusions(Trip trip, LocalDateTime min, LocalDateTime max) {
+    var factures = factureDiffusionFilleService.findAll().stream()
+        .filter(ff -> ff.getDiffusion().getTrip().getId() == trip.getId())
+        .map(f -> f.getFacture())
+        .collect(Collectors.toSet());
+
+    double sum = 0.0;
+    for (Facture facture : factures) {
+      Set<FacturePayment> paidFactures = facture.getFacturePayments();
+      paidFactures.removeIf(f -> !((f.getPaymentDate().isAfter(min) || f.getPaymentDate().equals(min))
+              && (f.getPaymentDate().isBefore(max) || f.getPaymentDate().isEqual(max))));
+      sum += paidFactures.stream().mapToDouble(fp -> fp.getAmount()).sum();
+    }
+    return sum;
+  }
+
+  @Transactional
+  public double getRemainingAmountDiffusions(Trip trip, LocalDateTime min, LocalDateTime max) {
+    return getCADiffusions(trip, min, max) - getPaidDiffusions(trip, min, max);
+  }
+
+  @Transactional
+  public int getNbDiffusions(Trip trip, LocalDateTime min, LocalDateTime max) {
+    return trip.getDiffusions().stream()
+      .filter(r -> (r.getTrip().getDepartureDatetime().isAfter(min)
+            || r.getTrip().getDepartureDatetime().isEqual(min))
+            && (r.getTrip().getDepartureDatetime().isBefore(max) || r.getTrip().getDepartureDatetime().isEqual(max)))
+      .toList().size();
   }
 }

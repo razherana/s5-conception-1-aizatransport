@@ -148,8 +148,6 @@ INSERT INTO public.routes (departure_destination, arrival_destination, distance_
 -- ROUTE PRICES (Prix des trajets)
 -- ============================================
 INSERT INTO public.route_prices (route_id, trip_type_id, seat_type_id, price, effective_date) VALUES
--- Route Antananarivo - Antsirabe (169.5 km)
--- Trip Type: Classique
 (1, 1, 1, 25000.00, '2024-01-01'),
 (1, 1, 2, 30000.00, '2024-01-01'),
 (1, 1, 3, 35000.00, '2024-01-01'),

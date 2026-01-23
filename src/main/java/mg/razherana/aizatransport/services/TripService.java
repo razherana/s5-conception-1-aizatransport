@@ -212,4 +212,8 @@ public class TripService {
 
     return resultMap;
   }
+
+  public List<Trip> findAllWithDiffusions() {
+    return tripRepository.findAllWithDiffusions();
+  }
 }

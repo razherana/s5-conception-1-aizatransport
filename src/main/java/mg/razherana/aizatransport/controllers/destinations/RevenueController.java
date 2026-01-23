@@ -46,6 +46,9 @@ public class RevenueController {
     private double caReservations;
     private double caDiffusions;
     private double caTotal;
+    private double paidDiffusions;
+    private double remainingDiffusions;
+    private int nbDiffusions;
   }
 
   @GetMapping
@@ -184,7 +187,7 @@ public class RevenueController {
         : LocalDateTime.MAX;
     
     // Get all trips
-    List<Trip> allTrips = tripService.findAll();
+    List<Trip> allTrips = tripService.findAllWithDiffusions();
     
     // Calculate CA for each trip and build stats list
     List<TripCAStat> tripStats = new ArrayList<>();
@@ -192,23 +195,31 @@ public class RevenueController {
     
     double totalReservations = 0.0;
     double totalDiffusions = 0.0;
+    double totalPaidDiffusions = 0.0;
+    double totalRemainingDiffusions = 0.0;
     
     for (Trip trip : allTrips) {
       double caReservations = revenueService.getCAReservations(trip, minDate, maxDate);
       double caDiffusions = revenueService.getCADiffusions(trip, minDate, maxDate);
       double caTotal = revenueService.getCATotalTrip(trip, minDate, maxDate);
+      double paidDiffusions = revenueService.getPaidDiffusions(trip, minDate, maxDate);
+      double remainingDiffusions = revenueService.getRemainingAmountDiffusions(trip, minDate, maxDate);
+      int nbDiffusions = revenueService.getNbDiffusions(trip, minDate, maxDate);
       
       // Only include trips with CA > 0
       if (caTotal > 0) {
-        tripStats.add(new TripCAStat(trip, caReservations, caDiffusions, caTotal));
+        tripStats.add(new TripCAStat(trip, caReservations, caDiffusions, caTotal, paidDiffusions, remainingDiffusions, nbDiffusions));
         tripIdToCA.put(trip.getId(), caTotal);
         
         totalReservations += caReservations;
         totalDiffusions += caDiffusions;
+        totalPaidDiffusions += paidDiffusions;
+        totalRemainingDiffusions += remainingDiffusions;
       }
     }
     
     double totalCA = totalReservations + totalDiffusions;
+ 
     
     // Add attributes to model
     model.addAttribute("tripStats", tripStats);
@@ -216,6 +227,8 @@ public class RevenueController {
     model.addAttribute("totalReservations", totalReservations);
     model.addAttribute("totalDiffusions", totalDiffusions);
     model.addAttribute("totalCA", totalCA);
+    model.addAttribute("totalPaidDiffusions", totalPaidDiffusions);
+    model.addAttribute("totalRemainingDiffusions", totalRemainingDiffusions);
     model.addAttribute("dateMin", minDate.toString());
     model.addAttribute("dateMax", maxDate.toString());
     
