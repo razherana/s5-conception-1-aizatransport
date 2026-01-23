@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html
   xmlns:th="http://www.thymeleaf.org"
   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -18,15 +18,31 @@
       </div>
 
       <!-- Messages flash -->
-      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+      <div
+        th:if="${success}"
+        class="alert alert-success alert-dismissible fade show"
+        role="alert"
+      >
         <i class="fa-solid fa-check-circle me-2"></i>
         <span th:text="${success}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
       </div>
-      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+      <div
+        th:if="${error}"
+        class="alert alert-danger alert-dismissible fade show"
+        role="alert"
+      >
         <i class="fa-solid fa-exclamation-circle me-2"></i>
         <span th:text="${error}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
       </div>
 
       <!-- Filtres de période -->
@@ -39,11 +55,11 @@
                   <i class="fa-solid fa-calendar me-1"></i>
                   Date début
                 </label>
-                <input 
-                  type="datetime-local" 
-                  name="dateMin" 
-                  class="form-control" 
-                  th:value="${dateMin}" 
+                <input
+                  type="datetime-local"
+                  name="dateMin"
+                  class="form-control"
+                  th:value="${dateMin}"
                   required
                 />
               </div>
@@ -52,10 +68,10 @@
                   <i class="fa-solid fa-calendar me-1"></i>
                   Date fin
                 </label>
-                <input 
-                  type="datetime-local" 
-                  name="dateMax" 
-                  class="form-control" 
+                <input
+                  type="datetime-local"
+                  name="dateMax"
+                  class="form-control"
                   th:value="${dateMax}"
                   required
                 />
@@ -79,7 +95,12 @@
               <div class="d-flex justify-content-between align-items-center">
                 <div>
                   <p class="text-muted mb-1">CA Total</p>
-                  <h3 class="mb-0" th:text="${#numbers.formatDecimal(totalCA, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</h3>
+                  <h3
+                    class="mb-0"
+                    th:text="${#numbers.formatDecimal(totalCA, 0, 'COMMA', 2, 'POINT')} + ' Ar'"
+                  >
+                    0.00 Ar
+                  </h3>
                 </div>
                 <div class="text-primary">
                   <i class="fa-solid fa-money-bill-wave fa-2x"></i>
@@ -94,7 +115,12 @@
               <div class="d-flex justify-content-between align-items-center">
                 <div>
                   <p class="text-muted mb-1">CA Réservations</p>
-                  <h3 class="mb-0" th:text="${#numbers.formatDecimal(totalReservations, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</h3>
+                  <h3
+                    class="mb-0"
+                    th:text="${#numbers.formatDecimal(totalReservations, 0, 'COMMA', 2, 'POINT')} + ' Ar'"
+                  >
+                    0.00 Ar
+                  </h3>
                 </div>
                 <div class="text-success">
                   <i class="fa-solid fa-calendar-check fa-2x"></i>
@@ -109,7 +135,12 @@
               <div class="d-flex justify-content-between align-items-center">
                 <div>
                   <p class="text-muted mb-1">CA Diffusions</p>
-                  <h3 class="mb-0" th:text="${#numbers.formatDecimal(totalDiffusions, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</h3>
+                  <h3
+                    class="mb-0"
+                    th:text="${#numbers.formatDecimal(totalDiffusions, 0, 'COMMA', 2, 'POINT')} + ' Ar'"
+                  >
+                    0.00 Ar
+                  </h3>
                 </div>
                 <div class="text-info">
                   <i class="fa-solid fa-broadcast-tower fa-2x"></i>
@@ -155,46 +186,62 @@
                     <strong th:text="${stat.trip.id}">1</strong>
                   </td>
                   <td>
-                    <span 
+                    <span
                       th:if="${stat.trip.route != null}"
-                      th:text="${stat.trip.route.departureDestination.name} + ' → ' + ${stat.trip.route.arrivalDestination.name}">
+                      th:text="${stat.trip.route.departureDestination.name} + ' → ' + ${stat.trip.route.arrivalDestination.name}"
+                    >
                       Itinéraire
                     </span>
-                    <span th:unless="${stat.trip.route != null}" class="text-muted">-</span>
+                    <span
+                      th:unless="${stat.trip.route != null}"
+                      class="text-muted"
+                      >-</span
+                    >
                   </td>
                   <td>
-                    <span th:text="${stat.trip.vehicle.plateNumber}">
-                    </span>
+                    <span th:text="${stat.trip.vehicle.plateNumber}"> </span>
                   </td>
                   <td>
                     <i class="fa-solid fa-calendar me-1"></i>
-                    <span th:text="${#temporals.format(stat.trip.departureDatetime, 'dd/MM/yyyy HH:mm')}">
+                    <span
+                      th:text="${#temporals.format(stat.trip.departureDatetime, 'dd/MM/yyyy HH:mm')}"
+                    >
                       01/01/2024 08:00
                     </span>
                   </td>
                   <td>
-                    <span 
+                    <span
                       class="badge"
                       th:classappend="${stat.trip.status == 'TERMINE' ? 'bg-success' : 
                                        stat.trip.status == 'EN_COURS' ? 'bg-primary' : 
                                        stat.trip.status == 'PLANIFIE' ? 'bg-info' : 
                                        stat.trip.status == 'ANNULE' ? 'bg-danger' : 'bg-secondary'}"
-                      th:text="${stat.trip.status}">
+                      th:text="${stat.trip.status}"
+                    >
                       TERMINE
                     </span>
                   </td>
                   <td class="text-end">
-                    <span class="text-success fw-bold" th:text="${#numbers.formatDecimal(stat.caReservations, 0, 'COMMA', 2, 'POINT')} + ' Ar'">
+                    <span
+                      class="text-success fw-bold"
+                      th:text="${#numbers.formatDecimal(stat.caReservations, 0, 'COMMA', 2, 'POINT')} + ' Ar'"
+                    >
                       0.00 Ar
                     </span>
                   </td>
                   <td class="text-end">
-                    <span class="text-info fw-bold" th:text="${#numbers.formatDecimal(stat.caDiffusions, 0, 'COMMA', 2, 'POINT')} + ' Ar'">
+                    <span
+                      class="text-info fw-bold"
+                      th:text="${#numbers.formatDecimal(stat.caDiffusions, 0, 'COMMA', 2, 'POINT')} + ' Ar'"
+                    >
                       0.00 Ar
                     </span>
                   </td>
                   <td class="text-end">
-                    <span class="text-primary fw-bold" th:text="${#numbers.formatDecimal(stat.caTotal, 0, 'COMMA', 2, 'POINT')} + ' Ar'">
+                    <span
+                      class="text-primary fw-bold"
+                      th:text="${#numbers.formatDecimal(stat.caTotal, 0, 'COMMA', 2, 'POINT')} + ' Ar'"
+                    >
                       0.00 Ar
                     </span>
                   </td>
@@ -202,18 +249,31 @@
               </tbody>
               <tfoot class="table-light">
                 <tr>
-                  <th colspan="4" class="text-end">Total général:</th>
-                  <th class="text-end text-success" th:text="${#numbers.formatDecimal(totalReservations, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</th>
-                  <th class="text-end text-info" th:text="${#numbers.formatDecimal(totalDiffusions, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</th>
-                  <th class="text-end text-primary" th:text="${#numbers.formatDecimal(totalCA, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</th>
+                  <th colspan="5" class="text-end">Total général:</th>
+                  <th
+                    class="text-end text-success"
+                    th:text="${#numbers.formatDecimal(totalReservations, 0, 'COMMA', 2, 'POINT')} + ' Ar'"
+                  >
+                    0.00 Ar
+                  </th>
+                  <th
+                    class="text-end text-info"
+                    th:text="${#numbers.formatDecimal(totalDiffusions, 0, 'COMMA', 2, 'POINT')} + ' Ar'"
+                  >
+                    0.00 Ar
+                  </th>
+                  <th
+                    class="text-end text-primary"
+                    th:text="${#numbers.formatDecimal(totalCA, 0, 'COMMA', 2, 'POINT')} + ' Ar'"
+                  >
+                    0.00 Ar
+                  </th>
                 </tr>
               </tfoot>
             </table>
           </div>
         </div>
       </div>
-
     </section>
-
   </body>
 </html>
