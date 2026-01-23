@@ -48,7 +48,11 @@ public class SidebarControllerAdvice {
 
     // Gestion Section
     SidebarDTO gestion = SidebarDTO.createMenuStatic("Gestion");
-    gestion.createItem("Recettes", "/revenues", "fa-solid fa-money-bill-wave");
+    var recettesMenu = gestion.createMenu("Recettes");
+
+    recettesMenu.createItem("Recettes", "/revenues", "fa-solid fa-cash-register");
+    recettesMenu.createItem("Statistiques CA par voyage", "/revenues/ca-stats", "fa-solid fa-chart-line");
+
     gestion.createItem("Réservations", "/reservations", "fa-solid fa-ticket");
     gestion.createItem("Diffusions", "/diffusions", "fa-solid fa-bullhorn");
     gestion.createItem("Tickets", "/tickets", "fa-solid fa-ticket");
@@ -59,7 +63,7 @@ public class SidebarControllerAdvice {
             "Types de dépenses",
             "/expenses-types",
             "fa-solid fa-list");
-    
+
     gestion.createItem("Types de réduction", "/discount-types", "fa-solid fa-percent");
 
     sidebarItems.add(gestion);

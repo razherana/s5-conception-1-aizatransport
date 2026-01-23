@@ -1,6 +1,10 @@
 package mg.razherana.aizatransport.controllers.destinations;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,11 +16,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import mg.razherana.aizatransport.models.destinations.Revenue;
+import mg.razherana.aizatransport.models.destinations.Trip;
 import mg.razherana.aizatransport.services.DiffusionService;
 import mg.razherana.aizatransport.services.ReservationService;
 import mg.razherana.aizatransport.services.RevenueService;
+import mg.razherana.aizatransport.services.TripService;
 
 @Controller
 @RequestMapping("/revenues")
@@ -26,6 +34,19 @@ public class RevenueController {
   private final RevenueService revenueService;
   private final ReservationService reservationService;
   private final DiffusionService diffusionService;
+  private final TripService tripService;
+
+  /**
+   * DTO for trip CA statistics
+   */
+  @Data
+  @AllArgsConstructor
+  public static class TripCAStat {
+    private Trip trip;
+    private double caReservations;
+    private double caDiffusions;
+    private double caTotal;
+  }
 
   @GetMapping
   public String list(
@@ -147,5 +168,62 @@ public class RevenueController {
     revenueService.deleteById(id);
     redirectAttributes.addFlashAttribute("success", "Recette supprimée avec succès!");
     return "redirect:/revenues";
+  }
+
+  /**
+   * Display CA statistics by trip for reservations and diffusions
+   */
+  @GetMapping("/ca-stats")
+  public String caStats(
+      @RequestParam(required = false) String dateMin,
+      @RequestParam(required = false) String dateMax,
+      Model model) {
+    
+    // Default date range: current month
+    LocalDateTime minDate = dateMin != null && !dateMin.isEmpty() 
+        ? LocalDateTime.parse(dateMin) 
+        : LocalDateTime.MIN;
+    
+    LocalDateTime maxDate = dateMax != null && !dateMax.isEmpty() 
+        ? LocalDateTime.parse(dateMax) 
+        : LocalDateTime.MAX;
+    
+    // Get all trips
+    List<Trip> allTrips = tripService.findAll();
+    
+    // Calculate CA for each trip and build stats list
+    List<TripCAStat> tripStats = new ArrayList<>();
+    Map<Integer, Double> tripIdToCA = new HashMap<>();
+    
+    double totalReservations = 0.0;
+    double totalDiffusions = 0.0;
+    
+    for (Trip trip : allTrips) {
+      double caReservations = revenueService.getCAReservations(trip, minDate, maxDate);
+      double caDiffusions = revenueService.getCADiffusions(trip, minDate, maxDate);
+      double caTotal = revenueService.getCATotalTrip(trip, minDate, maxDate);
+      
+      // Only include trips with CA > 0
+      if (caTotal > 0) {
+        tripStats.add(new TripCAStat(trip, caReservations, caDiffusions, caTotal));
+        tripIdToCA.put(trip.getId(), caTotal);
+        
+        totalReservations += caReservations;
+        totalDiffusions += caDiffusions;
+      }
+    }
+    
+    double totalCA = totalReservations + totalDiffusions;
+    
+    // Add attributes to model
+    model.addAttribute("tripStats", tripStats);
+    model.addAttribute("tripIdToCA", tripIdToCA);
+    model.addAttribute("totalReservations", totalReservations);
+    model.addAttribute("totalDiffusions", totalDiffusions);
+    model.addAttribute("totalCA", totalCA);
+    model.addAttribute("dateMin", minDate.toString());
+    model.addAttribute("dateMax", maxDate.toString());
+    
+    return "pages/destinations/revenues/ca-reservation-diffusion";
   }
 }

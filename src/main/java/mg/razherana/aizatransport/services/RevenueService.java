@@ -12,7 +12,10 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import mg.razherana.aizatransport.models.destinations.Reservation;
 import mg.razherana.aizatransport.models.destinations.Revenue;
+import mg.razherana.aizatransport.models.destinations.Trip;
+import mg.razherana.aizatransport.models.destinations.Reservation.ReservationStatus;
 import mg.razherana.aizatransport.repositories.RevenueRepository;
 
 @Service
@@ -20,12 +23,15 @@ import mg.razherana.aizatransport.repositories.RevenueRepository;
 public class RevenueService {
 
   private final RevenueRepository revenueRepository;
+  private final ReservationService reservationService;
+  private final DiffusionFilleService diffusionFilleService;
 
   public List<Revenue> findAll() {
     return revenueRepository.findAll();
   }
 
-  public List<Revenue> findAllFiltered(String sourceType, String paymentMethod, String dateMin, String dateMax, String sortBy, String sortOrder) {
+  public List<Revenue> findAllFiltered(String sourceType, String paymentMethod, String dateMin, String dateMax,
+      String sortBy, String sortOrder) {
     List<Revenue> revenues = revenueRepository.findAll();
 
     // Filtrage par type de source
@@ -103,5 +109,28 @@ public class RevenueService {
     return Arrays.stream(Revenue.PaymentMethod.values())
         .map(Enum::name)
         .collect(Collectors.toList());
+  }
+
+  public double getCATotalTrip(Trip trip, LocalDateTime min, LocalDateTime max) {
+    return getCADiffusions(trip, min, max) + getCAReservations(trip, min, max);
+  }
+
+  public double getCAReservations(Trip trip, LocalDateTime min, LocalDateTime max) {
+    return reservationService.findAll().stream()
+        .filter(r -> r.getTrip() != null && r.getTrip().getId().equals(trip.getId()))
+        .filter(r -> (r.getReservationDate().isAfter(min) || r.getReservationDate().isEqual(min))
+            && (r.getReservationDate().isBefore(max) || r.getReservationDate().isEqual(max)))
+        .filter(r -> r.getStatusEnum() == ReservationStatus.PAYE)
+        .mapToDouble(Reservation::getTotalAmount)
+        .sum();
+  }
+
+  public double getCADiffusions(Trip trip, LocalDateTime min, LocalDateTime max) {
+    return diffusionFilleService.findAll().stream()
+        .filter(d -> d.getDiffusion().getTrip() != null && d.getDiffusion().getTrip().getId().equals(trip.getId()))
+        .filter(r -> (r.getPaymentDate().isAfter(min) || r.getPaymentDate().isEqual(min))
+            && (r.getPaymentDate().isBefore(max) || r.getPaymentDate().isEqual(max)))
+        .mapToDouble(d -> d.getAmount())
+        .sum();
   }
 }

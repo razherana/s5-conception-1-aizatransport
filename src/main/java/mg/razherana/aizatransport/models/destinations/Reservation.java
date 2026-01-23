@@ -49,4 +49,8 @@ public class Reservation extends BasicExpenseEntity {
     ANNULE;
   }
 
+  public double getTotalAmount() {
+    return this.getAmount() - (this.getDiscount() != null ? this.getDiscount() : 0);
+  }
+
 }

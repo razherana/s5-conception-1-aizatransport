@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>CA Réservations et Diffusions par Trajet</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-chart-line me-2"></i>
+          Chiffre d'Affaires par Trajet
+        </h1>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- Filtres de période -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <form method="get" th:action="@{/revenues/ca-stats}">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">
+                  <i class="fa-solid fa-calendar me-1"></i>
+                  Date début
+                </label>
+                <input 
+                  type="datetime-local" 
+                  name="dateMin" 
+                  class="form-control" 
+                  th:value="${dateMin}" 
+                  required
+                />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">
+                  <i class="fa-solid fa-calendar me-1"></i>
+                  Date fin
+                </label>
+                <input 
+                  type="datetime-local" 
+                  name="dateMax" 
+                  class="form-control" 
+                  th:value="${dateMax}"
+                  required
+                />
+              </div>
+              <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                  <i class="fa-solid fa-filter me-2"></i>
+                  Filtrer
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Statistiques globales -->
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <p class="text-muted mb-1">CA Total</p>
+                  <h3 class="mb-0" th:text="${#numbers.formatDecimal(totalCA, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</h3>
+                </div>
+                <div class="text-primary">
+                  <i class="fa-solid fa-money-bill-wave fa-2x"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <p class="text-muted mb-1">CA Réservations</p>
+                  <h3 class="mb-0" th:text="${#numbers.formatDecimal(totalReservations, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</h3>
+                </div>
+                <div class="text-success">
+                  <i class="fa-solid fa-calendar-check fa-2x"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <p class="text-muted mb-1">CA Diffusions</p>
+                  <h3 class="mb-0" th:text="${#numbers.formatDecimal(totalDiffusions, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</h3>
+                </div>
+                <div class="text-info">
+                  <i class="fa-solid fa-broadcast-tower fa-2x"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tableau des CA par trajet -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-list me-2"></i>
+            Détails par Trajet
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID Trajet</th>
+                  <th>Itinéraire</th>
+                  <th>Date départ</th>
+                  <th>Statut</th>
+                  <th class="text-end">CA Réservations</th>
+                  <th class="text-end">CA Diffusions</th>
+                  <th class="text-end">CA Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(tripStats)}">
+                  <td colspan="7" class="text-center text-muted py-4">
+                    <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
+                    Aucun trajet trouvé pour la période sélectionnée
+                  </td>
+                </tr>
+                <tr th:each="stat : ${tripStats}">
+                  <td>
+                    <strong th:text="${stat.trip.id}">1</strong>
+                  </td>
+                  <td>
+                    <span 
+                      th:if="${stat.trip.route != null}"
+                      th:text="${stat.trip.route.departureDestination.name} + ' → ' + ${stat.trip.route.arrivalDestination.name}">
+                      Itinéraire
+                    </span>
+                    <span th:unless="${stat.trip.route != null}" class="text-muted">-</span>
+                  </td>
+                  <td>
+                    <i class="fa-solid fa-calendar me-1"></i>
+                    <span th:text="${#temporals.format(stat.trip.departureDatetime, 'dd/MM/yyyy HH:mm')}">
+                      01/01/2024 08:00
+                    </span>
+                  </td>
+                  <td>
+                    <span 
+                      class="badge"
+                      th:classappend="${stat.trip.status == 'TERMINE' ? 'bg-success' : 
+                                       stat.trip.status == 'EN_COURS' ? 'bg-primary' : 
+                                       stat.trip.status == 'PLANIFIE' ? 'bg-info' : 
+                                       stat.trip.status == 'ANNULE' ? 'bg-danger' : 'bg-secondary'}"
+                      th:text="${stat.trip.status}">
+                      TERMINE
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <span class="text-success fw-bold" th:text="${#numbers.formatDecimal(stat.caReservations, 0, 'COMMA', 2, 'POINT')} + ' Ar'">
+                      0.00 Ar
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <span class="text-info fw-bold" th:text="${#numbers.formatDecimal(stat.caDiffusions, 0, 'COMMA', 2, 'POINT')} + ' Ar'">
+                      0.00 Ar
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <span class="text-primary fw-bold" th:text="${#numbers.formatDecimal(stat.caTotal, 0, 'COMMA', 2, 'POINT')} + ' Ar'">
+                      0.00 Ar
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot class="table-light">
+                <tr>
+                  <th colspan="4" class="text-end">Total général:</th>
+                  <th class="text-end text-success" th:text="${#numbers.formatDecimal(totalReservations, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</th>
+                  <th class="text-end text-info" th:text="${#numbers.formatDecimal(totalDiffusions, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</th>
+                  <th class="text-end text-primary" th:text="${#numbers.formatDecimal(totalCA, 0, 'COMMA', 2, 'POINT')} + ' Ar'">0.00 Ar</th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graphique CA par trajet -->
+      <div class="card bg-white border-0 shadow-sm mt-4" th:if="${!#lists.isEmpty(tripStats)}">
+        <div class="card-header bg-white border-bottom py-3">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-chart-bar me-2"></i>
+            Graphique CA par Trajet
+          </h5>
+        </div>
+        <div class="card-body">
+          <canvas id="caChart" height="100"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chart.js Script -->
+    <script layout:fragment="scripts" th:inline="javascript">
+      document.addEventListener('DOMContentLoaded', function() {
+        const tripStats = /*[[${tripStats}]]*/ [];
+        
+        if (tripStats && tripStats.length > 0) {
+          const ctx = document.getElementById('caChart');
+          
+          const labels = tripStats.map(stat => `Trajet ${stat.trip.id}`);
+          const caReservations = tripStats.map(stat => stat.caReservations);
+          const caDiffusions = tripStats.map(stat => stat.caDiffusions);
+          
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: 'CA Réservations',
+                  data: caReservations,
+                  backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                  borderColor: 'rgba(40, 167, 69, 1)',
+                  borderWidth: 1
+                },
+                {
+                  label: 'CA Diffusions',
+                  data: caDiffusions,
+                  backgroundColor: 'rgba(23, 162, 184, 0.7)',
+                  borderColor: 'rgba(23, 162, 184, 1)',
+                  borderWidth: 1
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: function(value) {
+                      return value.toLocaleString('fr-FR') + ' Ar';
+                    }
+                  }
+                }
+              },
+              plugins: {
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      let label = context.dataset.label || '';
+                      if (label) {
+                        label += ': ';
+                      }
+                      label += context.parsed.y.toLocaleString('fr-FR') + ' Ar';
+                      return label;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
