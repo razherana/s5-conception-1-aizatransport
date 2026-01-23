@@ -107,6 +107,7 @@ public class DiffusionController {
     // Create multiple diffusions based on quantitys
     for (int i = 0; i < quantity; i++) {
       Diffusion newDiffusion = new Diffusion();
+      newDiffusion.setDesignation(diffusion.getDesignation());
       newDiffusion.setClient(diffusion.getClient());
       newDiffusion.setTrip(diffusion.getTrip());
       newDiffusion.setAmount(diffusion.getAmount());
@@ -290,6 +291,7 @@ public class DiffusionController {
       System.out.println("Amount remaining: " + amountRemaining);
       
       if (amount > amountRemaining) {
+        System.out.println("Payment amount exceeds remaining amount!");
         redirectAttributes.addFlashAttribute("error", 
             "Le montant du paiement (" + amount + " Ar) dépasse le reste à payer (" + 
             amountRemaining + " Ar)!");

@@ -80,9 +80,9 @@ INSERT INTO public.drivers (full_name, license_number, phone, status, created_at
 -- ============================================
 -- CLIENT TYPES (Types de clients)
 -- ============================================
-INSERT INTO public.client_types (name, description) VALUES
-('Passager', 'Client individuel voyageant seul ou en petit groupe'),
-('Société', 'Client professionnel ou entreprise pour transport de groupe');
+INSERT INTO public.client_types (name, active) VALUES
+('Passager', true),
+('Société', true);
 
 -- ============================================
 -- CLIENTS (Clients)
