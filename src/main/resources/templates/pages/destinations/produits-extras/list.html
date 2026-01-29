@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Liste des produits extras</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-box me-2"></i>
+          Produits extras
+        </h1>
+        <a th:href="@{/produits-extras/create}" class="btn btn-primary">
+          <i class="fa-solid fa-plus me-1"></i>
+          Nouveau produit
+        </a>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <!-- Filtres et tri -->
+      <div class="card mb-4 bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <form method="get" th:action="@{/produits-extras}">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">
+                  <i class="fa-solid fa-filter me-1"></i>
+                  Nom du produit
+                </label>
+                <input
+                  type="text"
+                  name="nom"
+                  class="form-control"
+                  placeholder="Rechercher par nom..."
+                  th:value="${selectedNom}"
+                />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-coins me-1"></i>
+                  Prix minimum
+                </label>
+                <input
+                  type="number"
+                  name="prixMin"
+                  class="form-control"
+                  placeholder="0"
+                  step="0.01"
+                  th:value="${selectedPrixMin}"
+                />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-coins me-1"></i>
+                  Prix maximum
+                </label>
+                <input
+                  type="number"
+                  name="prixMax"
+                  class="form-control"
+                  placeholder="1000000"
+                  step="0.01"
+                  th:value="${selectedPrixMax}"
+                />
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">
+                  <i class="fa-solid fa-sort me-1"></i>
+                  Trier par
+                </label>
+                <select name="sortBy" class="form-select">
+                  <option value="nom" th:selected="${sortBy == 'nom'}">Nom</option>
+                  <option value="prix" th:selected="${sortBy == 'prix'}">Prix</option>
+                  <option value="id" th:selected="${sortBy == 'id'}">ID</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Ordre</label>
+                <select name="sortOrder" class="form-select">
+                  <option value="asc" th:selected="${sortOrder == 'asc'}">Croissant</option>
+                  <option value="desc" th:selected="${sortOrder == 'desc'}">Décroissant</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary me-2">
+                  <i class="fa-solid fa-search me-1"></i>
+                  Filtrer
+                </button>
+                <a th:href="@{/produits-extras}" class="btn btn-outline-secondary">
+                  <i class="fa-solid fa-times me-1"></i>
+                  Réinitialiser
+                </a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card bg-white border-0 shadow-sm">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Nom</th>
+                  <th class="text-end">Prix</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:if="${#lists.isEmpty(produits)}">
+                  <td colspan="4" class="text-center text-muted py-4">
+                    <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
+                    Aucun produit extra trouvé
+                  </td>
+                </tr>
+                <tr th:each="produit : ${produits}">
+                  <td th:text="${produit.id}">1</td>
+                  <td>
+                    <strong th:text="${produit.nom}">Produit A</strong>
+                  </td>
+                  <td class="text-end">
+                    <strong th:text="${#numbers.formatDecimal(produit.prix, 0, 'POINT', 2, 'COMMA')} + ' Ar'">10,000.00 Ar</strong>
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group" role="group">
+                      <a
+                        th:href="@{/produits-extras/{id}(id=${produit.id})}"
+                        class="btn btn-sm btn-outline-info"
+                        title="Voir"
+                      >
+                        <i class="fa-solid fa-eye"></i>
+                      </a>
+                      <a
+                        th:href="@{/produits-extras/update/{id}(id=${produit.id})}"
+                        class="btn btn-sm btn-outline-primary"
+                        title="Modifier"
+                      >
+                        <i class="fa-solid fa-edit"></i>
+                      </a>
+                      <a
+                        th:href="@{/produits-extras/delete/{id}(id=${produit.id})}"
+                        class="btn btn-sm btn-outline-danger"
+                        title="Supprimer"
+                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?');"
+                      >
+                        <i class="fa-solid fa-trash"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-3 text-muted small">
+            <i class="fa-solid fa-info-circle me-1"></i>
+            Total: <strong th:text="${#lists.size(produits)}">0</strong> produit(s)
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

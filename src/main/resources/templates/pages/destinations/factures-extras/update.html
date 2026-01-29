@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Modifier facture extra</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-edit me-2"></i>
+          Modifier facture extra
+        </h1>
+        <a th:href="@{/factures-extras}" class="btn btn-secondary">
+          <i class="fa-solid fa-arrow-left me-2"></i>Retour
+        </a>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card bg-white border-0 shadow-sm">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Informations de la facture extra</h5>
+            </div>
+            <div class="card-body">
+              <form th:action="@{/factures-extras/update/{id}(id=${facture.id})}" method="post" th:object="${facture}">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="client" class="form-label">
+                      Client <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="client" th:field="*{client.id}" required>
+                      <option value="">Sélectionner un client</option>
+                      <option th:each="client : ${clients}" 
+                              th:value="${client.id}" 
+                              th:text="${client.fullName}"></option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="date" class="form-label">
+                      Date de facture <span class="text-danger">*</span>
+                    </label>
+                    <input type="date" class="form-control" id="date" 
+                           th:field="*{date}" required>
+                  </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-flex justify-content-end gap-2">
+                  <a th:href="@{/factures-extras}" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-times me-1"></i>Annuler
+                  </a>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-save me-1"></i>Enregistrer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

@@ -30,6 +30,7 @@ public class RevenueService {
   private final ReservationService reservationService;
   private final DiffusionService diffusionService;
   private final FactureDiffusionFilleService factureDiffusionFilleService;
+  private final FactureExtraService factureExtraService;
 
   public List<Revenue> findAll() {
     return revenueRepository.findAll();
@@ -172,5 +173,18 @@ public class RevenueService {
             || r.getTrip().getDepartureDatetime().isEqual(min))
             && (r.getTrip().getDepartureDatetime().isBefore(max) || r.getTrip().getDepartureDatetime().isEqual(max)))
       .toList().size();
+  }
+
+  @Transactional
+  public double getCAExtra(LocalDateTime min, LocalDateTime max) {
+    return factureExtraService.findAll().stream()
+        .filter(fe -> fe.getDate() != null)
+        .filter(fe -> {
+          LocalDateTime feDateTime = fe.getDate().atStartOfDay();
+          return (feDateTime.isAfter(min) || feDateTime.isEqual(min))
+              && (feDateTime.isBefore(max) || feDateTime.isEqual(max));
+        })
+        .mapToDouble(fe -> fe.getTotal())
+        .sum();
   }
 }

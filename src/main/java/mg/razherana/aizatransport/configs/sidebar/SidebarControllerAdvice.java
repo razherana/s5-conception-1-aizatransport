@@ -68,5 +68,11 @@ public class SidebarControllerAdvice {
     gestion.createItem("Types de réduction", "/discount-types", "fa-solid fa-percent");
 
     sidebarItems.add(gestion);
+
+    // Extras Section
+    SidebarDTO extras = SidebarDTO.createMenuStatic("Extras");
+    extras.createItem("Produits extras", "/produits-extras", "fa-solid fa-box");
+    extras.createItem("Factures extras", "/factures-extras", "fa-solid fa-file-invoice-dollar");
+    sidebarItems.add(extras);
   }
 }

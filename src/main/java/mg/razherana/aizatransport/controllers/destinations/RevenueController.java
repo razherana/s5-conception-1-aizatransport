@@ -218,14 +218,15 @@ public class RevenueController {
       }
     }
     
-    double totalCA = totalReservations + totalDiffusions;
- 
+    double caExtra = revenueService.getCAExtra(minDate, maxDate);
+    double totalCA = totalReservations + totalDiffusions + caExtra;
     
     // Add attributes to model
     model.addAttribute("tripStats", tripStats);
     model.addAttribute("tripIdToCA", tripIdToCA);
     model.addAttribute("totalReservations", totalReservations);
     model.addAttribute("totalDiffusions", totalDiffusions);
+    model.addAttribute("caExtra", caExtra);
     model.addAttribute("totalCA", totalCA);
     model.addAttribute("totalPaidDiffusions", totalPaidDiffusions);
     model.addAttribute("totalRemainingDiffusions", totalRemainingDiffusions);

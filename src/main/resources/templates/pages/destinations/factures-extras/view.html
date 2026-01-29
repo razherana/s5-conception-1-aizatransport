@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html
+  xmlns:th="http://www.thymeleaf.org"
+  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+  layout:decorate="~{layouts/app}"
+>
+  <head>
+    <title>Détails facture extra</title>
+  </head>
+  <body>
+    <section layout:fragment="content" class="container-fluid py-4">
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">
+          <i class="fa-solid fa-file-invoice-dollar me-2"></i>
+          Facture extra #<span th:text="${facture.id}"></span>
+        </h1>
+        <div>
+          <a th:href="@{/factures-extras/{id}/add-product(id=${facture.id})}" 
+             class="btn btn-success me-2">
+            <i class="fa-solid fa-plus me-2"></i>Ajouter un produit
+          </a>
+          <a th:href="@{/factures-extras/update/{id}(id=${facture.id})}" class="btn btn-primary me-2">
+            <i class="fa-solid fa-edit me-2"></i>Modifier
+          </a>
+          <a href="/factures-extras" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left me-2"></i>Retour
+          </a>
+        </div>
+      </div>
+
+      <!-- Messages flash -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <div class="row">
+        <!-- Invoice Info -->
+        <div class="col-lg-8">
+          <div class="card mb-4 bg-white border-0 shadow-sm">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Informations générales</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="text-muted small">Client</label>
+                  <div class="fw-bold" th:text="${facture.client?.fullName}">Jean Dupont</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="text-muted small">Date de facture</label>
+                  <div th:text="${#temporals.format(facture.date, 'dd/MM/yyyy')}">01/01/2026</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Products -->
+          <div class="card mb-4 bg-white border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">Produits inclus</h5>
+              <a th:href="@{/factures-extras/{id}/add-product(id=${facture.id})}" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-plus me-1"></i>Ajouter
+              </a>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Produit</th>
+                      <th class="text-center">Quantité</th>
+                      <th class="text-end">Prix unitaire</th>
+                      <th class="text-end">Sous-total</th>
+                      <th class="text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr th:if="${#lists.isEmpty(facture.factureExtraFilles)}">
+                      <td colspan="5" class="text-center text-muted py-3">
+                        Aucun produit ajouté
+                      </td>
+                    </tr>
+                    <tr th:each="fille : ${facture.factureExtraFilles}">
+                      <td>
+                        <strong th:text="${fille.produitsExtra?.nom}">Produit A</strong>
+                      </td>
+                      <td class="text-center">
+                        <span th:text="${fille.quantite}">2</span>
+                      </td>
+                      <td class="text-end">
+                        <span th:text="${#numbers.formatDecimal(fille.prixUnitaire, 0, 'POINT', 2, 'COMMA')} + ' Ar'">5,000.00 Ar</span>
+                      </td>
+                      <td class="text-end">
+                        <strong th:text="${#numbers.formatDecimal(fille.getSubTotal(), 0, 'POINT', 2, 'COMMA')} + ' Ar'">10,000.00 Ar</strong>
+                      </td>
+                      <td class="text-center">
+                        <a th:href="@{/factures-extras-filles/delete/{id}(id=${fille.id})}" 
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce produit ?');">
+                          <i class="fa-solid fa-trash"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="table-light">
+                    <tr>
+                      <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                      <td class="text-end">
+                        <strong class="fs-5 text-primary" th:text="${#numbers.formatDecimal(facture.getTotal(), 0, 'POINT', 2, 'COMMA')} + ' Ar'">20,000.00 Ar</strong>
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="col-lg-4">
+          <div class="card bg-white border-0 shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header">
+              <h5 class="card-title mb-0">Résumé</h5>
+            </div>
+            <div class="card-body">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Nombre de produits:</span>
+                <strong th:text="${#lists.size(facture.factureExtraFilles)}">0</strong>
+              </div>
+              <hr>
+              <div class="d-flex justify-content-between">
+                <span class="fw-bold">Montant total:</span>
+                <span class="fs-5 text-primary fw-bold" th:text="${#numbers.formatDecimal(facture.getTotal(), 0, 'POINT', 2, 'COMMA')} + ' Ar'">0.00 Ar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
