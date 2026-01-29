@@ -87,13 +87,15 @@ public class FactureExtraFilleController {
 
   @GetMapping("/delete/{id}")
   public String delete(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    Integer factureExtraId = -1;
     try {
+      factureExtraId = factureExtraFilleService.findById(id).orElse(null).getFactureExtra().getId();
       factureExtraFilleService.deleteById(id);
       redirectAttributes.addFlashAttribute("success", "Ligne de facture supprimée avec succès!");
     } catch (Exception e) {
       redirectAttributes.addFlashAttribute("error", "Erreur lors de la suppression de la ligne de facture!");
     }
-    return "redirect:/factures-extras-filles";
+    return "redirect:/factures-extras/" + factureExtraId;
   }
 
   @GetMapping("/{id}")
